@@ -1,0 +1,28 @@
+# Node & React Native
+apps/mobile/node_modules/
+npm-debug.log
+yarn-error.log
+
+# Android build outputs
+apps/mobile/android/.gradle/
+apps/mobile/android/app/build/
+apps/mobile/android/build/
+apps/mobile/android/local.properties
+apps/mobile/android/.cxx/
+
+# iOS build outputs（如果不用 iOS 可以忽略）
+apps/mobile/ios/build/
+
+# Unity 临时文件
+Library/
+Temp/
+Logs/
+
+# IDE / 可忽略文件
+.idea/
+*.iml
+.vscode/
+
+# 密钥 & 证书
+*.keystore
+*.jks
