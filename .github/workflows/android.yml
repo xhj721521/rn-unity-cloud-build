@@ -51,7 +51,7 @@ jobs:
         working-directory: apps/mobile
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --info --stacktrace
         working-directory: apps/mobile/android
 
       - name: Upload artifact
