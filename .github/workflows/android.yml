@@ -52,6 +52,12 @@ jobs:
         run: chmod +x android/gradlew
         working-directory: apps/mobile
 
+      - name: Generate autolinking config
+        run: |
+          mkdir -p android/build/generated/autolinking
+          npx react-native config > android/build/generated/autolinking/autolinking.json
+        working-directory: apps/mobile
+
       - name: Build Debug APK
         run: ./gradlew assembleDebug --info --stacktrace
         working-directory: apps/mobile/android
