@@ -1,9 +1,9 @@
 name: Android Debug Build
 
 on:
-  workflow_dispatch: {}          # 支持手动触发
+  workflow_dispatch: {}
   push:
-    branches: [ main ]           # 或改成你常用的分支
+    branches: [ main ]
 
 jobs:
   android:
@@ -57,6 +57,25 @@ jobs:
           mkdir -p android/build/generated/autolinking
           npx react-native config > android/build/generated/autolinking/autolinking.json
         working-directory: apps/mobile
+
+      - name: Ensure debug keystore
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEYSTORE="${HOME}/.android/debug.keystore"
+          if [ ! -f "${KEYSTORE}" ]; then
+            mkdir -p "$(dirname "${KEYSTORE}")"
+            keytool -genkeypair \
+              -alias androiddebugkey \
+              -keyalg RSA \
+              -keysize 2048 \
+              -storetype PKCS12 \
+              -keystore "${KEYSTORE}" \
+              -storepass android \
+              -keypass android \
+              -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --info --stacktrace
