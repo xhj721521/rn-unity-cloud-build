@@ -10,6 +10,8 @@ plugins {
  */
 react {
     autolinkLibrariesWithApp()
+    // Ensure JS bundle is packaged even for debug builds so standalone APKs work without Metro.
+    debuggableVariants = []
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '..'
     // root = file("../")
