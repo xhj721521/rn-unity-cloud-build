@@ -2,16 +2,16 @@
 
 pluginManagement {
   repositories {
-    // 放在最前：加速 AGP、Kotlin、RN Gradle 插件解析
-    maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
-    maven { url 'https://maven.aliyun.com/repository/google' }
-    maven { url 'https://maven.aliyun.com/repository/public' }
-    // 官方源兜底
+    maven { url "https://maven.aliyun.com/repository/gradle-plugin" }
+    maven { url "https://maven.aliyun.com/repository/google" }
+    maven { url "https://maven.aliyun.com/repository/public" }
     gradlePluginPortal()
     google()
     mavenCentral()
   }
 }
+
+includeBuild("../node_modules/@react-native/gradle-plugin")
 
 plugins {
   id "com.facebook.react.settings"
@@ -22,12 +22,10 @@ reactSettings.autolinkLibrariesFromCommand()
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
   repositories {
-    // 普通依赖：先镜像再官方
-    maven { url 'https://maven.aliyun.com/repository/google' }
-    maven { url 'https://maven.aliyun.com/repository/public' }
+    maven { url "https://maven.aliyun.com/repository/google" }
+    maven { url "https://maven.aliyun.com/repository/public" }
     google()
     mavenCentral()
-    // RN 本地 maven
     maven { url("$rootDir/../node_modules/react-native/android") }
     maven { url("$rootDir/../node_modules/jsc-android/dist") }
     maven { url("$rootDir/../node_modules/react-native-reanimated/android") }
@@ -35,8 +33,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "RNGameShell"
-
-includeBuild("../node_modules/@react-native/gradle-plugin")
 
 include(":app")
 
