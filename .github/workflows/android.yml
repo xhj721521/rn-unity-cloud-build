@@ -33,7 +33,7 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      -      - name: Setup Android SDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v2
         with:
           api-level: 34
