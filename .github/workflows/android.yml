@@ -1,0 +1,54 @@
+name: Android Debug Build
+
+on:
+  workflow_dispatch: {}          # 支持手动触发
+  push:
+    branches: [ main ]           # 或改成你常用的分支
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install JS dependencies
+        run: npm ci
+        working-directory: apps/mobile
+
+      - name: Cache Gradle
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('apps/mobile/android/**/*.gradle*', 'apps/mobile/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-levels: '34'
+          components: 'platform-tools'
+          ndk: '25.2.9519653'
+
+      - name: Build Debug APK
+        run: |
+          cd apps/mobile/android
+          ./gradlew assembleDebug
+        env:
+          JAVA_HOME: /usr/lib/jvm/ms-openjdk-17
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apk
+          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
