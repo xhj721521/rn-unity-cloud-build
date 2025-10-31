@@ -40,11 +40,13 @@ jobs:
           build-tools: "34.0.0"
           ndk: "25.2.9519653"
 
+      - name: Make Gradle wrapper executable
+        run: chmod +x android/gradlew
+        working-directory: apps/mobile
 
       - name: Build Debug APK
-        run: |
-          cd apps/mobile/android
-          ./gradlew assembleDebug
+        run: ./gradlew assembleDebug
+        working-directory: apps/mobile/android
         env:
           JAVA_HOME: /usr/lib/jvm/ms-openjdk-17
 
