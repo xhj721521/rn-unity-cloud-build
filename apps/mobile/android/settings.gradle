@@ -11,6 +11,11 @@ pluginManagement {
     google()
     mavenCentral()
   }
+  includeBuild("../node_modules/@react-native/gradle-plugin")
+}
+
+plugins {
+  id 'com.facebook.react.settings'
 }
 
 dependencyResolutionManagement {
@@ -30,9 +35,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "RNGameShell"
 
-includeBuild("../node_modules/@react-native/gradle-plugin")
-
 include(":app")
 
-apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
-applyNativeModulesSettingsGradle(settings)
+reactSettings.autolinkLibrariesFromCommand()
