@@ -14,7 +14,7 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+  repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
   repositories {
     // 普通依赖：先镜像再官方
     maven { url 'https://maven.aliyun.com/repository/google' }
@@ -33,3 +33,6 @@ rootProject.name = "RNGameShell"
 includeBuild("../node_modules/@react-native/gradle-plugin")
 
 include(":app")
+
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
+applyNativeModulesSettingsGradle(settings)
