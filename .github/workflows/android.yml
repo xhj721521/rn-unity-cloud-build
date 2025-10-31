@@ -19,6 +19,12 @@ jobs:
           node-version: 18
           cache: 'npm'
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Install JS dependencies
         run: npm ci
         working-directory: apps/mobile
@@ -47,8 +53,6 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug
         working-directory: apps/mobile/android
-        env:
-          JAVA_HOME: /usr/lib/jvm/ms-openjdk-17
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
