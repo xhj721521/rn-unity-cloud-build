@@ -8,16 +8,15 @@ import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 import { ErrorState } from '@components/ErrorState';
 import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
+import { HomeStackParamList } from '@app/navigation/types';
 import { useAppDispatch } from '@state/hooks';
 import { loadAccountSummary } from '@state/account/accountSlice';
-import { HomeStackParamList } from '@app/navigation/types';
 import { neonPalette } from '@theme/neonPalette';
 import { getGlowStyle, useNeonPulse } from '@theme/animations';
-import { UnityView } from '@bridge/UnityView';
 import { UnityStatus, useUnityBridge } from '@bridge/useUnityBridge';
+import { UnityView } from '@bridge/UnityView';
 
 type LocaleKey = 'zh-CN' | 'en-US';
-
 type QuickLinkKey = 'Leaderboard' | 'Forge' | 'Marketplace' | 'EventShop';
 
 const quickLinkOrder: QuickLinkKey[] = ['Leaderboard', 'Forge', 'Marketplace', 'EventShop'];
@@ -26,13 +25,15 @@ const localeCopy: Record<
   LocaleKey,
   {
     languageLabel: string;
-    heroTitle: string;
-    heroSubtitle: string;
-    statusOnline: string;
-    arcLabel: string;
-    arcDescription: string;
-    oreLabel: string;
-    oreDescription: string;
+    hero: {
+      title: string;
+      subtitle: string;
+      statusOnline: string;
+      arcLabel: string;
+      arcDescription: string;
+      oreLabel: string;
+      oreDescription: string;
+    };
     quickLinks: Record<QuickLinkKey, { title: string; description: string }>;
     blindbox: {
       title: string;
@@ -46,13 +47,15 @@ const localeCopy: Record<
 > = {
   'zh-CN': {
     languageLabel: '中文',
-    heroTitle: '指挥中心',
-    heroSubtitle: '欢迎回到霓虹链域',
-    statusOnline: '指挥网络已连接',
-    arcLabel: 'Arc',
-    arcDescription: '核心能源储备',
-    oreLabel: '矿石',
-    oreDescription: '锻造与升级材料',
+    hero: {
+      title: '指挥中心',
+      subtitle: '欢迎回到霓虹链域',
+      statusOnline: '指挥网络已连接',
+      arcLabel: 'Arc',
+      arcDescription: '核心能源储备',
+      oreLabel: '矿石',
+      oreDescription: '锻造与升级材料',
+    },
     quickLinks: {
       Leaderboard: {
         title: '排行榜',
@@ -87,13 +90,15 @@ const localeCopy: Record<
   },
   'en-US': {
     languageLabel: 'EN',
-    heroTitle: 'Command Center',
-    heroSubtitle: 'Welcome back to Neon Realm',
-    statusOnline: 'Link established',
-    arcLabel: 'Arc',
-    arcDescription: 'Primary energy reserve',
-    oreLabel: 'Ore',
-    oreDescription: 'Forging & upgrade material',
+    hero: {
+      title: 'Command Center',
+      subtitle: 'Welcome back to Neon Realm',
+      statusOnline: 'Link established',
+      arcLabel: 'Arc',
+      arcDescription: 'Primary energy reserve',
+      oreLabel: 'Ore',
+      oreDescription: 'Forging & upgrade material',
+    },
     quickLinks: {
       Leaderboard: {
         title: 'Leaderboards',
@@ -136,6 +141,7 @@ export const HomeScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { data, loading, error } = useAccountSummary();
   const [language, setLanguage] = useState<LocaleKey>('zh-CN');
+
   const copy = localeCopy[language];
 
   const quickLinks = useMemo(
@@ -144,12 +150,12 @@ export const HomeScreen = () => {
         key,
         accent:
           key === 'Leaderboard'
-            ? '#AD6DFF'
+            ? '#B778FF'
             : key === 'Forge'
-            ? '#47D6FF'
+            ? '#59D9FF'
             : key === 'Marketplace'
-            ? '#63FFAF'
-            : '#FFA85C',
+            ? '#66FFBC'
+            : '#FFC267',
         text: copy.quickLinks[key],
       })),
     [copy],
@@ -166,9 +172,9 @@ export const HomeScreen = () => {
 
   const playerInitial = data?.displayName?.charAt(0).toUpperCase() ?? 'P';
 
-  const heroPulse = useNeonPulse({ duration: 5200 });
-  const resourcePulse = useNeonPulse({ duration: 6400 });
-  const blindBoxPulse = useNeonPulse({ duration: 7200 });
+  const heroPulsePrimary = useNeonPulse({ duration: 5200 });
+  const heroPulseSecondary = useNeonPulse({ duration: 7200 });
+  const blindBoxPulse = useNeonPulse({ duration: 6800 });
 
   const {
     status: unityStatus,
@@ -194,7 +200,7 @@ export const HomeScreen = () => {
     return (
       <ScreenContainer>
         <View style={styles.centerBox}>
-          <LoadingPlaceholder label="指挥中心数据加载中..." />
+          <LoadingPlaceholder label="指挥中心正在加载..." />
         </View>
       </ScreenContainer>
     );
@@ -218,48 +224,80 @@ export const HomeScreen = () => {
     <ScreenContainer>
       <View style={styles.container}>
         <LinearGradient
-          colors={['rgba(69, 43, 173, 0.24)', 'rgba(29, 121, 255, 0.16)']}
+          colors={['rgba(78, 48, 173, 0.26)', 'rgba(27, 122, 255, 0.18)']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.heroCard}
         >
           <Animated.View
-            style={[styles.heroGlow, getGlowStyle({ animated: heroPulse, minOpacity: 0.18, maxOpacity: 0.45 })]}
             pointerEvents="none"
+            style={[
+              styles.heroAuraPrimary,
+              getGlowStyle({
+                animated: heroPulsePrimary,
+                minOpacity: 0.22,
+                maxOpacity: 0.52,
+                minScale: 0.85,
+                maxScale: 1.2,
+              }),
+            ]}
+          />
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.heroAuraSecondary,
+              getGlowStyle({
+                animated: heroPulseSecondary,
+                minOpacity: 0.12,
+                maxOpacity: 0.35,
+                minScale: 0.72,
+                maxScale: 1.3,
+              }),
+            ]}
           />
           <View style={styles.heroHeader}>
             <View style={styles.avatarWrap}>
               <Animated.View
                 pointerEvents="none"
                 style={[
-                  styles.avatarGlow,
-                  getGlowStyle({ animated: heroPulse, minScale: 0.92, maxScale: 1.08, minOpacity: 0.25, maxOpacity: 0.55 }),
+                  styles.avatarAura,
+                  getGlowStyle({
+                    animated: heroPulsePrimary,
+                    minOpacity: 0.28,
+                    maxOpacity: 0.55,
+                    minScale: 0.9,
+                    maxScale: 1.1,
+                  }),
                 ]}
               />
               <View style={styles.avatarBadge}>
                 <Text style={styles.avatarInitial}>{playerInitial}</Text>
               </View>
-              <View style={styles.profileText}>
-                <Text style={styles.heroTitle}>{copy.heroTitle}</Text>
-                <Text style={styles.heroSubtitle}>{copy.heroSubtitle}</Text>
+              <View style={styles.heroTitleGroup}>
+                <Text style={styles.heroTitle}>{copy.hero.title}</Text>
+                <Text style={styles.heroSubtitle}>{copy.hero.subtitle}</Text>
               </View>
             </View>
             <Pressable style={styles.languageButton} onPress={toggleLanguage}>
               <Text style={styles.languageLabel}>{copy.languageLabel}</Text>
             </Pressable>
           </View>
-          <Text style={styles.statusChip}>{copy.statusOnline}</Text>
+          <Text style={styles.statusChip}>{copy.hero.statusOnline}</Text>
+          <View style={styles.heroResourceRow}>
+            <ResourceBadge
+              label={copy.hero.arcLabel}
+              value={arcAmount}
+              description={copy.hero.arcDescription}
+              accent="#B678FF"
+            />
+            <ResourceBadge
+              label={copy.hero.oreLabel}
+              value={oreAmount}
+              description={copy.hero.oreDescription}
+              accent="#66FFD5"
+            />
+          </View>
         </LinearGradient>
-
-        <Animated.View
-          style={[
-            styles.resourceStrip,
-            getGlowStyle({ animated: resourcePulse, minOpacity: 0.15, maxOpacity: 0.4, minScale: 0.97, maxScale: 1.03 }),
-          ]}
-        >
-          <ResourceChip label={copy.arcLabel} value={arcAmount} description={copy.arcDescription} />
-          <ResourceChip label={copy.oreLabel} value={oreAmount} description={copy.oreDescription} />
-        </Animated.View>
 
         <View style={styles.quickGrid}>
           {quickLinks.map(({ key, accent, text }) => (
@@ -283,18 +321,27 @@ export const HomeScreen = () => {
   );
 };
 
-type ResourceChipProps = {
+const ResourceBadge = ({
+  label,
+  value,
+  description,
+  accent,
+}: {
   label: string;
   value: string;
   description: string;
-};
-
-const ResourceChip = ({ label, value, description }: ResourceChipProps) => (
-  <View style={styles.resourceChip}>
+  accent: string;
+}) => (
+  <LinearGradient
+    colors={[`${accent}33`, 'rgba(8, 10, 32, 0.95)']}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
+    style={styles.resourceBadge}
+  >
     <Text style={styles.resourceLabel}>{label}</Text>
     <Text style={styles.resourceValue}>{value}</Text>
     <Text style={styles.resourceDesc}>{description}</Text>
-  </View>
+  </LinearGradient>
 );
 
 type QuickLinkCardProps = {
@@ -307,15 +354,15 @@ type QuickLinkCardProps = {
 const QuickLinkCard = ({ title, description, accent, onPress }: QuickLinkCardProps) => (
   <Pressable style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]} onPress={onPress}>
     <LinearGradient
-      colors={[`${accent}33`, `${accent}99`]}
+      colors={[`${accent}2A`, `${accent}88`]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={styles.quickCardGradient}
+      style={styles.quickGradient}
     >
       <View style={[styles.quickAccent, { backgroundColor: accent }]} />
-      <Text style={styles.quickCardTitle}>{title}</Text>
-      <Text style={styles.quickCardDesc}>{description}</Text>
-      <Text style={styles.quickCardAction}>进入</Text>
+      <Text style={styles.quickTitle}>{title}</Text>
+      <Text style={styles.quickDesc}>{description}</Text>
+      <Text style={styles.quickAction}>进入</Text>
     </LinearGradient>
   </Pressable>
 );
@@ -334,7 +381,7 @@ const BlindBoxShowcase = ({ status, pulse, copy }: BlindBoxShowcaseProps) => {
 
   return (
     <LinearGradient
-      colors={['rgba(112, 58, 210, 0.16)', 'rgba(28, 125, 255, 0.18)']}
+      colors={['rgba(124, 66, 220, 0.18)', 'rgba(58, 126, 255, 0.16)']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.blindBoxCard}
@@ -353,12 +400,18 @@ const BlindBoxShowcase = ({ status, pulse, copy }: BlindBoxShowcaseProps) => {
         <Animated.View
           pointerEvents="none"
           style={[
-            styles.blindBoxGlow,
-            getGlowStyle({ animated: pulse, minOpacity: 0.12, maxOpacity: 0.4, minScale: 0.9, maxScale: 1.2 }),
+            styles.blindBoxAura,
+            getGlowStyle({
+              animated: pulse,
+              minOpacity: 0.16,
+              maxOpacity: 0.4,
+              minScale: 0.85,
+              maxScale: 1.2,
+            }),
           ]}
         />
         {status !== 'ready' && (
-          <View style={styles.unityFallback}>
+          <View style={styles.blindBoxFallback}>
             <Text style={styles.fallbackTitle}>{copy.fallbackTitle}</Text>
             <Text style={styles.fallbackDesc}>{copy.fallbackDesc}</Text>
           </View>
@@ -378,9 +431,9 @@ const BlindBoxShowcase = ({ status, pulse, copy }: BlindBoxShowcaseProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    gap: 16,
+    gap: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
   centerBox: {
     flex: 1,
@@ -388,21 +441,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heroCard: {
-    borderRadius: 26,
+    borderRadius: 28,
     paddingHorizontal: 18,
     paddingVertical: 16,
     borderWidth: 1,
-    borderColor: 'rgba(87, 54, 185, 0.45)',
-    backgroundColor: 'rgba(8, 10, 27, 0.85)',
+    borderColor: 'rgba(87, 58, 185, 0.5)',
+    backgroundColor: 'rgba(10, 11, 30, 0.88)',
+    overflow: 'hidden',
   },
-  heroGlow: {
+  heroAuraPrimary: {
     position: 'absolute',
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    top: -24,
+    width: 210,
+    height: 210,
+    borderRadius: 105,
+    top: -40,
     right: -20,
     backgroundColor: neonPalette.glowPink,
+  },
+  heroAuraSecondary: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    bottom: -60,
+    left: -30,
+    backgroundColor: neonPalette.glowCyan,
   },
   heroHeader: {
     flexDirection: 'row',
@@ -412,34 +475,33 @@ const styles = StyleSheet.create({
   avatarWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
   },
-  avatarGlow: {
+  avatarAura: {
     position: 'absolute',
     width: 60,
     height: 60,
     borderRadius: 30,
     left: -8,
     top: -8,
-    backgroundColor: neonPalette.glowCyan,
+    backgroundColor: 'rgba(90, 225, 255, 0.55)',
   },
   avatarBadge: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(147, 119, 255, 0.7)',
-    backgroundColor: 'rgba(10, 12, 30, 0.95)',
+    borderColor: 'rgba(156, 125, 255, 0.75)',
+    backgroundColor: 'rgba(8, 10, 32, 0.95)',
   },
   avatarInitial: {
-    color: '#F9F6FF',
-    fontSize: 22,
+    color: '#F8F5FF',
+    fontSize: 20,
     fontWeight: '700',
-    letterSpacing: 1.2,
   },
-  profileText: {
+  heroTitleGroup: {
     gap: 4,
   },
   heroTitle: {
@@ -453,12 +515,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   languageButton: {
-    borderRadius: 999,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingVertical: 8,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(110, 82, 255, 0.6)',
-    backgroundColor: 'rgba(12, 14, 32, 0.82)',
+    borderColor: 'rgba(121, 98, 255, 0.6)',
+    backgroundColor: 'rgba(14, 16, 38, 0.78)',
   },
   languageLabel: {
     color: '#F3ECFF',
@@ -467,166 +529,166 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   statusChip: {
-    marginTop: 12,
+    marginTop: 14,
     alignSelf: 'flex-start',
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 12,
     backgroundColor: 'rgba(123, 47, 247, 0.25)',
-    color: '#EDE7FF',
+    color: '#ECE6FF',
     fontSize: 12,
     letterSpacing: 0.6,
   },
-  resourceStrip: {
-    borderRadius: 24,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
+  heroResourceRow: {
+    marginTop: 16,
     flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: 'rgba(90, 110, 255, 0.2)',
-    backgroundColor: 'rgba(8, 10, 30, 0.82)',
-    gap: 16,
+    gap: 12,
   },
-  resourceChip: {
+  resourceBadge: {
     flex: 1,
-    gap: 6,
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(82, 62, 198, 0.5)',
+    backgroundColor: 'rgba(10, 11, 32, 0.92)',
+    gap: 4,
   },
   resourceLabel: {
-    color: 'rgba(236, 241, 255, 0.7)',
-    fontSize: 13,
-    letterSpacing: 1,
+    color: 'rgba(236, 241, 255, 0.74)',
+    fontSize: 12,
+    letterSpacing: 0.8,
   },
   resourceValue: {
     color: '#FFFFFF',
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: '700',
   },
   resourceDesc: {
     color: 'rgba(236, 241, 255, 0.7)',
-    fontSize: 12,
+    fontSize: 11,
   },
   quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    rowGap: 14,
+    rowGap: 12,
   },
   quickCard: {
-    width: '48%',
-    borderRadius: 22,
+    width: '47%',
+    borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(55, 33, 115, 0.45)',
-    backgroundColor: 'rgba(9, 11, 32, 0.82)',
+    borderColor: 'rgba(64, 38, 128, 0.45)',
+    backgroundColor: 'rgba(9, 10, 28, 0.88)',
   },
   quickCardPressed: {
     opacity: 0.85,
     transform: [{ scale: 0.97 }],
   },
-  quickCardGradient: {
-    padding: 16,
+  quickGradient: {
+    padding: 14,
     gap: 10,
   },
   quickAccent: {
-    width: 46,
+    width: 42,
     height: 6,
     borderRadius: 4,
   },
-  quickCardTitle: {
+  quickTitle: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
-  quickCardDesc: {
-    color: 'rgba(236, 241, 255, 0.7)',
-    fontSize: 12,
-    lineHeight: 18,
+  quickDesc: {
+    color: 'rgba(236, 241, 255, 0.72)',
+    fontSize: 11,
+    lineHeight: 16,
   },
-  quickCardAction: {
-    color: '#F6E5FF',
-    fontSize: 12,
+  quickAction: {
+    color: '#F7E9FF',
+    fontSize: 11,
     fontWeight: '600',
-    letterSpacing: 0.8,
+    letterSpacing: 0.6,
   },
   blindBoxCard: {
     borderRadius: 26,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(70, 46, 120, 0.4)',
-    backgroundColor: 'rgba(9, 10, 29, 0.9)',
+    backgroundColor: 'rgba(8, 9, 26, 0.92)',
+    marginBottom: 4,
   },
   blindBoxHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 18,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: 'rgba(60, 36, 120, 0.35)',
+    borderColor: 'rgba(62, 42, 115, 0.35)',
   },
   blindBoxTitle: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
   },
   blindBoxSubtitle: {
-    color: 'rgba(236, 241, 255, 0.75)',
-    fontSize: 12,
-    marginTop: 6,
-    maxWidth: 220,
+    color: 'rgba(236, 241, 255, 0.76)',
+    fontSize: 11,
+    marginTop: 4,
   },
   blindBoxButton: {
-    paddingHorizontal: 22,
-    paddingVertical: 12,
-    borderRadius: 16,
-    backgroundColor: '#FF61D0',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: '#FF5ECE',
   },
   blindBoxButtonText: {
     color: '#17021F',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
   },
   blindBoxViewport: {
-    height: 190,
+    height: 168,
     backgroundColor: 'rgba(6, 8, 24, 0.92)',
   },
   unitySurface: {
     flex: 1,
   },
-  blindBoxGlow: {
+  blindBoxAura: {
     position: 'absolute',
     width: 200,
     height: 200,
     borderRadius: 100,
-    alignSelf: 'center',
-    top: -20,
     backgroundColor: neonPalette.glowPurple,
+    alignSelf: 'center',
+    top: -30,
   },
-  unityFallback: {
+  blindBoxFallback: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(6, 8, 24, 0.78)',
+    backgroundColor: 'rgba(7, 9, 26, 0.78)',
     gap: 6,
   },
   fallbackTitle: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
   },
   fallbackDesc: {
-    color: 'rgba(236, 241, 255, 0.75)',
-    fontSize: 12,
+    color: 'rgba(236, 241, 255, 0.74)',
+    fontSize: 11,
   },
   blindBoxFooter: {
     paddingHorizontal: 18,
     paddingVertical: 12,
     gap: 4,
     borderTopWidth: 1,
-    borderColor: 'rgba(60, 36, 120, 0.35)',
+    borderColor: 'rgba(62, 42, 115, 0.35)',
   },
   blindBoxHint: {
-    color: 'rgba(236, 241, 255, 0.68)',
-    fontSize: 12,
+    color: 'rgba(236, 241, 255, 0.7)',
+    fontSize: 11,
   },
 });
