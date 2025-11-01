@@ -1,596 +1,628 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer } from '@components/ScreenContainer';
-import { InfoCard } from '@components/InfoCard';
 import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 import { ErrorState } from '@components/ErrorState';
 import { useAccountSummary } from '@services/web3/hooks';
-import { UnityView } from '@bridge/UnityView';
-import { useUnityBridge } from '@bridge/useUnityBridge';
+import { ChainAsset } from '@services/web3/types';
+import { useAppDispatch } from '@state/hooks';
+import { loadAccountSummary } from '@state/account/accountSlice';
 import { HomeStackParamList } from '@app/navigation/types';
 import { neonPalette } from '@theme/neonPalette';
 import { getGlowStyle, useNeonPulse } from '@theme/animations';
+import { UnityView } from '@bridge/UnityView';
+import { UnityStatus, useUnityBridge } from '@bridge/useUnityBridge';
 
-type QuickLinkConfig = {
-  title: string;
-  description: string;
-  target: keyof HomeStackParamList;
-  accent: string;
+type LocaleKey = 'zh-CN' | 'en-US';
+
+type QuickLinkKey = 'Leaderboard' | 'Forge' | 'Marketplace' | 'EventShop';
+
+const quickLinkOrder: QuickLinkKey[] = ['Leaderboard', 'Forge', 'Marketplace', 'EventShop'];
+
+const localeCopy: Record<
+  LocaleKey,
+  {
+    languageLabel: string;
+    heroTitle: string;
+    heroSubtitle: string;
+    statusOnline: string;
+    arcLabel: string;
+    arcDescription: string;
+    oreLabel: string;
+    oreDescription: string;
+    quickLinks: Record<QuickLinkKey, { title: string; description: string }>;
+    blindbox: {
+      title: string;
+      hints: string[];
+      status: Record<UnityStatus, string>;
+      cta: { ready: string; other: string };
+      fallbackTitle: string;
+      fallbackDesc: string;
+    };
+  }
+> = {
+  'zh-CN': {
+    languageLabel: '中文',
+    heroTitle: '指挥中心',
+    heroSubtitle: '欢迎回到霓虹链域',
+    statusOnline: '指挥网络已连接',
+    arcLabel: 'Arc',
+    arcDescription: '核心能源储备',
+    oreLabel: '矿石',
+    oreDescription: '锻造与升级材料',
+    quickLinks: {
+      Leaderboard: {
+        title: '排行榜',
+        description: '查看赛季荣誉与全球排名',
+      },
+      Forge: {
+        title: '铸造坊',
+        description: '合成模块，强化装备',
+      },
+      Marketplace: {
+        title: '集市坊',
+        description: '交易 NFT 与稀有伙伴',
+      },
+      EventShop: {
+        title: '活动商城',
+        description: '兑换赛季限定与礼盒',
+      },
+    },
+    blindbox: {
+      title: '盲盒展示',
+      hints: ['最新掉落：幻彩装甲 · 稀有', '累计开启 12 次 · 史诗奖励 x3'],
+      status: {
+        ready: '盲盒场景已加载，等待指挥官开启',
+        initializing: '唤醒盲盒场景中...',
+        idle: '等待唤醒盲盒场景',
+        error: '盲盒引擎未响应，请稍后重试',
+      },
+      cta: { ready: '立即开启', other: '唤醒盲盒' },
+      fallbackTitle: '盲盒动画准备中',
+      fallbackDesc: '即将唤醒 3D 场景，请稍候',
+    },
+  },
+  'en-US': {
+    languageLabel: 'EN',
+    heroTitle: 'Command Center',
+    heroSubtitle: 'Welcome back to Neon Realm',
+    statusOnline: 'Link established',
+    arcLabel: 'Arc',
+    arcDescription: 'Primary energy reserve',
+    oreLabel: 'Ore',
+    oreDescription: 'Forging & upgrade material',
+    quickLinks: {
+      Leaderboard: {
+        title: 'Leaderboards',
+        description: 'Track season glory and global ranking',
+      },
+      Forge: {
+        title: 'Forge',
+        description: 'Craft modules and upgrade gear',
+      },
+      Marketplace: {
+        title: 'Market Hub',
+        description: 'Trade NFTs and rare companions',
+      },
+      EventShop: {
+        title: 'Event Mall',
+        description: 'Redeem seasonal exclusives',
+      },
+    },
+    blindbox: {
+      title: 'Blind Box Spotlight',
+      hints: ['Latest drop: Prism Armor · Rare', '12 opened · 3 epic rewards'],
+      status: {
+        ready: '3D scene online, unlock your reward now',
+        initializing: 'Booting blind box scene...',
+        idle: 'Awaiting blind box activation',
+        error: 'Blind box engine offline, please retry later',
+      },
+      cta: { ready: 'Open Now', other: 'Wake Scene' },
+      fallbackTitle: 'Blind box warming up',
+      fallbackDesc: '3D animation will appear shortly',
+    },
+  },
 };
 
-const QUICK_LINKS: QuickLinkConfig[] = [
-  {
-    title: '排行榜',
-    description: '查看赛季荣誉与全球排名',
-    target: 'Leaderboard',
-    accent: neonPalette.accentMagenta,
-  },
-  {
-    title: '铸造坊',
-    description: '合成模块、强化装备',
-    target: 'Forge',
-    accent: neonPalette.accentCyan,
-  },
-  {
-    title: '集市坊',
-    description: '交易 NFT 与稀有伙伴',
-    target: 'Marketplace',
-    accent: '#63FFAF',
-  },
-  {
-    title: '活动商城',
-    description: '兑换赛季限定与礼包',
-    target: 'EventShop',
-    accent: neonPalette.accentAmber,
-  },
-];
+const findAssetAmount = (assets: ChainAsset[] | undefined, id: string) =>
+  assets?.find((asset) => asset.id === id)?.amount ?? '--';
 
 export const HomeScreen = () => {
-  const { data, loading, error } = useAccountSummary();
+  const dispatch = useAppDispatch();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const { data, loading, error } = useAccountSummary();
+  const [language, setLanguage] = useState<LocaleKey>('zh-CN');
+  const copy = localeCopy[language];
+
+  const quickLinks = useMemo(
+    () =>
+      quickLinkOrder.map((key) => ({
+        key,
+        accent:
+          key === 'Leaderboard'
+            ? '#AD6DFF'
+            : key === 'Forge'
+            ? '#47D6FF'
+            : key === 'Marketplace'
+            ? '#63FFAF'
+            : '#FFA85C',
+        text: copy.quickLinks[key],
+      })),
+    [copy],
+  );
+
+  const arcAmount = useMemo(
+    () => findAssetAmount(data?.tokens, 'tok-energy'),
+    [data?.tokens],
+  );
+  const oreAmount = useMemo(
+    () => findAssetAmount(data?.tokens, 'tok-neon'),
+    [data?.tokens],
+  );
+
+  const playerInitial = data?.displayName?.charAt(0).toUpperCase() ?? 'P';
+
+  const heroPulse = useNeonPulse({ duration: 5200 });
+  const resourcePulse = useNeonPulse({ duration: 6400 });
+  const blindBoxPulse = useNeonPulse({ duration: 7200 });
+
   const {
     status: unityStatus,
     bootstrapUnity,
     requestScene,
-    sendUnityMessage,
-    lastMessage,
   } = useUnityBridge({
     defaultSceneName: 'BlindBoxShowcase',
   });
-  const isFocused = useIsFocused();
-  const heroPulse = useNeonPulse({ duration: 5600 });
-  const blindBoxPulse = useNeonPulse({ duration: 7000 });
 
   useEffect(() => {
-    if (!isFocused) {
-      return;
-    }
     if (unityStatus === 'idle') {
       bootstrapUnity('BlindBoxShowcase').catch(() => null);
     } else if (unityStatus === 'ready') {
       requestScene('BlindBoxShowcase');
     }
-  }, [bootstrapUnity, requestScene, unityStatus, isFocused]);
+  }, [bootstrapUnity, requestScene, unityStatus]);
+
+  const toggleLanguage = () => {
+    setLanguage((prev) => (prev === 'zh-CN' ? 'en-US' : 'zh-CN'));
+  };
+
+  if (loading) {
+    return (
+      <ScreenContainer>
+        <View style={styles.centerBox}>
+          <LoadingPlaceholder label="指挥中心数据加载中..." />
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenContainer>
+        <View style={styles.centerBox}>
+          <ErrorState
+            title="暂时无法连接指挥网络"
+            description={error}
+            onRetry={() => dispatch(loadAccountSummary())}
+          />
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   return (
-    <ScreenContainer scrollable>
-      <LinearGradient
-        colors={['#2A1461', '#120C35', '#051026']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.heroShell}
-      >
-        <View style={styles.heroCard}>
+    <ScreenContainer>
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['rgba(69, 43, 173, 0.24)', 'rgba(29, 121, 255, 0.16)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroCard}
+        >
           <Animated.View
+            style={[styles.heroGlow, getGlowStyle({ animated: heroPulse, minOpacity: 0.18, maxOpacity: 0.45 })]}
             pointerEvents="none"
-            style={[
-              styles.heroGlow,
-              getGlowStyle({
-                animated: heroPulse,
-                minOpacity: 0.14,
-                maxOpacity: 0.32,
-                minScale: 0.88,
-                maxScale: 1.16,
-              }),
-            ]}
           />
           <View style={styles.heroHeader}>
-            <Text style={styles.heroEyebrow}>NEON LINK</Text>
-            <Text style={styles.heroTitle}>欢迎回到霓虹链域</Text>
-            <Text style={styles.heroSubtitle}>
-              同步身份，统率你的赛博战队。
-            </Text>
-          </View>
-          {loading ? (
-            <LoadingPlaceholder label="链上数据同步中..." />
-          ) : error ? (
-            <ErrorState
-              title="链上数据暂不可用"
-              description={error}
-              onRetry={() => navigation.replace('HomeMain')}
-            />
-          ) : data ? (
-            <>
-              <View style={styles.heroStats}>
-                <Stat label="等级" value={data.level.toString()} />
-                <Stat label="战斗评分" value={data.powerScore.toString()} />
-                <Stat
-                  label="资产数"
-                  value={`${data.tokens.length + data.nfts.length}`}
-                />
+            <View style={styles.avatarWrap}>
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  styles.avatarGlow,
+                  getGlowStyle({ animated: heroPulse, minScale: 0.92, maxScale: 1.08, minOpacity: 0.25, maxOpacity: 0.55 }),
+                ]}
+              />
+              <View style={styles.avatarBadge}>
+                <Text style={styles.avatarInitial}>{playerInitial}</Text>
               </View>
-              <View style={styles.addressPill}>
-                <Text style={styles.addressLabel}>主钱包</Text>
-                <Text style={styles.addressValue}>{data.address}</Text>
+              <View style={styles.profileText}>
+                <Text style={styles.heroTitle}>{copy.heroTitle}</Text>
+                <Text style={styles.heroSubtitle}>{copy.heroSubtitle}</Text>
               </View>
-            </>
-          ) : (
-            <LoadingPlaceholder label="暂无链上数据，稍后再试。" />
-          )}
-        </View>
-      </LinearGradient>
-
-      {data && !loading && !error ? (
-        <>
-          <SectionHeader
-            title="资产速览"
-            subtitle="核心资源与装备一目了然"
-          />
-          <View style={styles.assetGrid}>
-            <InfoCard title="代币储备" subtitle="试炼能量池">
-              {data.tokens.map((token) => (
-                <View style={styles.listRow} key={token.id}>
-                  <View>
-                    <Text style={styles.itemName}>{token.name}</Text>
-                    <Text style={styles.itemNote}>
-                      可用于能量补给与交易
-                    </Text>
-                  </View>
-                  <Text style={styles.itemValue}>{token.amount}</Text>
-                </View>
-              ))}
-            </InfoCard>
-            <InfoCard
-              title="装备与伙伴"
-              subtitle="当前携带的战斗资产"
-            >
-              {data.nfts.map((nft) => (
-                <View style={styles.listRow} key={nft.id}>
-                  <View>
-                    <Text style={styles.itemName}>{nft.name}</Text>
-                    <Text style={styles.itemNote}>NFT 资产</Text>
-                  </View>
-                  <Text style={styles.itemValue}>{nft.amount}</Text>
-                </View>
-              ))}
-            </InfoCard>
+            </View>
+            <Pressable style={styles.languageButton} onPress={toggleLanguage}>
+              <Text style={styles.languageLabel}>{copy.languageLabel}</Text>
+            </Pressable>
           </View>
-        </>
-      ) : null}
+          <Text style={styles.statusChip}>{copy.statusOnline}</Text>
+        </LinearGradient>
 
-      <SectionHeader
-        title="作战面板"
-        subtitle="快速定位关键功能与模块"
-      />
-      <View style={styles.quickLinkGrid}>
-        {QUICK_LINKS.map((link) => (
-          <QuickLinkCard
-            key={link.target}
-            title={link.title}
-            description={link.description}
-            accent={link.accent}
-            onPress={() => navigation.navigate(link.target)}
-          />
-        ))}
-      </View>
-
-      <SectionHeader
-        title="Unity 控制台"
-        subtitle="实时查看 3D 场景状态"
-      />
-      <View style={styles.blindBoxContainer}>
         <Animated.View
-          pointerEvents="none"
           style={[
-            styles.blindBoxGlow,
-            getGlowStyle({
-              animated: blindBoxPulse,
-              minOpacity: 0.12,
-              maxOpacity: 0.28,
-              minScale: 0.88,
-              maxScale: 1.22,
-            }),
+            styles.resourceStrip,
+            getGlowStyle({ animated: resourcePulse, minOpacity: 0.15, maxOpacity: 0.4, minScale: 0.97, maxScale: 1.03 }),
           ]}
-        />
-        {isFocused ? <UnityView style={styles.blindBoxUnity} /> : null}
-        {unityStatus !== 'ready' || !isFocused ? (
-          <View style={styles.blindBoxOverlay}>
-            <LoadingPlaceholder
-              label={
-                unityStatus === 'error'
-                  ? '盲盒展示加载失败'
-                  : '载入 3D 盲盒展示中...'
-              }
-            />
-          </View>
-        ) : null}
-        <View style={styles.blindBoxHeader}>
-          <View style={styles.blindBoxText}>
-            <Text style={styles.blindBoxTitle}>盲盒召唤台</Text>
-            <Text style={styles.blindBoxSubtitle}>
-              赛博灵偶等待唤醒，点击调度测试
-              Unity 指令。
-            </Text>
-          </View>
-          <Pressable
-            style={styles.blindBoxButton}
-            onPress={() =>
-              sendUnityMessage('SHOW_BLINDBOX', {
-                blindBoxId: 'starter-pack',
-                rarityHint: 'epic',
-              })
-            }
-          >
-            <Text style={styles.blindBoxButtonText}>开启盲盒</Text>
-            <Text style={styles.blindBoxButtonHint}>推送 SHOW_BLINDBOX 指令</Text>
-          </Pressable>
-        </View>
-      </View>
+        >
+          <ResourceChip label={copy.arcLabel} value={arcAmount} description={copy.arcDescription} />
+          <ResourceChip label={copy.oreLabel} value={oreAmount} description={copy.oreDescription} />
+        </Animated.View>
 
-      {lastMessage ? (
-        <View style={styles.logBox}>
-          <Text style={styles.logTitle}>Unity 回传</Text>
-          <Text style={styles.logText}>{JSON.stringify(lastMessage, null, 2)}</Text>
+        <View style={styles.quickGrid}>
+          {quickLinks.map(({ key, accent, text }) => (
+            <QuickLinkCard
+              key={key}
+              title={text.title}
+              description={text.description}
+              accent={accent}
+              onPress={() => navigation.navigate(key)}
+            />
+          ))}
         </View>
-      ) : null}
+
+        <BlindBoxShowcase
+          status={unityStatus}
+          pulse={blindBoxPulse}
+          copy={copy.blindbox}
+        />
+      </View>
     </ScreenContainer>
   );
 };
 
-const Stat = ({ label, value }: { label: string; value: string }) => (
-  <LinearGradient
-    colors={['rgba(63, 242, 255, 0.22)', 'rgba(124, 92, 255, 0.2)']}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 1 }}
-    style={styles.statShell}
-  >
-    <View style={styles.statBox}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  </LinearGradient>
-);
+type ResourceChipProps = {
+  label: string;
+  value: string;
+  description: string;
+};
 
-const SectionHeader = ({ title, subtitle }: { title: string; subtitle?: string }) => (
-  <View style={styles.sectionHeader}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-    {subtitle ? <Text style={styles.sectionSubtitle}>{subtitle}</Text> : null}
+const ResourceChip = ({ label, value, description }: ResourceChipProps) => (
+  <View style={styles.resourceChip}>
+    <Text style={styles.resourceLabel}>{label}</Text>
+    <Text style={styles.resourceValue}>{value}</Text>
+    <Text style={styles.resourceDesc}>{description}</Text>
   </View>
 );
 
-const QuickLinkCard = ({
-  title,
-  description,
-  onPress,
-  accent,
-}: {
+type QuickLinkCardProps = {
   title: string;
   description: string;
   accent: string;
   onPress: () => void;
-}) => {
-  const pulse = useNeonPulse({ duration: 5200 });
+};
 
-  const accentStyle = {
-    opacity: pulse.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.5, 1],
-    }),
-    transform: [
-      {
-        scaleX: pulse.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0.92, 1.08],
-        }),
-      },
-    ],
-  };
+const QuickLinkCard = ({ title, description, accent, onPress }: QuickLinkCardProps) => (
+  <Pressable style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]} onPress={onPress}>
+    <LinearGradient
+      colors={[`${accent}33`, `${accent}99`]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.quickCardGradient}
+    >
+      <View style={[styles.quickAccent, { backgroundColor: accent }]} />
+      <Text style={styles.quickCardTitle}>{title}</Text>
+      <Text style={styles.quickCardDesc}>{description}</Text>
+      <Text style={styles.quickCardAction}>进入</Text>
+    </LinearGradient>
+  </Pressable>
+);
+
+type BlindBoxCopy = (typeof localeCopy)[LocaleKey]['blindbox'];
+
+type BlindBoxShowcaseProps = {
+  status: UnityStatus;
+  pulse: Animated.Value;
+  copy: BlindBoxCopy;
+};
+
+const BlindBoxShowcase = ({ status, pulse, copy }: BlindBoxShowcaseProps) => {
+  const statusText = copy.status[status];
+  const ctaLabel = status === 'ready' ? copy.cta.ready : copy.cta.other;
 
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.quickLinkPressable,
-        pressed ? styles.quickLinkPressableActive : null,
-      ]}
+    <LinearGradient
+      colors={['rgba(112, 58, 210, 0.16)', 'rgba(28, 125, 255, 0.18)']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.blindBoxCard}
     >
-      <LinearGradient
-        colors={[accent, 'rgba(12, 11, 36, 0.92)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.quickLinkGradient}
-      >
-        <Animated.View style={[styles.quickLinkAccent, { backgroundColor: accent }, accentStyle]} />
-        <Text style={styles.quickLinkCardTitle}>{title}</Text>
-        <Text style={styles.quickLinkCardDesc}>{description}</Text>
-        <Text style={styles.quickLinkAction}>立即前往 →</Text>
-      </LinearGradient>
-    </Pressable>
+      <View style={styles.blindBoxHeader}>
+        <View>
+          <Text style={styles.blindBoxTitle}>{copy.title}</Text>
+          <Text style={styles.blindBoxSubtitle}>{statusText}</Text>
+        </View>
+        <Pressable style={styles.blindBoxButton}>
+          <Text style={styles.blindBoxButtonText}>{ctaLabel}</Text>
+        </Pressable>
+      </View>
+      <View style={styles.blindBoxViewport}>
+        <UnityView style={styles.unitySurface} />
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.blindBoxGlow,
+            getGlowStyle({ animated: pulse, minOpacity: 0.12, maxOpacity: 0.4, minScale: 0.9, maxScale: 1.2 }),
+          ]}
+        />
+        {status !== 'ready' && (
+          <View style={styles.unityFallback}>
+            <Text style={styles.fallbackTitle}>{copy.fallbackTitle}</Text>
+            <Text style={styles.fallbackDesc}>{copy.fallbackDesc}</Text>
+          </View>
+        )}
+      </View>
+      <View style={styles.blindBoxFooter}>
+        {copy.hints.map((hint) => (
+          <Text key={hint} style={styles.blindBoxHint}>
+            {hint}
+          </Text>
+        ))}
+      </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  heroShell: {
-    borderRadius: 28,
-    padding: 1,
-    marginBottom: 26,
-    borderWidth: 1,
-    borderColor: 'rgba(118, 88, 255, 0.38)',
+  container: {
+    flex: 1,
+    gap: 20,
+    padding: 20,
+  },
+  centerBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   heroCard: {
-    position: 'relative',
-    overflow: 'hidden',
-    borderRadius: 27,
-    paddingVertical: 22,
-    paddingHorizontal: 24,
-    backgroundColor: 'rgba(8, 9, 32, 0.94)',
+    borderRadius: 26,
+    padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(78, 46, 171, 0.52)',
+    borderColor: 'rgba(87, 54, 185, 0.45)',
+    backgroundColor: 'rgba(8, 10, 27, 0.85)',
   },
   heroGlow: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 27,
-    backgroundColor: neonPalette.glowPurple,
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    top: -40,
+    right: -30,
+    backgroundColor: neonPalette.glowPink,
   },
   heroHeader: {
-    gap: 10,
-    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  heroEyebrow: {
-    color: neonPalette.accentCyan,
-    fontSize: 12,
+  avatarWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  avatarGlow: {
+    position: 'absolute',
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    left: -10,
+    top: -10,
+    backgroundColor: neonPalette.glowCyan,
+  },
+  avatarBadge: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(147, 119, 255, 0.7)',
+    backgroundColor: 'rgba(10, 12, 30, 0.95)',
+  },
+  avatarInitial: {
+    color: '#F9F6FF',
+    fontSize: 22,
     fontWeight: '700',
-    letterSpacing: 2.4,
+    letterSpacing: 1.2,
+  },
+  profileText: {
+    gap: 4,
   },
   heroTitle: {
     color: neonPalette.textPrimary,
-    fontSize: 26,
+    fontSize: 18,
     fontWeight: '700',
-    letterSpacing: 0.6,
   },
   heroSubtitle: {
     color: neonPalette.textSecondary,
-    fontSize: 14,
-    lineHeight: 22,
-    marginBottom: 18,
-  },
-  heroStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 18,
-  },
-  statShell: {
-    flex: 1,
-    borderRadius: 18,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(63, 242, 255, 0.28)',
-  },
-  statBox: {
-    borderRadius: 17,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    backgroundColor: 'rgba(9, 10, 32, 0.9)',
-    borderWidth: 1,
-    borderColor: 'rgba(68, 45, 155, 0.45)',
-  },
-  statValue: {
-    color: neonPalette.accentMagenta,
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  statLabel: {
-    color: neonPalette.textSecondary,
     fontSize: 12,
-    marginTop: 6,
     letterSpacing: 0.4,
   },
-  addressPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  languageButton: {
     borderRadius: 999,
-    paddingVertical: 12,
     paddingHorizontal: 18,
-    backgroundColor: 'rgba(14, 14, 40, 0.86)',
+    paddingVertical: 8,
     borderWidth: 1,
-    borderColor: 'rgba(88, 63, 187, 0.55)',
+    borderColor: 'rgba(110, 82, 255, 0.6)',
+    backgroundColor: 'rgba(12, 14, 32, 0.82)',
   },
-  addressLabel: {
-    color: neonPalette.textSecondary,
-    fontSize: 12,
-    letterSpacing: 0.2,
-  },
-  addressValue: {
-    color: neonPalette.textPrimary,
+  languageLabel: {
+    color: '#F3ECFF',
     fontSize: 13,
     fontWeight: '600',
+    letterSpacing: 1,
   },
-  assetGrid: {
-    gap: 18,
-    marginBottom: 26,
-  },
-  listRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderColor: 'rgba(44, 31, 93, 0.45)',
-  },
-  itemName: {
-    color: neonPalette.textPrimary,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  itemValue: {
-    color: neonPalette.accentCyan,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  itemNote: {
-    color: neonPalette.textMuted,
-    fontSize: 11,
-    marginTop: 3,
-  },
-  sectionHeader: {
-    marginTop: 28,
-    marginBottom: 14,
-  },
-  sectionTitle: {
-    color: neonPalette.textPrimary,
-    fontSize: 20,
-    fontWeight: '700',
+  statusChip: {
+    marginTop: 18,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: 'rgba(123, 47, 247, 0.25)',
+    color: '#EDE7FF',
+    fontSize: 12,
     letterSpacing: 0.6,
   },
-  sectionSubtitle: {
-    marginTop: 6,
-    color: neonPalette.textSecondary,
-    fontSize: 13,
-    lineHeight: 20,
+  resourceStrip: {
+    borderRadius: 24,
+    padding: 20,
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: 'rgba(90, 110, 255, 0.2)',
+    backgroundColor: 'rgba(8, 10, 30, 0.82)',
+    gap: 16,
   },
-  quickLinkGrid: {
+  resourceChip: {
+    flex: 1,
+    gap: 6,
+  },
+  resourceLabel: {
+    color: 'rgba(236, 241, 255, 0.7)',
+    fontSize: 13,
+    letterSpacing: 1,
+  },
+  resourceValue: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '700',
+  },
+  resourceDesc: {
+    color: 'rgba(236, 241, 255, 0.7)',
+    fontSize: 12,
+  },
+  quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     rowGap: 16,
-    marginBottom: 28,
   },
-  quickLinkPressable: {
+  quickCard: {
     width: '48%',
-    borderRadius: 20,
-  },
-  quickLinkPressableActive: {
-    transform: [{ scale: 0.97 }],
-    opacity: 0.92,
-  },
-  quickLinkGradient: {
-    borderRadius: 20,
-    padding: 18,
-    gap: 10,
+    borderRadius: 22,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(60, 34, 125, 0.6)',
-    backgroundColor: 'rgba(7, 9, 26, 0.88)',
+    borderColor: 'rgba(55, 33, 115, 0.45)',
+    backgroundColor: 'rgba(9, 11, 32, 0.82)',
   },
-  quickLinkAccent: {
+  quickCardPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.97 }],
+  },
+  quickCardGradient: {
+    padding: 18,
+    gap: 12,
+  },
+  quickAccent: {
     width: 46,
     height: 6,
     borderRadius: 4,
-    marginBottom: 10,
   },
-  quickLinkCardTitle: {
-    color: neonPalette.textPrimary,
+  quickCardTitle: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
   },
-  quickLinkCardDesc: {
-    color: neonPalette.textSecondary,
+  quickCardDesc: {
+    color: 'rgba(236, 241, 255, 0.7)',
     fontSize: 12,
     lineHeight: 18,
   },
-  quickLinkAction: {
-    color: neonPalette.accentViolet,
+  quickCardAction: {
+    color: '#F6E5FF',
     fontSize: 12,
     fontWeight: '600',
-    letterSpacing: 0.4,
+    letterSpacing: 0.8,
   },
-  blindBoxContainer: {
-    borderRadius: 24,
+  blindBoxCard: {
+    borderRadius: 26,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(70, 44, 140, 0.55)',
-    backgroundColor: 'rgba(10, 11, 30, 0.9)',
-    marginBottom: 24,
-  },
-  blindBoxGlow: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 24,
-    backgroundColor: neonPalette.glowCyan,
-  },
-  blindBoxUnity: {
-    height: 220,
-    backgroundColor: 'rgba(6, 7, 24, 0.9)',
-  },
-  blindBoxOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(5, 6, 25, 0.88)',
+    borderColor: 'rgba(70, 46, 120, 0.4)',
+    backgroundColor: 'rgba(9, 10, 29, 0.9)',
   },
   blindBoxHeader: {
-    paddingHorizontal: 20,
-    paddingVertical: 18,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 16,
-    backgroundColor: 'rgba(11, 12, 32, 0.88)',
-    borderTopWidth: 1,
-    borderColor: 'rgba(58, 36, 118, 0.55)',
-  },
-  blindBoxText: {
-    flex: 1,
-    gap: 6,
+    justifyContent: 'space-between',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(60, 36, 120, 0.35)',
   },
   blindBoxTitle: {
-    color: neonPalette.textPrimary,
+    color: '#FFFFFF',
     fontSize: 20,
     fontWeight: '700',
   },
   blindBoxSubtitle: {
-    color: neonPalette.textSecondary,
-    fontSize: 13,
-    lineHeight: 20,
+    color: 'rgba(236, 241, 255, 0.75)',
+    fontSize: 12,
+    marginTop: 6,
+    maxWidth: 220,
   },
   blindBoxButton: {
-    borderRadius: 14,
+    paddingHorizontal: 22,
     paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: neonPalette.accentMagenta,
+    borderRadius: 16,
+    backgroundColor: '#FF61D0',
   },
   blindBoxButtonText: {
-    color: '#170624',
-    fontSize: 16,
+    color: '#17021F',
+    fontSize: 15,
     fontWeight: '700',
-    textAlign: 'center',
   },
-  blindBoxButtonHint: {
-    color: '#F4E5FF',
-    fontSize: 11,
-    marginTop: 4,
-    textAlign: 'center',
+  blindBoxViewport: {
+    height: 220,
+    backgroundColor: 'rgba(6, 8, 24, 0.92)',
   },
-  logBox: {
-    marginTop: 10,
-    borderRadius: 18,
-    padding: 16,
-    backgroundColor: 'rgba(9, 10, 30, 0.9)',
-    borderWidth: 1,
-    borderColor: 'rgba(58, 33, 118, 0.55)',
+  unitySurface: {
+    flex: 1,
   },
-  logTitle: {
-    color: neonPalette.textPrimary,
-    fontSize: 14,
+  blindBoxGlow: {
+    position: 'absolute',
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    alignSelf: 'center',
+    top: -40,
+    backgroundColor: neonPalette.glowPurple,
+  },
+  unityFallback: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(6, 8, 24, 0.78)',
+    gap: 6,
+  },
+  fallbackTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
     fontWeight: '700',
-    marginBottom: 8,
   },
-  logText: {
-    color: neonPalette.textSecondary,
-    fontFamily: 'Courier',
-    fontSize: 11,
-    lineHeight: 18,
+  fallbackDesc: {
+    color: 'rgba(236, 241, 255, 0.75)',
+    fontSize: 12,
+  },
+  blindBoxFooter: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 4,
+    borderTopWidth: 1,
+    borderColor: 'rgba(60, 36, 120, 0.35)',
+  },
+  blindBoxHint: {
+    color: 'rgba(236, 241, 255, 0.68)',
+    fontSize: 12,
   },
 });
