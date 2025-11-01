@@ -173,8 +173,8 @@ export const HomeScreen = () => {
   const playerInitial = data?.displayName?.charAt(0).toUpperCase() ?? 'P';
 
   const heroPulsePrimary = useNeonPulse({ duration: 5200 });
-  const heroPulseSecondary = useNeonPulse({ duration: 7200 });
-  const blindBoxPulse = useNeonPulse({ duration: 6800 });
+  const heroPulseSecondary = useNeonPulse({ duration: 7400 });
+  const blindBoxPulse = useNeonPulse({ duration: 6400 });
 
   const {
     status: unityStatus,
@@ -192,9 +192,7 @@ export const HomeScreen = () => {
     }
   }, [bootstrapUnity, requestScene, unityStatus]);
 
-  const toggleLanguage = () => {
-    setLanguage((prev) => (prev === 'zh-CN' ? 'en-US' : 'zh-CN'));
-  };
+  const toggleLanguage = () => setLanguage((prev) => (prev === 'zh-CN' ? 'en-US' : 'zh-CN'));
 
   if (loading) {
     return (
@@ -224,7 +222,7 @@ export const HomeScreen = () => {
     <ScreenContainer>
       <View style={styles.container}>
         <LinearGradient
-          colors={['rgba(78, 48, 173, 0.26)', 'rgba(27, 122, 255, 0.18)']}
+          colors={['rgba(78, 48, 173, 0.28)', 'rgba(19, 121, 255, 0.18)']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.heroCard}
@@ -235,10 +233,10 @@ export const HomeScreen = () => {
               styles.heroAuraPrimary,
               getGlowStyle({
                 animated: heroPulsePrimary,
-                minOpacity: 0.22,
-                maxOpacity: 0.52,
-                minScale: 0.85,
-                maxScale: 1.2,
+                minOpacity: 0.18,
+                maxOpacity: 0.48,
+                minScale: 0.88,
+                maxScale: 1.22,
               }),
             ]}
           />
@@ -248,28 +246,15 @@ export const HomeScreen = () => {
               styles.heroAuraSecondary,
               getGlowStyle({
                 animated: heroPulseSecondary,
-                minOpacity: 0.12,
-                maxOpacity: 0.35,
-                minScale: 0.72,
-                maxScale: 1.3,
+                minOpacity: 0.1,
+                maxOpacity: 0.28,
+                minScale: 0.75,
+                maxScale: 1.35,
               }),
             ]}
           />
-          <View style={styles.heroHeader}>
+          <View style={styles.heroTopRow}>
             <View style={styles.avatarWrap}>
-              <Animated.View
-                pointerEvents="none"
-                style={[
-                  styles.avatarAura,
-                  getGlowStyle({
-                    animated: heroPulsePrimary,
-                    minOpacity: 0.28,
-                    maxOpacity: 0.55,
-                    minScale: 0.9,
-                    maxScale: 1.1,
-                  }),
-                ]}
-              />
               <View style={styles.avatarBadge}>
                 <Text style={styles.avatarInitial}>{playerInitial}</Text>
               </View>
@@ -282,21 +267,21 @@ export const HomeScreen = () => {
               <Text style={styles.languageLabel}>{copy.languageLabel}</Text>
             </Pressable>
           </View>
-          <Text style={styles.statusChip}>{copy.hero.statusOnline}</Text>
-          <View style={styles.heroResourceRow}>
-            <ResourceBadge
+          <View style={styles.resourceChipRow}>
+            <ResourceChip
               label={copy.hero.arcLabel}
               value={arcAmount}
               description={copy.hero.arcDescription}
-              accent="#B678FF"
+              accent="#A874FF"
             />
-            <ResourceBadge
+            <ResourceChip
               label={copy.hero.oreLabel}
               value={oreAmount}
               description={copy.hero.oreDescription}
-              accent="#66FFD5"
+              accent="#59FFD0"
             />
           </View>
+          <Text style={styles.statusChip}>{copy.hero.statusOnline}</Text>
         </LinearGradient>
 
         <View style={styles.quickGrid}>
@@ -306,22 +291,19 @@ export const HomeScreen = () => {
               title={text.title}
               description={text.description}
               accent={accent}
+              iconType={key}
               onPress={() => navigation.navigate(key)}
             />
           ))}
         </View>
 
-        <BlindBoxShowcase
-          status={unityStatus}
-          pulse={blindBoxPulse}
-          copy={copy.blindbox}
-        />
+        <BlindBoxShowcase status={unityStatus} pulse={blindBoxPulse} copy={copy.blindbox} />
       </View>
     </ScreenContainer>
   );
 };
 
-const ResourceBadge = ({
+const ResourceChip = ({
   label,
   value,
   description,
@@ -333,13 +315,18 @@ const ResourceBadge = ({
   accent: string;
 }) => (
   <LinearGradient
-    colors={[`${accent}33`, 'rgba(8, 10, 32, 0.95)']}
+    colors={[`${accent}33`, 'rgba(10, 11, 32, 0.95)']}
     start={{ x: 0, y: 0 }}
     end={{ x: 1, y: 1 }}
-    style={styles.resourceBadge}
+    style={styles.resourceChip}
   >
-    <Text style={styles.resourceLabel}>{label}</Text>
-    <Text style={styles.resourceValue}>{value}</Text>
+    <View style={styles.resourceChipHeader}>
+      <View style={styles.resourceChipLabelRow}>
+        <View style={[styles.resourceChipDot, { backgroundColor: accent }]} />
+        <Text style={styles.resourceLabel}>{label}</Text>
+      </View>
+      <Text style={styles.resourceValue}>{value}</Text>
+    </View>
     <Text style={styles.resourceDesc}>{description}</Text>
   </LinearGradient>
 );
@@ -348,23 +335,53 @@ type QuickLinkCardProps = {
   title: string;
   description: string;
   accent: string;
+  iconType: QuickLinkKey;
   onPress: () => void;
 };
 
-const QuickLinkCard = ({ title, description, accent, onPress }: QuickLinkCardProps) => (
+const QuickLinkCard = ({ title, description, accent, iconType, onPress }: QuickLinkCardProps) => (
   <Pressable style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]} onPress={onPress}>
     <LinearGradient
-      colors={[`${accent}2A`, `${accent}88`]}
+      colors={[`${accent}26`, `${accent}80`]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.quickGradient}
     >
-      <View style={[styles.quickAccent, { backgroundColor: accent }]} />
+      <QuickLinkIcon type={iconType} accent={accent} />
       <Text style={styles.quickTitle}>{title}</Text>
       <Text style={styles.quickDesc}>{description}</Text>
       <Text style={styles.quickAction}>进入</Text>
     </LinearGradient>
   </Pressable>
+);
+
+const QuickLinkIcon = ({ type, accent }: { type: QuickLinkKey; accent: string }) => (
+  <View style={styles.iconWrap}>
+    {type === 'Leaderboard' && (
+      <>
+        <View style={[styles.iconTrophyCup, { borderColor: accent }]} />
+        <View style={[styles.iconTrophyStem, { backgroundColor: accent }]} />
+      </>
+    )}
+    {type === 'Forge' && (
+      <>
+        <View style={[styles.iconHammerHead, { backgroundColor: accent }]} />
+        <View style={[styles.iconHammerHandle, { backgroundColor: accent }]} />
+      </>
+    )}
+    {type === 'Marketplace' && (
+      <>
+        <View style={[styles.iconTag, { borderColor: accent }]} />
+        <View style={[styles.iconTagHole, { borderColor: accent }]} />
+      </>
+    )}
+    {type === 'EventShop' && (
+      <>
+        <View style={[styles.iconGiftLid, { backgroundColor: accent }]} />
+        <View style={[styles.iconGiftBox, { borderColor: accent }]} />
+      </>
+    )}
+  </View>
 );
 
 type BlindBoxCopy = (typeof localeCopy)[LocaleKey]['blindbox'];
@@ -381,7 +398,7 @@ const BlindBoxShowcase = ({ status, pulse, copy }: BlindBoxShowcaseProps) => {
 
   return (
     <LinearGradient
-      colors={['rgba(124, 66, 220, 0.18)', 'rgba(58, 126, 255, 0.16)']}
+      colors={['rgba(118, 60, 214, 0.18)', 'rgba(48, 118, 255, 0.16)']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.blindBoxCard}
@@ -404,9 +421,9 @@ const BlindBoxShowcase = ({ status, pulse, copy }: BlindBoxShowcaseProps) => {
             getGlowStyle({
               animated: pulse,
               minOpacity: 0.16,
-              maxOpacity: 0.4,
+              maxOpacity: 0.38,
               minScale: 0.85,
-              maxScale: 1.2,
+              maxScale: 1.18,
             }),
           ]}
         />
@@ -431,9 +448,9 @@ const BlindBoxShowcase = ({ status, pulse, copy }: BlindBoxShowcaseProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   centerBox: {
     flex: 1,
@@ -441,33 +458,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heroCard: {
-    borderRadius: 28,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
+    borderRadius: 24,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderWidth: 1,
-    borderColor: 'rgba(87, 58, 185, 0.5)',
-    backgroundColor: 'rgba(10, 11, 30, 0.88)',
+    borderColor: 'rgba(92, 62, 188, 0.55)',
+    backgroundColor: 'rgba(8, 10, 30, 0.9)',
     overflow: 'hidden',
   },
   heroAuraPrimary: {
     position: 'absolute',
-    width: 210,
-    height: 210,
-    borderRadius: 105,
-    top: -40,
-    right: -20,
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    top: -26,
+    right: -12,
     backgroundColor: neonPalette.glowPink,
   },
   heroAuraSecondary: {
     position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    bottom: -60,
-    left: -30,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    bottom: -48,
+    left: -16,
     backgroundColor: neonPalette.glowCyan,
   },
-  heroHeader: {
+  heroTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -475,30 +492,21 @@ const styles = StyleSheet.create({
   avatarWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-  },
-  avatarAura: {
-    position: 'absolute',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    left: -8,
-    top: -8,
-    backgroundColor: 'rgba(90, 225, 255, 0.55)',
+    gap: 10,
   },
   avatarBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(156, 125, 255, 0.75)',
-    backgroundColor: 'rgba(8, 10, 32, 0.95)',
+    borderColor: 'rgba(152, 128, 255, 0.75)',
+    backgroundColor: 'rgba(8, 10, 33, 0.95)',
   },
   avatarInitial: {
-    color: '#F8F5FF',
-    fontSize: 20,
+    color: '#F9F7FF',
+    fontSize: 18,
     fontWeight: '700',
   },
   heroTitleGroup: {
@@ -506,150 +514,224 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     color: neonPalette.textPrimary,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
   },
   heroSubtitle: {
     color: neonPalette.textSecondary,
-    fontSize: 12,
+    fontSize: 11,
     letterSpacing: 0.4,
   },
   languageButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(121, 98, 255, 0.6)',
-    backgroundColor: 'rgba(14, 16, 38, 0.78)',
+    borderColor: 'rgba(122, 100, 255, 0.65)',
+    backgroundColor: 'rgba(14, 16, 38, 0.82)',
   },
   languageLabel: {
     color: '#F3ECFF',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     letterSpacing: 1,
   },
+  resourceChipRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginTop: 8,
+  },
+  resourceChip: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(88, 64, 180, 0.45)',
+    backgroundColor: 'rgba(10, 11, 32, 0.92)',
+    gap: 4,
+  },
+  resourceChipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  resourceChipLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  resourceChipDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  resourceLabel: {
+    color: 'rgba(236, 241, 255, 0.78)',
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+  },
+  resourceValue: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  resourceDesc: {
+    color: 'rgba(236, 241, 255, 0.6)',
+    fontSize: 9,
+    letterSpacing: 0.3,
+    paddingLeft: 12,
+  },
   statusChip: {
-    marginTop: 14,
+    marginTop: 8,
     alignSelf: 'flex-start',
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 12,
-    backgroundColor: 'rgba(123, 47, 247, 0.25)',
+    backgroundColor: 'rgba(126, 50, 240, 0.24)',
     color: '#ECE6FF',
     fontSize: 12,
     letterSpacing: 0.6,
-  },
-  heroResourceRow: {
-    marginTop: 16,
-    flexDirection: 'row',
-    gap: 12,
-  },
-  resourceBadge: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(82, 62, 198, 0.5)',
-    backgroundColor: 'rgba(10, 11, 32, 0.92)',
-    gap: 4,
-  },
-  resourceLabel: {
-    color: 'rgba(236, 241, 255, 0.74)',
-    fontSize: 12,
-    letterSpacing: 0.8,
-  },
-  resourceValue: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  resourceDesc: {
-    color: 'rgba(236, 241, 255, 0.7)',
-    fontSize: 11,
   },
   quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    rowGap: 12,
+    rowGap: 6,
   },
   quickCard: {
-    width: '47%',
-    borderRadius: 20,
+    width: '46%',
+    borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(64, 38, 128, 0.45)',
-    backgroundColor: 'rgba(9, 10, 28, 0.88)',
+    borderColor: 'rgba(60, 36, 125, 0.45)',
+    backgroundColor: 'rgba(9, 10, 28, 0.9)',
   },
   quickCardPressed: {
-    opacity: 0.85,
+    opacity: 0.86,
     transform: [{ scale: 0.97 }],
   },
   quickGradient: {
-    padding: 14,
-    gap: 10,
-  },
-  quickAccent: {
-    width: 42,
-    height: 6,
-    borderRadius: 4,
+    padding: 9,
+    gap: 5,
+    minHeight: 86,
   },
   quickTitle: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '700',
   },
   quickDesc: {
-    color: 'rgba(236, 241, 255, 0.72)',
-    fontSize: 11,
-    lineHeight: 16,
+    color: 'rgba(236, 241, 255, 0.75)',
+    fontSize: 10.5,
+    lineHeight: 15,
   },
   quickAction: {
     color: '#F7E9FF',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     letterSpacing: 0.6,
   },
+  iconWrap: {
+    width: 28,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconTrophyCup: {
+    width: 22,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderTopWidth: 3,
+  },
+  iconTrophyStem: {
+    width: 8,
+    height: 6,
+    borderRadius: 2,
+    marginTop: -2,
+  },
+  iconHammerHead: {
+    width: 18,
+    height: 6,
+    borderRadius: 3,
+  },
+  iconHammerHandle: {
+    width: 4,
+    height: 12,
+    borderRadius: 3,
+    marginTop: 2,
+  },
+  iconTag: {
+    width: 18,
+    height: 12,
+    borderRadius: 4,
+    borderWidth: 2,
+    transform: [{ rotate: '-12deg' }],
+  },
+  iconTagHole: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    borderWidth: 2,
+    position: 'absolute',
+    top: 4,
+    right: 6,
+  },
+  iconGiftLid: {
+    width: 18,
+    height: 4,
+    borderRadius: 2,
+  },
+  iconGiftBox: {
+    width: 18,
+    height: 10,
+    borderRadius: 4,
+    borderWidth: 2,
+    marginTop: 2,
+  },
   blindBoxCard: {
-    borderRadius: 26,
+    borderRadius: 22,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(70, 46, 120, 0.4)',
-    backgroundColor: 'rgba(8, 9, 26, 0.92)',
-    marginBottom: 4,
+    borderColor: 'rgba(62, 42, 130, 0.4)',
+    backgroundColor: 'rgba(8, 9, 26, 0.94)',
   },
   blindBoxHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
     borderBottomWidth: 1,
-    borderColor: 'rgba(62, 42, 115, 0.35)',
+    borderColor: 'rgba(56, 38, 118, 0.35)',
   },
   blindBoxTitle: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
   },
   blindBoxSubtitle: {
-    color: 'rgba(236, 241, 255, 0.76)',
-    fontSize: 11,
+    color: 'rgba(236, 241, 255, 0.78)',
+    fontSize: 10.5,
     marginTop: 4,
   },
   blindBoxButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 14,
-    backgroundColor: '#FF5ECE',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#FF5BD0',
   },
   blindBoxButtonText: {
     color: '#17021F',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
   },
   blindBoxViewport: {
-    height: 168,
+    height: 138,
     backgroundColor: 'rgba(6, 8, 24, 0.92)',
   },
   unitySurface: {
@@ -657,19 +739,19 @@ const styles = StyleSheet.create({
   },
   blindBoxAura: {
     position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: neonPalette.glowPurple,
+    width: 164,
+    height: 164,
+    borderRadius: 82,
     alignSelf: 'center',
-    top: -30,
+    top: -28,
+    backgroundColor: neonPalette.glowPurple,
   },
   blindBoxFallback: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(7, 9, 26, 0.78)',
-    gap: 6,
+    backgroundColor: 'rgba(6, 8, 24, 0.76)',
+    gap: 4,
   },
   fallbackTitle: {
     color: '#FFFFFF',
@@ -677,15 +759,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   fallbackDesc: {
-    color: 'rgba(236, 241, 255, 0.74)',
+    color: 'rgba(236, 241, 255, 0.72)',
     fontSize: 11,
   },
   blindBoxFooter: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     gap: 4,
     borderTopWidth: 1,
-    borderColor: 'rgba(62, 42, 115, 0.35)',
+    borderColor: 'rgba(56, 38, 118, 0.35)',
   },
   blindBoxHint: {
     color: 'rgba(236, 241, 255, 0.7)',
