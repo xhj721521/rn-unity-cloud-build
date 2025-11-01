@@ -1,17 +1,25 @@
 import React from 'react';
-import { requireNativeComponent, StyleSheet, View, ViewProps } from 'react-native';
+import {
+  Platform,
+  StyleSheet,
+  UIManager,
+  View,
+  ViewProps,
+  requireNativeComponent,
+} from 'react-native';
 
 type UnityViewProps = ViewProps & {
   fullscreen?: boolean;
 };
 
-const NativeUnityView = (() => {
-  try {
-    return requireNativeComponent<UnityViewProps>('UnityView');
-  } catch (error) {
-    return null;
-  }
-})();
+const UNITY_VIEW_NAME = 'UnityView';
+
+const isUnityViewAvailable =
+  Platform.OS === 'android' && UIManager.getViewManagerConfig(UNITY_VIEW_NAME) != null;
+
+const NativeUnityView = isUnityViewAvailable
+  ? requireNativeComponent<UnityViewProps>(UNITY_VIEW_NAME)
+  : null;
 
 export const UnityView = (props: UnityViewProps) => {
   if (NativeUnityView) {
