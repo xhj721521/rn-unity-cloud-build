@@ -378,8 +378,9 @@ const BlindBoxShowcase = ({ status, pulse, copy }: BlindBoxShowcaseProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: 20,
-    padding: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    gap: 16,
   },
   centerBox: {
     flex: 1,
@@ -388,18 +389,19 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     borderRadius: 26,
-    padding: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
     borderWidth: 1,
     borderColor: 'rgba(87, 54, 185, 0.45)',
     backgroundColor: 'rgba(8, 10, 27, 0.85)',
   },
   heroGlow: {
     position: 'absolute',
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    top: -40,
-    right: -30,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    top: -24,
+    right: -20,
     backgroundColor: neonPalette.glowPink,
   },
   heroHeader: {
@@ -414,11 +416,11 @@ const styles = StyleSheet.create({
   },
   avatarGlow: {
     position: 'absolute',
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    left: -10,
-    top: -10,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    left: -8,
+    top: -8,
     backgroundColor: neonPalette.glowCyan,
   },
   avatarBadge: {
@@ -465,7 +467,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   statusChip: {
-    marginTop: 18,
+    marginTop: 12,
     alignSelf: 'flex-start',
     paddingHorizontal: 14,
     paddingVertical: 6,
@@ -477,7 +479,8 @@ const styles = StyleSheet.create({
   },
   resourceStrip: {
     borderRadius: 24,
-    padding: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
     flexDirection: 'row',
     borderWidth: 1,
     borderColor: 'rgba(90, 110, 255, 0.2)',
@@ -506,7 +509,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    rowGap: 16,
+    rowGap: 14,
   },
   quickCard: {
     width: '48%',
@@ -521,8 +524,8 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.97 }],
   },
   quickCardGradient: {
-    padding: 18,
-    gap: 12,
+    padding: 16,
+    gap: 10,
   },
   quickAccent: {
     width: 46,
@@ -556,7 +559,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderColor: 'rgba(60, 36, 120, 0.35)',
   },
@@ -583,7 +587,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   blindBoxViewport: {
-    height: 220,
+    height: 190,
     backgroundColor: 'rgba(6, 8, 24, 0.92)',
   },
   unitySurface: {
@@ -591,11 +595,11 @@ const styles = StyleSheet.create({
   },
   blindBoxGlow: {
     position: 'absolute',
-    width: 240,
-    height: 240,
-    borderRadius: 120,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
     alignSelf: 'center',
-    top: -40,
+    top: -20,
     backgroundColor: neonPalette.glowPurple,
   },
   unityFallback: {
@@ -615,8 +619,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   blindBoxFooter: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
     gap: 4,
     borderTopWidth: 1,
     borderColor: 'rgba(60, 36, 120, 0.35)',
