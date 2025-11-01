@@ -11,43 +11,43 @@ export const OnChainDataScreen = () => {
 
   return (
     <ScreenContainer scrollable>
-      <Text style={styles.heading}>\u94fe\u9274\u4e2d\u5fc3</Text>
+      <Text style={styles.heading}>链鉴中心</Text>
       <Text style={styles.subHeading}>
-        \u6c47\u603b\u94fe\u4e0a\u8eab\u4efd\u3001\u8d44\u4ea7\u51ed\u8bc1\u4e0e\u4e16\u754c\u4e8b\u4ef6\u3002
+        汇总链上身份、资产凭证与世界事件。
       </Text>
 
       {loading ? (
-        <LoadingPlaceholder label="\u540c\u6b65\u94fe\u4e0a\u8d26\u672c\u4e2d..." />
+        <LoadingPlaceholder label="同步链上账本中..." />
       ) : error ? (
-        <ErrorState title="\u94fe\u4e0a\u6570\u636e\u6682\u4e0d\u53ef\u7528" description={error} />
+        <ErrorState title="链上数据暂不可用" description={error} />
       ) : data ? (
-        <InfoCard title="\u8d44\u4ea7\u6982\u89c8">
+        <InfoCard title="资产概览">
           <View style={styles.row}>
-            <Text style={styles.label}>\u5730\u5740</Text>
+            <Text style={styles.label}>地址</Text>
             <Text style={styles.value}>{data.address}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>\u4ee3\u5e01\u79cd\u7c7b</Text>
+            <Text style={styles.label}>代币种类</Text>
             <Text style={styles.value}>{data.tokens.length}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>NFT \u6570\u91cf</Text>
+            <Text style={styles.label}>NFT 数量</Text>
             <Text style={styles.value}>{data.nfts.length}</Text>
           </View>
         </InfoCard>
       ) : (
-        <LoadingPlaceholder label="\u6682\u65e0\u94fe\u4e0a\u54cd\u5e94" />
+        <LoadingPlaceholder label="暂无链上响应" />
       )}
 
-      <InfoCard title="\u5f00\u53d1\u4e2d" subtitle="\u540e\u7eed\u5c06\u63a5\u5165">
+      <InfoCard title="开发中" subtitle="后续将接入">
         <Text style={styles.todoText}>
-          \u00b7 \u5b9e\u65f6\u4ea4\u6613\u8ffd\u8e2a\u4e0e\u5b89\u5168\u9884\u8b66
+          · 实时交易追踪与安全预警
         </Text>
         <Text style={styles.todoText}>
-          \u00b7 \u94fe\u6e38\u6392\u884c\u699c\u4e0e\u8d5b\u5b63\u4fe1\u606f
+          · 链游排行榜与赛季信息
         </Text>
         <Text style={styles.todoText}>
-          \u00b7 NFT \u7ba1\u7406\uff08\u4e0a\u67b6 / \u8f6c\u79fb / \u5408\u6210\uff09
+          · NFT 管理（上架 / 转移 / 合成）
         </Text>
       </InfoCard>
     </ScreenContainer>

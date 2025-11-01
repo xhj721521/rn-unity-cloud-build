@@ -8,9 +8,9 @@ export const MyTeamScreen = () => {
 
   return (
     <ScreenContainer scrollable>
-      <Text style={styles.heading}>\u6211\u7684\u56e2\u961f</Text>
+      <Text style={styles.heading}>我的团队</Text>
       <Text style={styles.subHeading}>
-        \u7ba1\u7406\u6218\u961f\u6210\u5458\u3001\u6743\u9650\u4e0e\u534f\u4f5c\u7b56\u7565\u3002
+        管理战队成员、权限与协作策略。
       </Text>
 
       <View style={styles.tableHeader}>

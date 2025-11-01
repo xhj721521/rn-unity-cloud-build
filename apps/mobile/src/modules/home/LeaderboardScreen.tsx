@@ -14,15 +14,15 @@ import { neonPalette } from '@theme/neonPalette';
 import { useNeonPulse } from '@theme/animations';
 
 const CATEGORY_TABS: { key: LeaderboardCategory; label: string }[] = [
-  { key: 'inviter', label: '\u9080\u8BF7\u8FBE\u4EBA' },
-  { key: 'team', label: '\u56E2\u961F\u5EFA\u8BBE' },
-  { key: 'wealth', label: '\u8D22\u5BCC\u6392\u884C' },
+  { key: 'inviter', label: '邀请达人' },
+  { key: 'team', label: '团队建设' },
+  { key: 'wealth', label: '财富排行' },
 ];
 
 const PERIOD_TABS: { key: LeaderboardPeriod; label: string }[] = [
-  { key: 'daily', label: '\u65E5\u699C' },
-  { key: 'weekly', label: '\u5468\u699C' },
-  { key: 'monthly', label: '\u6708\u699C' },
+  { key: 'daily', label: '日榜' },
+  { key: 'weekly', label: '周榜' },
+  { key: 'monthly', label: '月榜' },
 ];
 
 export const LeaderboardScreen = () => {
@@ -36,10 +36,10 @@ export const LeaderboardScreen = () => {
 
   const myRankingLabel = useMemo(() => {
     if (!currentBoard.myRank) {
-      return '\u6682\u65E0\u6392\u540D';
+      return '暂无排名';
     }
     const rankText = currentBoard.myRank.rank <= 10 ? currentBoard.myRank.rank : '10+';
-    return `\u5F53\u524D\u6392\u540D\uFF1A${rankText} \u540D \u00B7 \u5F97\u5206 ${currentBoard.myRank.score}`;
+    return `当前排名：${rankText} 名 · 得分 ${currentBoard.myRank.score}`;
   }, [currentBoard.myRank]);
 
   const renderEntry = (entry: LeaderboardEntry) => {
@@ -64,7 +64,7 @@ export const LeaderboardScreen = () => {
             <Text style={[styles.entryName, isMe && styles.entryNameMe]}>{entry.playerName}</Text>
             <Text style={styles.entryScore}>{entry.score}</Text>
           </View>
-          {isMe ? <Text style={styles.tagMe}>\u6211\u7684</Text> : null}
+          {isMe ? <Text style={styles.tagMe}>我的</Text> : null}
         </View>
       </LinearGradient>
     );
@@ -72,9 +72,9 @@ export const LeaderboardScreen = () => {
 
   return (
     <ScreenContainer scrollable>
-      <Text style={styles.heading}>\u6392\u884C\u699C</Text>
+      <Text style={styles.heading}>排行榜</Text>
       <Text style={styles.subHeading}>
-        \u9080\u8BF7\u8FBE\u4EBA\u3001\u56E2\u961F\u5EFA\u8BBE\u3001\u8D22\u5BCC\u6392\u884C\u4E09\u5927\u699C\u5355\uFF0C\u652F\u6301\u65E5\u699C\u3001\u5468\u699C\u3001\u6708\u699C\u5207\u6362\u3002
+        邀请达人、团队建设、财富排行三大榜单，支持日榜、周榜、月榜切换。
       </Text>
 
       <View style={styles.tabRow}>
@@ -101,13 +101,13 @@ export const LeaderboardScreen = () => {
       </View>
 
       <InfoCard
-        title={`${CATEGORY_TABS.find((t) => t.key === category)?.label ?? ''} \u00B7 ${
+        title={`${CATEGORY_TABS.find((t) => t.key === category)?.label ?? ''} · ${
           PERIOD_TABS.find((t) => t.key === period)?.label ?? ''
         }`}
       >
         <View style={styles.scoreboardHeader}>
           <Text style={styles.scoreboardTitle}>{myRankingLabel}</Text>
-          <Text style={styles.scoreboardHint}>\u663E\u793A\u524D 10 \u540D</Text>
+          <Text style={styles.scoreboardHint}>显示前 10 名</Text>
         </View>
         <View style={styles.scoreboardWrapper}>
           <Animated.View
@@ -137,13 +137,13 @@ export const LeaderboardScreen = () => {
       </InfoCard>
 
       {period === 'monthly' ? (
-        <InfoCard title="\u6708\u699C\u5956\u52B1">
+        <InfoCard title="月榜奖励">
           <View style={styles.rewardRow}>
-            <Text style={styles.rewardLabel}>\u7B2C 1 - 3 \u540D</Text>
+            <Text style={styles.rewardLabel}>第 1 - 3 名</Text>
             <Text style={styles.rewardValue}>{rewards.top1To3}</Text>
           </View>
           <View style={styles.rewardRow}>
-            <Text style={styles.rewardLabel}>\u7B2C 4 - 10 \u540D</Text>
+            <Text style={styles.rewardLabel}>第 4 - 10 名</Text>
             <Text style={styles.rewardValue}>{rewards.top4To10}</Text>
           </View>
         </InfoCard>

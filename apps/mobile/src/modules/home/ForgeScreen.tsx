@@ -6,13 +6,13 @@ import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 export const ForgeScreen = () => {
   return (
     <ScreenContainer scrollable>
-      <Text style={styles.heading}>\u94f8\u9020\u574a</Text>
+      <Text style={styles.heading}>铸造坊</Text>
       <Text style={styles.subHeading}>
-        \u5408\u6210\u88c5\u5907\u3001\u5347\u7ea7\u6a21\u5757\u4e0e\u6253\u9020\u72ec\u7279\u7684\u94fe\u6e38\u6b66\u5668\u3002
+        合成装备、升级模块与打造独特的链游武器。
       </Text>
 
       <View style={styles.section}>
-        <LoadingPlaceholder label="\u94f8\u9020\u529f\u80fd\u5efa\u8bbe\u4e2d..." />
+        <LoadingPlaceholder label="铸造功能建设中..." />
       </View>
     </ScreenContainer>
   );

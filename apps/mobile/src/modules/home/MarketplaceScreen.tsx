@@ -6,13 +6,13 @@ import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 export const MarketplaceScreen = () => {
   return (
     <ScreenContainer scrollable>
-      <Text style={styles.heading}>\u96c6\u5e02\u574a</Text>
+      <Text style={styles.heading}>集市坊</Text>
       <Text style={styles.subHeading}>
-        \u5728\u94fe\u4e0a\u96c6\u5e02\u4ea4\u6613\u88c5\u5907\u3001\u4f19\u4f34\u4e0e\u7a00\u6709\u9053\u5177\u3002
+        在链上集市交易装备、伙伴与稀有道具。
       </Text>
 
       <View style={styles.section}>
-        <LoadingPlaceholder label="\u96c6\u5e02\u6570\u636e\u63a5\u53e3\u63a5\u5165\u4e2d..." />
+        <LoadingPlaceholder label="集市数据接口接入中..." />
       </View>
     </ScreenContainer>
   );

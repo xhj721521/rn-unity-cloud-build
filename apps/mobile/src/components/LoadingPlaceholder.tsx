@@ -8,7 +8,7 @@ type LoadingPlaceholderProps = {
 };
 
 export const LoadingPlaceholder = ({
-  label = '\u529f\u80fd\u5f00\u53d1\u4e2d...',
+  label = '功能开发中...',
 }: LoadingPlaceholderProps) => {
   const pulse = useNeonPulse({ duration: 4200 });
 

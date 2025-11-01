@@ -10,12 +10,12 @@ export const MyInvitesScreen = () => {
 
   return (
     <ScreenContainer scrollable>
-      <Text style={styles.heading}>\u6211\u7684\u9080\u8bf7</Text>
+      <Text style={styles.heading}>我的邀请</Text>
       <Text style={styles.subHeading}>
-        \u67e5\u770b\u9080\u8bf7\u8bb0\u5f55\u3001\u5956\u52b1\u8fdb\u5ea6\u4e0e\u9080\u8bf7\u7801\u5206\u4eab\u3002
+        查看邀请记录、奖励进度与邀请码分享。
       </Text>
 
-      <InfoCard title="\u9080\u8bf7\u8bb0\u5f55">
+      <InfoCard title="邀请记录">
         {records.map((record) => (
           <View key={record.id} style={styles.inviteRow}>
             <View style={styles.inviteInfo}>

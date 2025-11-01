@@ -14,10 +14,10 @@ import { neonPalette } from '@theme/neonPalette';
 import { getGlowStyle, useNeonPulse } from '@theme/animations';
 
 const SETTINGS_ITEMS = [
-  '\u94B1\u5305\u7ED1\u5B9A / \u5207\u6362',
-  '\u8D26\u6237\u5B89\u5168\u8BBE\u7F6E',
-  '\u901A\u77E5\u4E0E\u6218\u62A5\u63A8\u9001',
-  '\u4E2A\u6027\u5316\u5916\u89C2\u4E3B\u9898',
+  '钱包绑定 / 切换',
+  '账户安全设置',
+  '通知与战报推送',
+  '个性化外观主题',
 ];
 
 const QUICK_NAV_LINKS: {
@@ -27,20 +27,20 @@ const QUICK_NAV_LINKS: {
   accent: string;
 }[] = [
   {
-    title: '\u6211\u7684\u56E2\u961F',
-    description: '\u7BA1\u7406\u6218\u961F\u6210\u5458\u4E0E\u804C\u8D23',
+    title: '我的团队',
+    description: '管理战队成员与职责',
     target: 'MyTeam',
     accent: neonPalette.accentMagenta,
   },
   {
-    title: '\u6211\u7684\u4ED3\u5E93',
-    description: '\u67E5\u770B\u88C5\u5907\u4E0E NFT \u8D44\u6E90',
+    title: '我的仓库',
+    description: '查看装备与 NFT 资源',
     target: 'MyInventory',
     accent: neonPalette.accentCyan,
   },
   {
-    title: '\u6211\u7684\u9080\u8BF7',
-    description: '\u9080\u8BF7\u597D\u53CB\u540C\u6218\u83B7\u53D6\u5956\u52B1',
+    title: '我的邀请',
+    description: '邀请好友同战获取奖励',
     target: 'MyInvites',
     accent: neonPalette.accentAmber,
   },
@@ -79,10 +79,10 @@ export const ProfileScreen = () => {
             ]}
           />
           {loading ? (
-            <LoadingPlaceholder label="\u540C\u6B65\u6307\u6325\u5B98\u8D44\u6599..." />
+            <LoadingPlaceholder label="同步指挥官资料..." />
           ) : error ? (
             <ErrorState
-              title="\u8D26\u6237\u4FE1\u606F\u6682\u4E0D\u53EF\u7528"
+              title="账户信息暂不可用"
               description={error}
               onRetry={() => navigation.replace('ProfileMain')}
             />
@@ -91,46 +91,46 @@ export const ProfileScreen = () => {
               <Text style={styles.heroEyebrow}>COMMAND CENTER</Text>
               <Text style={styles.heroTitle}>{data.displayName}</Text>
               <View style={styles.heroStats}>
-                <ProfileStat label="\u7B49\u7EA7" value={data.level.toString()} />
-                <ProfileStat label="\u6218\u6597\u8BC4\u5206" value={data.powerScore.toString()} />
-                <ProfileStat label="NFT \u6570" value={data.nfts.length.toString()} />
+                <ProfileStat label="等级" value={data.level.toString()} />
+                <ProfileStat label="战斗评分" value={data.powerScore.toString()} />
+                <ProfileStat label="NFT 数" value={data.nfts.length.toString()} />
               </View>
               <View style={styles.walletCard}>
-                <Text style={styles.walletLabel}>\u4E3B\u94B1\u5305</Text>
+                <Text style={styles.walletLabel}>主钱包</Text>
                 <Text style={styles.walletValue}>{data.address}</Text>
               </View>
             </>
           ) : (
-            <LoadingPlaceholder label="\u672A\u53D1\u73B0\u8D26\u6237\u4FE1\u606F" />
+            <LoadingPlaceholder label="未发现账户信息" />
           )}
         </View>
       </LinearGradient>
 
       <SectionHeader
-        title="\u4F5C\u6218\u603B\u89C8"
-        subtitle="\u56E2\u961F\u3001\u4ED3\u5E93\u4E0E\u9080\u8BF7\u7684\u6838\u5FC3\u7EDF\u8BA1"
+        title="作战总览"
+        subtitle="团队、仓库与邀请的核心统计"
       />
       <View style={styles.summaryRow}>
         <SummaryCard
-          label="\u6218\u961F\u6210\u5458"
-          value={`${teamMembers.length} \u4F4D`}
+          label="战队成员"
+          value={`${teamMembers.length} 位`}
           accent={neonPalette.accentMagenta}
         />
         <SummaryCard
-          label="\u4ED3\u5E93\u8D44\u4EA7"
-          value={`${inventoryCount} \u9879`}
+          label="仓库资产"
+          value={`${inventoryCount} 项`}
           accent={neonPalette.accentCyan}
         />
         <SummaryCard
-          label="\u5F85\u5904\u7406\u9080\u8BF7"
-          value={`${pendingInvites} \u6761`}
+          label="待处理邀请"
+          value={`${pendingInvites} 条`}
           accent={neonPalette.accentAmber}
         />
       </View>
 
       <SectionHeader
-        title="\u5FEB\u6377\u5165\u53E3"
-        subtitle="\u5FEB\u901F\u524D\u5F80\u5E38\u7528\u914D\u7F6E\u4E0E\u7BA1\u7406\u754C\u9762"
+        title="快捷入口"
+        subtitle="快速前往常用配置与管理界面"
       />
       <View style={styles.quickGrid}>
         {QUICK_NAV_LINKS.map((link) => (
@@ -144,11 +144,11 @@ export const ProfileScreen = () => {
         ))}
       </View>
 
-      <InfoCard title="\u5FEB\u901F\u8BBE\u7F6E">
+      <InfoCard title="快速设置">
         {SETTINGS_ITEMS.map((item) => (
           <View key={item} style={styles.settingRow}>
             <Text style={styles.settingText}>{item}</Text>
-            <Text style={styles.settingStatus}>\u5F00\u53D1\u4E2D</Text>
+            <Text style={styles.settingStatus}>开发中</Text>
           </View>
         ))}
       </InfoCard>
@@ -244,7 +244,7 @@ const QuickNavButton = ({
         <Animated.View style={[styles.quickAccent, { backgroundColor: accent }, accentStyle]} />
         <Text style={styles.quickTitle}>{title}</Text>
         <Text style={styles.quickDesc}>{description}</Text>
-        <Text style={styles.quickAction}>\u7ACB\u5373\u524D\u5F80 \u2192</Text>
+        <Text style={styles.quickAction}>立即前往 →</Text>
       </LinearGradient>
     </Pressable>
   );

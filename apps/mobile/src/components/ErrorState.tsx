@@ -33,7 +33,7 @@ export const ErrorState = ({ title, description, onRetry }: ErrorStateProps) => 
         {description ? <Text style={styles.description}>{description}</Text> : null}
         {onRetry ? (
           <Pressable onPress={onRetry} style={styles.retryButton}>
-            <Text style={styles.retryText}>\u91CD\u65B0\u5C1D\u8BD5</Text>
+            <Text style={styles.retryText}>重新尝试</Text>
           </Pressable>
         ) : null}
       </View>

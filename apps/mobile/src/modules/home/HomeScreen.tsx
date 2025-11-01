@@ -23,26 +23,26 @@ type QuickLinkConfig = {
 
 const QUICK_LINKS: QuickLinkConfig[] = [
   {
-    title: '\u6392\u884C\u699C',
-    description: '\u67E5\u770B\u8D5B\u5B63\u8363\u8A89\u4E0E\u5168\u7403\u6392\u540D',
+    title: '排行榜',
+    description: '查看赛季荣誉与全球排名',
     target: 'Leaderboard',
     accent: neonPalette.accentMagenta,
   },
   {
-    title: '\u94F8\u9020\u574A',
-    description: '\u5408\u6210\u6A21\u5757\u3001\u5F3A\u5316\u88C5\u5907',
+    title: '铸造坊',
+    description: '合成模块、强化装备',
     target: 'Forge',
     accent: neonPalette.accentCyan,
   },
   {
-    title: '\u96C6\u5E02\u574A',
-    description: '\u4EA4\u6613 NFT \u4E0E\u7A00\u6709\u4F19\u4F34',
+    title: '集市坊',
+    description: '交易 NFT 与稀有伙伴',
     target: 'Marketplace',
     accent: '#63FFAF',
   },
   {
-    title: '\u6D3B\u52A8\u5546\u57CE',
-    description: '\u5151\u6362\u8D5B\u5B63\u9650\u5B9A\u4E0E\u793C\u5305',
+    title: '活动商城',
+    description: '兑换赛季限定与礼包',
     target: 'EventShop',
     accent: neonPalette.accentAmber,
   },
@@ -99,36 +99,36 @@ export const HomeScreen = () => {
           />
           <View style={styles.heroHeader}>
             <Text style={styles.heroEyebrow}>NEON LINK</Text>
-            <Text style={styles.heroTitle}>\u6B22\u8FCE\u56DE\u5230\u9713\u8679\u94FE\u57DF</Text>
+            <Text style={styles.heroTitle}>欢迎回到霓虹链域</Text>
             <Text style={styles.heroSubtitle}>
-              \u540C\u6B65\u8EAB\u4EFD\uFF0C\u7EDF\u7387\u4F60\u7684\u8D5B\u535A\u6218\u961F\u3002
+              同步身份，统率你的赛博战队。
             </Text>
           </View>
           {loading ? (
-            <LoadingPlaceholder label="\u94FE\u4E0A\u6570\u636E\u540C\u6B65\u4E2D..." />
+            <LoadingPlaceholder label="链上数据同步中..." />
           ) : error ? (
             <ErrorState
-              title="\u94FE\u4E0A\u6570\u636E\u6682\u4E0D\u53EF\u7528"
+              title="链上数据暂不可用"
               description={error}
               onRetry={() => navigation.replace('HomeMain')}
             />
           ) : data ? (
             <>
               <View style={styles.heroStats}>
-                <Stat label="\u7B49\u7EA7" value={data.level.toString()} />
-                <Stat label="\u6218\u6597\u8BC4\u5206" value={data.powerScore.toString()} />
+                <Stat label="等级" value={data.level.toString()} />
+                <Stat label="战斗评分" value={data.powerScore.toString()} />
                 <Stat
-                  label="\u8D44\u4EA7\u6570"
+                  label="资产数"
                   value={`${data.tokens.length + data.nfts.length}`}
                 />
               </View>
               <View style={styles.addressPill}>
-                <Text style={styles.addressLabel}>\u4E3B\u94B1\u5305</Text>
+                <Text style={styles.addressLabel}>主钱包</Text>
                 <Text style={styles.addressValue}>{data.address}</Text>
               </View>
             </>
           ) : (
-            <LoadingPlaceholder label="\u6682\u65E0\u94FE\u4E0A\u6570\u636E\uFF0C\u7A0D\u540E\u518D\u8BD5\u3002" />
+            <LoadingPlaceholder label="暂无链上数据，稍后再试。" />
           )}
         </View>
       </LinearGradient>
@@ -136,17 +136,17 @@ export const HomeScreen = () => {
       {data && !loading && !error ? (
         <>
           <SectionHeader
-            title="\u8D44\u4EA7\u901F\u89C8"
-            subtitle="\u6838\u5FC3\u8D44\u6E90\u4E0E\u88C5\u5907\u4E00\u76EE\u4E86\u7136"
+            title="资产速览"
+            subtitle="核心资源与装备一目了然"
           />
           <View style={styles.assetGrid}>
-            <InfoCard title="\u4EE3\u5E01\u50A8\u5907" subtitle="\u8BD5\u70BC\u80FD\u91CF\u6C60">
+            <InfoCard title="代币储备" subtitle="试炼能量池">
               {data.tokens.map((token) => (
                 <View style={styles.listRow} key={token.id}>
                   <View>
                     <Text style={styles.itemName}>{token.name}</Text>
                     <Text style={styles.itemNote}>
-                      \u53EF\u7528\u4E8E\u80FD\u91CF\u8865\u7ED9\u4E0E\u4EA4\u6613
+                      可用于能量补给与交易
                     </Text>
                   </View>
                   <Text style={styles.itemValue}>{token.amount}</Text>
@@ -154,14 +154,14 @@ export const HomeScreen = () => {
               ))}
             </InfoCard>
             <InfoCard
-              title="\u88C5\u5907\u4E0E\u4F19\u4F34"
-              subtitle="\u5F53\u524D\u643A\u5E26\u7684\u6218\u6597\u8D44\u4EA7"
+              title="装备与伙伴"
+              subtitle="当前携带的战斗资产"
             >
               {data.nfts.map((nft) => (
                 <View style={styles.listRow} key={nft.id}>
                   <View>
                     <Text style={styles.itemName}>{nft.name}</Text>
-                    <Text style={styles.itemNote}>NFT \u8D44\u4EA7</Text>
+                    <Text style={styles.itemNote}>NFT 资产</Text>
                   </View>
                   <Text style={styles.itemValue}>{nft.amount}</Text>
                 </View>
@@ -172,8 +172,8 @@ export const HomeScreen = () => {
       ) : null}
 
       <SectionHeader
-        title="\u4F5C\u6218\u9762\u677F"
-        subtitle="\u5FEB\u901F\u5B9A\u4F4D\u5173\u952E\u529F\u80FD\u4E0E\u6A21\u5757"
+        title="作战面板"
+        subtitle="快速定位关键功能与模块"
       />
       <View style={styles.quickLinkGrid}>
         {QUICK_LINKS.map((link) => (
@@ -188,8 +188,8 @@ export const HomeScreen = () => {
       </View>
 
       <SectionHeader
-        title="Unity \u63A7\u5236\u53F0"
-        subtitle="\u5B9E\u65F6\u67E5\u770B 3D \u573A\u666F\u72B6\u6001"
+        title="Unity 控制台"
+        subtitle="实时查看 3D 场景状态"
       />
       <View style={styles.blindBoxContainer}>
         <Animated.View
@@ -211,18 +211,18 @@ export const HomeScreen = () => {
             <LoadingPlaceholder
               label={
                 unityStatus === 'error'
-                  ? '\u76F2\u76D2\u5C55\u793A\u52A0\u8F7D\u5931\u8D25'
-                  : '\u8F7D\u5165 3D \u76F2\u76D2\u5C55\u793A\u4E2D...'
+                  ? '盲盒展示加载失败'
+                  : '载入 3D 盲盒展示中...'
               }
             />
           </View>
         ) : null}
         <View style={styles.blindBoxHeader}>
           <View style={styles.blindBoxText}>
-            <Text style={styles.blindBoxTitle}>\u76F2\u76D2\u53EC\u5524\u53F0</Text>
+            <Text style={styles.blindBoxTitle}>盲盒召唤台</Text>
             <Text style={styles.blindBoxSubtitle}>
-              \u8D5B\u535A\u7075\u5076\u7B49\u5F85\u5524\u9192\uFF0C\u70B9\u51FB\u8C03\u5EA6\u6D4B\u8BD5
-              Unity \u6307\u4EE4\u3002
+              赛博灵偶等待唤醒，点击调度测试
+              Unity 指令。
             </Text>
           </View>
           <Pressable
@@ -234,15 +234,15 @@ export const HomeScreen = () => {
               })
             }
           >
-            <Text style={styles.blindBoxButtonText}>\u5F00\u542F\u76F2\u76D2</Text>
-            <Text style={styles.blindBoxButtonHint}>\u63A8\u9001 SHOW_BLINDBOX \u6307\u4EE4</Text>
+            <Text style={styles.blindBoxButtonText}>开启盲盒</Text>
+            <Text style={styles.blindBoxButtonHint}>推送 SHOW_BLINDBOX 指令</Text>
           </Pressable>
         </View>
       </View>
 
       {lastMessage ? (
         <View style={styles.logBox}>
-          <Text style={styles.logTitle}>Unity \u56DE\u4F20</Text>
+          <Text style={styles.logTitle}>Unity 回传</Text>
           <Text style={styles.logText}>{JSON.stringify(lastMessage, null, 2)}</Text>
         </View>
       ) : null}
@@ -316,7 +316,7 @@ const QuickLinkCard = ({
         <Animated.View style={[styles.quickLinkAccent, { backgroundColor: accent }, accentStyle]} />
         <Text style={styles.quickLinkCardTitle}>{title}</Text>
         <Text style={styles.quickLinkCardDesc}>{description}</Text>
-        <Text style={styles.quickLinkAction}>\u7ACB\u5373\u524D\u5F80 \u2192</Text>
+        <Text style={styles.quickLinkAction}>立即前往 →</Text>
       </LinearGradient>
     </Pressable>
   );

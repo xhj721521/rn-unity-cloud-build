@@ -25,9 +25,9 @@ export const TrialsScreen = () => {
 
   return (
     <ScreenContainer>
-      <Text style={styles.title}>\u8bd5\u70bc\u573a</Text>
+      <Text style={styles.title}>试炼场</Text>
       <Text style={styles.caption}>
-        \u8fde\u63a5 Unity \u5f15\u64ce\uff0c\u51c6\u5907\u8fdb\u5165 3D \u573a\u666f\u3002
+        连接 Unity 引擎，准备进入 3D 场景。
       </Text>
 
       <View style={styles.unityWrapper}>
@@ -37,8 +37,8 @@ export const TrialsScreen = () => {
             <LoadingPlaceholder
               label={
                 status === 'error'
-                  ? 'Unity \u521d\u59cb\u5316\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5'
-                  : '3D \u573a\u666f\u52a0\u8f7d\u4e2d...'
+                  ? 'Unity 初始化失败，请稍后重试'
+                  : '3D 场景加载中...'
               }
             />
           </View>
@@ -47,8 +47,8 @@ export const TrialsScreen = () => {
 
       <View style={styles.actionRow}>
         <ActionButton
-          label="\u5f00\u542f\u6218\u6597"
-          description="\u5411 Unity \u53d1\u9001 START_COMBAT \u6307\u4ee4"
+          label="开启战斗"
+          description="向 Unity 发送 START_COMBAT 指令"
           onPress={() =>
             sendUnityMessage('START_COMBAT', {
               loadout: 'default',
@@ -57,15 +57,15 @@ export const TrialsScreen = () => {
           }
         />
         <ActionButton
-          label="\u6682\u505c"
-          description="\u53d1\u9001 PAUSE"
+          label="暂停"
+          description="发送 PAUSE"
           onPress={() => sendUnityMessage('PAUSE')}
         />
       </View>
 
       {lastMessage ? (
         <View style={styles.logBox}>
-          <Text style={styles.logTitle}>\u6700\u540e\u4e8b\u4ef6</Text>
+          <Text style={styles.logTitle}>最后事件</Text>
           <Text style={styles.logText}>{JSON.stringify(lastMessage, null, 2)}</Text>
         </View>
       ) : null}

@@ -22,15 +22,15 @@ export const RootNavigator = () => {
         tabBarInactiveTintColor: '#8D92A3',
       }}
     >
-      <Tab.Screen name="Home" component={HomeNavigator} options={{ title: '\u9996\u9875' }} />
-      <Tab.Screen name="Trials" component={TrialsScreen} options={{ title: '\u8bd5\u70bc' }} />
-      <Tab.Screen name="Explore" component={ExploreScreen} options={{ title: '\u63a2\u7d22' }} />
+      <Tab.Screen name="Home" component={HomeNavigator} options={{ title: '首页' }} />
+      <Tab.Screen name="Trials" component={TrialsScreen} options={{ title: '试炼' }} />
+      <Tab.Screen name="Explore" component={ExploreScreen} options={{ title: '探索' }} />
       <Tab.Screen
         name="OnChainData"
         component={OnChainDataScreen}
-        options={{ title: '\u94fe\u9274' }}
+        options={{ title: '链鉴' }}
       />
-      <Tab.Screen name="Profile" component={ProfileNavigator} options={{ title: '\u6211\u7684' }} />
+      <Tab.Screen name="Profile" component={ProfileNavigator} options={{ title: '我的' }} />
     </Tab.Navigator>
   );
 };

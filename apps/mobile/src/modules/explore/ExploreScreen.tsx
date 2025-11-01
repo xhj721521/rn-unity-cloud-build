@@ -8,19 +8,19 @@ import { useUnityBridge } from '@bridge/useUnityBridge';
 
 const FEATURE_LIST = [
   {
-    title: '\u9886\u57df\u5730\u56fe',
+    title: '领域地图',
     description:
-      '\u6d4f\u89c8\u8d5b\u535a\u90fd\u5e02\u3001\u80fd\u6e90\u5382\u4e0e\u79d8\u5883\u5165\u53e3\uff0c\u89c4\u5212\u63a2\u7d22\u8def\u7ebf\u3002',
+      '浏览赛博都市、能源厂与秘境入口，规划探索路线。',
   },
   {
-    title: 'NFT \u5546\u5e97',
+    title: 'NFT 商店',
     description:
-      '\u5151\u6362\u9650\u65f6\u9713\u8679\u88c5\u5907\u4e0e\u4f19\u4f34\uff0c\u652f\u6301\u94fe\u4e0a\u4ea4\u6613\u8bb0\u5f55\u3002',
+      '兑换限时霓虹装备与伙伴，支持链上交易记录。',
   },
   {
-    title: '\u6d3b\u52a8\u526f\u672c',
+    title: '活动副本',
     description:
-      '\u53c2\u52a0\u5468\u671f\u6d3b\u52a8\u548c\u5408\u4f5c\u526f\u672c\uff0c\u83b7\u53d6\u7a00\u6709\u5956\u52b1\u3002',
+      '参加周期活动和合作副本，获取稀有奖励。',
   },
 ];
 
@@ -43,9 +43,9 @@ export const ExploreScreen = () => {
 
   return (
     <ScreenContainer>
-      <Text style={styles.heading}>\u63a2\u7d22\u7ec8\u7aef</Text>
+      <Text style={styles.heading}>探索终端</Text>
       <Text style={styles.subHeading}>
-        \u6d4f\u89c8\u8d5b\u535a\u4e16\u754c\u5730\u56fe\uff0c\u89c4\u5212\u4e0b\u4e00\u6b21\u5192\u9669\u3002
+        浏览赛博世界地图，规划下一次冒险。
       </Text>
 
       <View style={styles.unityWrapper}>
@@ -55,8 +55,8 @@ export const ExploreScreen = () => {
             <LoadingPlaceholder
               label={
                 status === 'error'
-                  ? '\u63a2\u7d22\u573a\u666f\u52a0\u8f7d\u5931\u8d25'
-                  : '\u52a0\u8f7d\u63a2\u7d22\u4e16\u754c\u4e2d...'
+                  ? '探索场景加载失败'
+                  : '加载探索世界中...'
               }
             />
           </View>
@@ -65,18 +65,18 @@ export const ExploreScreen = () => {
 
       <View style={styles.actionList}>
         <ActionButton
-          label="\u5de1\u822a\u5730\u56fe"
-          description="LOAD_MAP\uff1a\u805a\u7126\u4e3b\u57ce\u533a\u4e0e\u79d8\u5883\u5165\u53e3"
+          label="巡航地图"
+          description="LOAD_MAP：聚焦主城区与秘境入口"
           onPress={() => sendUnityMessage('LOAD_MAP', { focus: 'megacity' })}
         />
         <ActionButton
-          label="\u626b\u63cf\u8d44\u6e90"
-          description="SCAN_RESOURCES\uff1a\u5c55\u793a\u53ef\u6536\u96c6\u8282\u70b9"
+          label="扫描资源"
+          description="SCAN_RESOURCES：展示可收集节点"
           onPress={() => sendUnityMessage('SCAN_RESOURCES', { radius: 500 })}
         />
         <ActionButton
-          label="\u4f20\u9001\u81f3\u6d3b\u52a8\u526f\u672c"
-          description="WARP_TO_EVENT\uff1a\u8df3\u8f6c\u5230\u9650\u65f6\u6d3b\u52a8\u533a\u57df"
+          label="传送至活动副本"
+          description="WARP_TO_EVENT：跳转到限时活动区域"
           onPress={() => sendUnityMessage('WARP_TO_EVENT', { eventId: 'event-alpha' })}
         />
       </View>
@@ -92,7 +92,7 @@ export const ExploreScreen = () => {
 
       {lastMessage ? (
         <View style={styles.logBox}>
-          <Text style={styles.logTitle}>Unity \u56de\u4f20</Text>
+          <Text style={styles.logTitle}>Unity 回传</Text>
           <Text style={styles.logText}>{JSON.stringify(lastMessage, null, 2)}</Text>
         </View>
       ) : null}
