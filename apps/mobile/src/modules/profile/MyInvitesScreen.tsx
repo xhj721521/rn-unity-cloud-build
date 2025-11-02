@@ -21,8 +21,7 @@ export const MyInvitesScreen = () => {
             <View style={styles.inviteInfo}>
               <Text style={styles.inviteName}>{record.invitee}</Text>
               <Text style={styles.inviteMeta}>
-                {new Date(record.sentAt).toLocaleString()} ·{' '}
-                {STATUS_LABEL[record.status]}
+                {new Date(record.sentAt).toLocaleString()} · {STATUS_LABEL[record.status]}
               </Text>
             </View>
             <Text style={styles.inviteReward}>{record.reward}</Text>

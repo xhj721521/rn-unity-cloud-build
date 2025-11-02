@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -15,19 +15,11 @@ import { neonPalette } from '@theme/neonPalette';
 import { getGlowStyle, useNeonPulse } from '@theme/animations';
 import { UnityStatus, useUnityBridge } from '@bridge/useUnityBridge';
 import { UnityView } from '@bridge/UnityView';
-import { NeonPressable } from '@components/NeonPressable';
-import { QuickGlyph } from '@components/icons/QuickGlyph';
-import { designTokens } from '@theme/designTokens';
 
 type LocaleKey = 'zh-CN' | 'en-US';
 type QuickLinkKey = 'Leaderboard' | 'Forge' | 'Marketplace' | 'EventShop';
 
-const quickLinkOrder: QuickLinkKey[] = [
-  'Leaderboard',
-  'Forge',
-  'Marketplace',
-  'EventShop',
-];
+const quickLinkOrder: QuickLinkKey[] = ['Leaderboard', 'Forge', 'Marketplace', 'EventShop'];
 
 const localeCopy: Record<
   LocaleKey,
@@ -59,7 +51,7 @@ const localeCopy: Record<
       title: '指挥中心',
       subtitle: '欢迎回到霓虹链域',
       statusOnline: '指挥网络已连接',
-      arcLabel: 'Arc 能量',
+      arcLabel: 'Arc',
       arcDescription: '核心能源储备',
       oreLabel: '矿石',
       oreDescription: '锻造与升级材料',
@@ -67,31 +59,31 @@ const localeCopy: Record<
     quickLinks: {
       Leaderboard: {
         title: '排行榜',
-        description: '查看赛季荣誉与全球排行',
+        description: '查看赛季荣誉与全球排名',
       },
       Forge: {
         title: '铸造坊',
         description: '合成模块，强化装备',
       },
       Marketplace: {
-        title: '集市',
-        description: '交易 NFT 与稀有道具',
+        title: '集市坊',
+        description: '交易 NFT 与稀有伙伴',
       },
       EventShop: {
         title: '活动商城',
-        description: '兑换赛季限定与礼包',
+        description: '兑换赛季限定与礼盒',
       },
     },
     blindbox: {
       title: '盲盒展示',
-      hints: ['最新掉落：幻彩装甲 · 稀有', '累计开启 12 次 · 史诗奖励 ×3'],
+      hints: ['最新掉落：幻彩装甲 · 稀有', '累计开启 12 次 · 史诗奖励 x3'],
       status: {
-        ready: '盲盒场景已上线，随时开启',
+        ready: '盲盒场景已加载，等待指挥官开启',
         initializing: '唤醒盲盒场景中...',
         idle: '等待唤醒盲盒场景',
         error: '盲盒引擎未响应，请稍后重试',
       },
-      cta: { ready: '开启盲盒', other: '唤醒盲盒' },
+      cta: { ready: '立即开启', other: '唤醒盲盒' },
       fallbackTitle: '盲盒动画准备中',
       fallbackDesc: '即将唤醒 3D 场景，请稍候',
     },
@@ -146,8 +138,7 @@ const findAssetAmount = (assets: ChainAsset[] | undefined, id: string) =>
 
 export const HomeScreen = () => {
   const dispatch = useAppDispatch();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { data, loading, error } = useAccountSummary();
   const [language, setLanguage] = useState<LocaleKey>('zh-CN');
 
@@ -201,15 +192,7 @@ export const HomeScreen = () => {
     }
   }, [bootstrapUnity, requestScene, unityStatus]);
 
-  const toggleLanguage = () =>
-    setLanguage((prev) => (prev === 'zh-CN' ? 'en-US' : 'zh-CN'));
-  const handleBlindBoxCta = useCallback(() => {
-    if (unityStatus === 'ready') {
-      requestScene('BlindBoxShowcase');
-    } else {
-      bootstrapUnity('BlindBoxShowcase').catch(() => null);
-    }
-  }, [bootstrapUnity, requestScene, unityStatus]);
+  const toggleLanguage = () => setLanguage((prev) => (prev === 'zh-CN' ? 'en-US' : 'zh-CN'));
 
   if (loading) {
     return (
@@ -314,12 +297,7 @@ export const HomeScreen = () => {
           ))}
         </View>
 
-        <BlindBoxShowcase
-          status={unityStatus}
-          pulse={blindBoxPulse}
-          copy={copy.blindbox}
-          onPress={handleBlindBoxCta}
-        />
+        <BlindBoxShowcase status={unityStatus} pulse={blindBoxPulse} copy={copy.blindbox} />
       </View>
     </ScreenContainer>
   );
@@ -361,30 +339,49 @@ type QuickLinkCardProps = {
   onPress: () => void;
 };
 
-const QuickLinkCard = ({
-  title,
-  description,
-  accent,
-  iconType,
-  onPress,
-}: QuickLinkCardProps) => (
-  <NeonPressable style={styles.quickCard} onPress={onPress}>
+const QuickLinkCard = ({ title, description, accent, iconType, onPress }: QuickLinkCardProps) => (
+  <Pressable style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]} onPress={onPress}>
     <LinearGradient
       colors={[`${accent}26`, `${accent}80`]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.quickGradient}
     >
-      <View style={styles.quickHeader}>
-        <View style={[styles.quickIconBadge, { borderColor: `${accent}80` }]}>
-          <QuickGlyph type={iconType} accent={accent} />
-        </View>
-        <Text style={styles.quickChevron}>›</Text>
-      </View>
+      <QuickLinkIcon type={iconType} accent={accent} />
       <Text style={styles.quickTitle}>{title}</Text>
       <Text style={styles.quickDesc}>{description}</Text>
+      <Text style={styles.quickAction}>进入</Text>
     </LinearGradient>
-  </NeonPressable>
+  </Pressable>
+);
+
+const QuickLinkIcon = ({ type, accent }: { type: QuickLinkKey; accent: string }) => (
+  <View style={styles.iconWrap}>
+    {type === 'Leaderboard' && (
+      <>
+        <View style={[styles.iconTrophyCup, { borderColor: accent }]} />
+        <View style={[styles.iconTrophyStem, { backgroundColor: accent }]} />
+      </>
+    )}
+    {type === 'Forge' && (
+      <>
+        <View style={[styles.iconHammerHead, { backgroundColor: accent }]} />
+        <View style={[styles.iconHammerHandle, { backgroundColor: accent }]} />
+      </>
+    )}
+    {type === 'Marketplace' && (
+      <>
+        <View style={[styles.iconTag, { borderColor: accent }]} />
+        <View style={[styles.iconTagHole, { borderColor: accent }]} />
+      </>
+    )}
+    {type === 'EventShop' && (
+      <>
+        <View style={[styles.iconGiftLid, { backgroundColor: accent }]} />
+        <View style={[styles.iconGiftBox, { borderColor: accent }]} />
+      </>
+    )}
+  </View>
 );
 
 type BlindBoxCopy = (typeof localeCopy)[LocaleKey]['blindbox'];
@@ -393,18 +390,11 @@ type BlindBoxShowcaseProps = {
   status: UnityStatus;
   pulse: Animated.Value;
   copy: BlindBoxCopy;
-  onPress: () => void;
 };
 
-const BlindBoxShowcase = ({
-  status,
-  pulse,
-  copy,
-  onPress,
-}: BlindBoxShowcaseProps) => {
+const BlindBoxShowcase = ({ status, pulse, copy }: BlindBoxShowcaseProps) => {
   const statusText = copy.status[status];
   const ctaLabel = status === 'ready' ? copy.cta.ready : copy.cta.other;
-  const isBooting = status === 'initializing';
 
   return (
     <LinearGradient
@@ -418,16 +408,9 @@ const BlindBoxShowcase = ({
           <Text style={styles.blindBoxTitle}>{copy.title}</Text>
           <Text style={styles.blindBoxSubtitle}>{statusText}</Text>
         </View>
-        <NeonPressable
-          style={[
-            styles.blindBoxButton,
-            isBooting && styles.blindBoxButtonDisabled,
-          ]}
-          onPress={onPress}
-          disabled={isBooting}
-        >
+        <Pressable style={styles.blindBoxButton}>
           <Text style={styles.blindBoxButtonText}>{ctaLabel}</Text>
-        </NeonPressable>
+        </Pressable>
       </View>
       <View style={styles.blindBoxViewport}>
         <UnityView style={styles.unitySurface} />
@@ -465,9 +448,9 @@ const BlindBoxShowcase = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: designTokens.spacing.md,
-    paddingHorizontal: designTokens.spacing.lg,
-    paddingVertical: designTokens.spacing.md,
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   centerBox: {
     flex: 1,
@@ -475,12 +458,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heroCard: {
-    borderRadius: designTokens.radii.xl,
-    paddingHorizontal: designTokens.spacing.lg,
-    paddingVertical: designTokens.spacing.md,
+    borderRadius: 24,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderWidth: 1,
     borderColor: 'rgba(92, 62, 188, 0.55)',
-    backgroundColor: designTokens.colors.card,
+    backgroundColor: 'rgba(8, 10, 30, 0.9)',
     overflow: 'hidden',
   },
   heroAuraPrimary: {
@@ -561,13 +544,13 @@ const styles = StyleSheet.create({
   },
   resourceChip: {
     flex: 1,
-    paddingHorizontal: designTokens.spacing.lg,
-    paddingVertical: designTokens.spacing.sm,
-    borderRadius: designTokens.radii.lg,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(90, 66, 182, 0.48)',
-    backgroundColor: designTokens.colors.card,
-    gap: designTokens.spacing.xs,
+    borderColor: 'rgba(88, 64, 180, 0.45)',
+    backgroundColor: 'rgba(10, 11, 32, 0.92)',
+    gap: 4,
   },
   resourceChipHeader: {
     flexDirection: 'row',
@@ -577,93 +560,141 @@ const styles = StyleSheet.create({
   resourceChipLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: designTokens.spacing.xs,
+    gap: 6,
   },
   resourceChipDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   resourceLabel: {
-    color: designTokens.colors.textSecondary,
-    fontSize: 12,
+    color: 'rgba(236, 241, 255, 0.78)',
+    fontSize: 11,
     fontWeight: '600',
-    letterSpacing: 0.2,
+    letterSpacing: 0.6,
   },
   resourceValue: {
-    color: designTokens.colors.textPrimary,
-    fontSize: 18,
+    color: '#FFFFFF',
+    fontSize: 15,
     fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-    letterSpacing: 0.2,
+    letterSpacing: 0.5,
   },
   resourceDesc: {
-    color: designTokens.colors.textMuted,
-    fontSize: 11,
-    paddingLeft: designTokens.spacing.md,
+    color: 'rgba(236, 241, 255, 0.6)',
+    fontSize: 9,
+    letterSpacing: 0.3,
+    paddingLeft: 12,
   },
   statusChip: {
-    marginTop: designTokens.spacing.sm,
+    marginTop: 8,
     alignSelf: 'flex-start',
-    paddingHorizontal: designTokens.spacing.md,
-    paddingVertical: designTokens.spacing.xs,
-    borderRadius: designTokens.radii.sm,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 12,
     backgroundColor: 'rgba(126, 50, 240, 0.24)',
-    color: designTokens.colors.textPrimary,
-    fontSize: designTokens.typography.label,
+    color: '#ECE6FF',
+    fontSize: 12,
     letterSpacing: 0.6,
   },
   quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    rowGap: designTokens.spacing.xs,
-    marginBottom: designTokens.spacing.md,
+    rowGap: 6,
   },
   quickCard: {
-    width: '48%',
+    width: '46%',
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(60, 36, 125, 0.45)',
+    backgroundColor: 'rgba(9, 10, 28, 0.9)',
+  },
+  quickCardPressed: {
+    opacity: 0.86,
+    transform: [{ scale: 0.97 }],
   },
   quickGradient: {
-    borderRadius: designTokens.radii.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(92, 68, 176, 0.35)',
-    padding: designTokens.spacing.md,
-    gap: designTokens.spacing.xs,
-    backgroundColor: 'rgba(12, 14, 30, 0.92)',
-  },
-  quickHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: designTokens.spacing.sm,
-  },
-  quickIconBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: designTokens.radii.md,
-    borderWidth: 1.5,
-    borderColor: 'rgba(92, 68, 176, 0.45)',
-    backgroundColor: 'rgba(15, 17, 38, 0.92)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quickChevron: {
-    color: designTokens.colors.textSecondary,
-    fontSize: 22,
-    fontWeight: '600',
+    padding: 9,
+    gap: 5,
+    minHeight: 86,
   },
   quickTitle: {
-    color: designTokens.colors.textPrimary,
-    fontSize: 15,
+    color: '#FFFFFF',
+    fontSize: 13,
     fontWeight: '700',
   },
   quickDesc: {
-    color: designTokens.colors.textSecondary,
-    fontSize: 12,
-    lineHeight: 18,
+    color: 'rgba(236, 241, 255, 0.75)',
+    fontSize: 10.5,
+    lineHeight: 15,
+  },
+  quickAction: {
+    color: '#F7E9FF',
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+  },
+  iconWrap: {
+    width: 28,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconTrophyCup: {
+    width: 22,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderTopWidth: 3,
+  },
+  iconTrophyStem: {
+    width: 8,
+    height: 6,
+    borderRadius: 2,
+    marginTop: -2,
+  },
+  iconHammerHead: {
+    width: 18,
+    height: 6,
+    borderRadius: 3,
+  },
+  iconHammerHandle: {
+    width: 4,
+    height: 12,
+    borderRadius: 3,
+    marginTop: 2,
+  },
+  iconTag: {
+    width: 18,
+    height: 12,
+    borderRadius: 4,
+    borderWidth: 2,
+    transform: [{ rotate: '-12deg' }],
+  },
+  iconTagHole: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    borderWidth: 2,
+    position: 'absolute',
+    top: 4,
+    right: 6,
+  },
+  iconGiftLid: {
+    width: 18,
+    height: 4,
+    borderRadius: 2,
+  },
+  iconGiftBox: {
+    width: 18,
+    height: 10,
+    borderRadius: 4,
+    borderWidth: 2,
+    marginTop: 2,
   },
   blindBoxCard: {
-    borderRadius: 20,
+    borderRadius: 22,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(62, 42, 130, 0.4)',
@@ -694,16 +725,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#FF5BD0',
   },
-  blindBoxButtonDisabled: {
-    backgroundColor: 'rgba(255, 91, 208, 0.45)',
-  },
   blindBoxButtonText: {
     color: '#17021F',
     fontSize: 13,
     fontWeight: '700',
   },
   blindBoxViewport: {
-    height: 126,
+    height: 138,
     backgroundColor: 'rgba(6, 8, 24, 0.92)',
   },
   unitySurface: {
@@ -711,11 +739,11 @@ const styles = StyleSheet.create({
   },
   blindBoxAura: {
     position: 'absolute',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 164,
+    height: 164,
+    borderRadius: 82,
     alignSelf: 'center',
-    top: -20,
+    top: -28,
     backgroundColor: neonPalette.glowPurple,
   },
   blindBoxFallback: {

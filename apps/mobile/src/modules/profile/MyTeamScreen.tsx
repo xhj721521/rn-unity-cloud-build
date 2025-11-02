@@ -9,7 +9,9 @@ export const MyTeamScreen = () => {
   return (
     <ScreenContainer scrollable>
       <Text style={styles.heading}>我的团队</Text>
-      <Text style={styles.subHeading}>管理战队成员、权限与协作策略。</Text>
+      <Text style={styles.subHeading}>
+        管理战队成员、权限与协作策略。
+      </Text>
 
       <View style={styles.tableHeader}>
         <Text style={[styles.cell, styles.cellName]}>成员</Text>
@@ -21,12 +23,8 @@ export const MyTeamScreen = () => {
       {members.map((member) => (
         <View key={member.id} style={styles.tableRow}>
           <Text style={[styles.cell, styles.cellName]}>{member.nickname}</Text>
-          <Text style={[styles.cell, styles.cellRole]}>
-            {ROLE_LABEL[member.role]}
-          </Text>
-          <Text style={[styles.cell, styles.cellPower]}>
-            {member.powerScore}
-          </Text>
+          <Text style={[styles.cell, styles.cellRole]}>{ROLE_LABEL[member.role]}</Text>
+          <Text style={[styles.cell, styles.cellPower]}>{member.powerScore}</Text>
           <Text style={[styles.cell, styles.cellActive]}>
             {new Date(member.lastActive).toLocaleString()}
           </Text>

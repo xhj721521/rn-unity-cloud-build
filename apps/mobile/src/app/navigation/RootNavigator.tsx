@@ -1,94 +1,62 @@
-﻿import React, { useMemo } from 'react';
+import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { View, Text, StyleSheet } from 'react-native';
 import { RootTabParamList } from './types';
 import { HomeNavigator } from './HomeNavigator';
 import { TrialsScreen } from '@modules/trials/TrialsScreen';
 import { ExploreScreen } from '@modules/explore/ExploreScreen';
 import { OnChainDataScreen } from '@modules/onchain/OnChainDataScreen';
 import { ProfileNavigator } from './ProfileNavigator';
-import { NeonTabIcon, TabGlyphType } from '@components/icons/NeonTabIcon';
-
-type TabConfig = {
-  title: string;
-  label: string;
-  type: TabGlyphType;
-};
-
-const TAB_CONFIG: Record<keyof RootTabParamList, TabConfig> = {
-  Home: { title: '首页', label: '首页', type: 'home' },
-  Trials: { title: '试炼', label: '试炼', type: 'trials' },
-  Explore: { title: '探索', label: '探索', type: 'explore' },
-  OnChainData: { title: '链鉴', label: '链鉴', type: 'onchain' },
-  Profile: { title: '我的', label: '我的', type: 'profile' },
-};
-
-const createTabIcon =
-  (label: string, type: TabGlyphType) =>
-  ({ focused }: { focused: boolean }) =>
-    <NeonTabIcon label={label} type={type} focused={focused} />;
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export const RootNavigator = () => {
-  const screenOptions = useMemo(
-    () => ({
-      headerShown: false,
-      tabBarShowLabel: false,
-      tabBarStyle: {
-        backgroundColor: '#090820',
-        borderTopColor: '#1F2040',
-        height: 62,
-        paddingBottom: 8,
-      },
-      tabBarActiveTintColor: '#FFFFFF',
-      tabBarInactiveTintColor: '#6C7193',
-    }),
-    [],
-  );
-
   return (
-    <Tab.Navigator screenOptions={screenOptions}>
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: '#090820',
+          borderTopColor: '#1F2040',
+          height: 62,
+          paddingBottom: 8,
+        },
+        tabBarActiveTintColor: '#FFFFFF',
+        tabBarInactiveTintColor: '#6C7193',
+      }}
+    >
       <Tab.Screen
         name="Home"
         component={HomeNavigator}
         options={{
-          title: TAB_CONFIG.Home.title,
-          tabBarIcon: createTabIcon(
-            TAB_CONFIG.Home.label,
-            TAB_CONFIG.Home.type,
-          ),
+          title: '首页',
+          tabBarIcon: ({ focused }) => <TabIcon label="首页" type="home" focused={focused} />,
         }}
       />
       <Tab.Screen
         name="Trials"
         component={TrialsScreen}
         options={{
-          title: TAB_CONFIG.Trials.title,
-          tabBarIcon: createTabIcon(
-            TAB_CONFIG.Trials.label,
-            TAB_CONFIG.Trials.type,
-          ),
+          title: '试炼',
+          tabBarIcon: ({ focused }) => <TabIcon label="试炼" type="trials" focused={focused} />,
         }}
       />
       <Tab.Screen
         name="Explore"
         component={ExploreScreen}
         options={{
-          title: TAB_CONFIG.Explore.title,
-          tabBarIcon: createTabIcon(
-            TAB_CONFIG.Explore.label,
-            TAB_CONFIG.Explore.type,
-          ),
+          title: '探索',
+          tabBarIcon: ({ focused }) => <TabIcon label="探索" type="explore" focused={focused} />,
         }}
       />
       <Tab.Screen
         name="OnChainData"
         component={OnChainDataScreen}
         options={{
-          title: TAB_CONFIG.OnChainData.title,
-          tabBarIcon: createTabIcon(
-            TAB_CONFIG.OnChainData.label,
-            TAB_CONFIG.OnChainData.type,
+          title: '链鉴',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon label="链鉴" type="onchain" focused={focused} />
           ),
         }}
       />
@@ -96,13 +64,158 @@ export const RootNavigator = () => {
         name="Profile"
         component={ProfileNavigator}
         options={{
-          title: TAB_CONFIG.Profile.title,
-          tabBarIcon: createTabIcon(
-            TAB_CONFIG.Profile.label,
-            TAB_CONFIG.Profile.type,
-          ),
+          title: '我的',
+          tabBarIcon: ({ focused }) => <TabIcon label="我的" type="profile" focused={focused} />,
         }}
       />
     </Tab.Navigator>
   );
 };
+
+type TabIconProps = {
+  label: string;
+  type: 'home' | 'trials' | 'explore' | 'onchain' | 'profile';
+  focused: boolean;
+};
+
+const TabIcon = ({ label, type, focused }: TabIconProps) => {
+  const color = focused ? '#FFFFFF' : '#6C7193';
+  return (
+    <View style={styles.iconContainer}>
+      <View style={[styles.iconGlyph, focused && styles.iconGlyphActive]}>
+        {renderGlyph(type, focused ? '#8B6CFF' : '#3E3F63')}
+      </View>
+      <Text style={[styles.iconLabel, { color }]}>{label}</Text>
+    </View>
+  );
+};
+
+const renderGlyph = (type: TabIconProps['type'], stroke: string) => {
+  switch (type) {
+    case 'home':
+      return (
+        <>
+          <View style={[styles.glyphRoof, { borderColor: stroke }]} />
+          <View style={[styles.glyphBody, { borderColor: stroke }]} />
+        </>
+      );
+    case 'trials':
+      return (
+        <View style={[styles.glyphShield, { borderColor: stroke }]}>
+          <View style={[styles.glyphSword, { backgroundColor: stroke }]} />
+        </View>
+      );
+    case 'explore':
+      return (
+        <>
+          <View style={[styles.glyphCompass, { borderColor: stroke }]} />
+          <View style={[styles.glyphCompassNeedle, { backgroundColor: stroke }]} />
+        </>
+      );
+    case 'onchain':
+      return (
+        <>
+          <View style={[styles.glyphChainLink, { borderColor: stroke }]} />
+          <View style={[styles.glyphChainLink, styles.glyphChainLinkOffset, { borderColor: stroke }]} />
+        </>
+      );
+    case 'profile':
+    default:
+      return (
+        <>
+          <View style={[styles.glyphCircle, { borderColor: stroke }]} />
+          <View style={[styles.glyphCircle, styles.glyphCircleSmall, { borderColor: stroke }]} />
+        </>
+      );
+  }
+};
+
+const styles = StyleSheet.create({
+  iconContainer: {
+    alignItems: 'center',
+  },
+  iconGlyph: {
+    width: 32,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(94, 76, 181, 0.4)',
+    backgroundColor: 'rgba(16, 17, 40, 0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  iconGlyphActive: {
+    borderColor: 'rgba(139, 108, 255, 0.6)',
+    backgroundColor: 'rgba(47, 37, 94, 0.9)',
+  },
+  iconLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.4,
+  },
+  glyphRoof: {
+    width: 14,
+    height: 10,
+    borderLeftWidth: 2,
+    borderRightWidth: 2,
+    borderTopWidth: 2,
+    borderRadius: 2,
+  },
+  glyphBody: {
+    marginTop: 2,
+    width: 14,
+    height: 8,
+    borderWidth: 2,
+    borderRadius: 2,
+  },
+  glyphShield: {
+    width: 16,
+    height: 20,
+    borderWidth: 2,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  glyphSword: {
+    width: 4,
+    height: 10,
+    borderRadius: 2,
+  },
+  glyphCompass: {
+    width: 18,
+    height: 18,
+    borderWidth: 2,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  glyphCompassNeedle: {
+    width: 2,
+    height: 10,
+    borderRadius: 1,
+    transform: [{ rotate: '45deg' }],
+  },
+  glyphChainLink: {
+    width: 16,
+    height: 8,
+    borderWidth: 2,
+    borderRadius: 4,
+  },
+  glyphChainLinkOffset: {
+    position: 'absolute',
+    transform: [{ translateX: 6 }],
+  },
+  glyphCircle: {
+    width: 16,
+    height: 16,
+    borderWidth: 2,
+    borderRadius: 8,
+  },
+  glyphCircleSmall: {
+    position: 'absolute',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+});

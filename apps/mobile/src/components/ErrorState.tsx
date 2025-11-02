@@ -10,11 +10,7 @@ type ErrorStateProps = {
   onRetry?: () => void;
 };
 
-export const ErrorState = ({
-  title,
-  description,
-  onRetry,
-}: ErrorStateProps) => {
+export const ErrorState = ({ title, description, onRetry }: ErrorStateProps) => {
   const pulse = useNeonPulse({ duration: 4800 });
 
   const glowStyle = {
@@ -34,9 +30,7 @@ export const ErrorState = ({
       <View style={styles.container}>
         <Animated.View pointerEvents="none" style={[styles.glow, glowStyle]} />
         <Text style={styles.title}>{title}</Text>
-        {description ? (
-          <Text style={styles.description}>{description}</Text>
-        ) : null}
+        {description ? <Text style={styles.description}>{description}</Text> : null}
         {onRetry ? (
           <Pressable onPress={onRetry} style={styles.retryButton}>
             <Text style={styles.retryText}>重新尝试</Text>

@@ -15,8 +15,7 @@ type UnityViewProps = ViewProps & {
 const UNITY_VIEW_NAME = 'UnityView';
 
 const isUnityViewAvailable =
-  Platform.OS === 'android' &&
-  UIManager.getViewManagerConfig(UNITY_VIEW_NAME) != null;
+  Platform.OS === 'android' && UIManager.getViewManagerConfig(UNITY_VIEW_NAME) != null;
 
 const NativeUnityView = isUnityViewAvailable
   ? requireNativeComponent<UnityViewProps>(UNITY_VIEW_NAME)

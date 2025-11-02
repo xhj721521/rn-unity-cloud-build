@@ -1,5 +1,5 @@
-﻿import React, { useMemo, useState } from 'react';
-import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { InfoCard } from '@components/InfoCard';
@@ -7,18 +7,16 @@ import { useAppSelector } from '@state/hooks';
 import { useAccountSummary } from '@services/web3/hooks';
 import {
   LeaderboardCategory,
-  LeaderboardEntry,
   LeaderboardPeriod,
+  LeaderboardEntry,
 } from '@state/leaderboard/leaderboardSlice';
-import { useNeonPulse } from '@theme/animations';
 import { neonPalette } from '@theme/neonPalette';
-import { NeonPressable } from '@components/NeonPressable';
-import { designTokens } from '@theme/designTokens';
+import { useNeonPulse } from '@theme/animations';
 
 const CATEGORY_TABS: { key: LeaderboardCategory; label: string }[] = [
-  { key: 'inviter', label: '邀请榜' },
-  { key: 'team', label: '战队榜' },
-  { key: 'wealth', label: '财富榜' },
+  { key: 'inviter', label: '邀请达人' },
+  { key: 'team', label: '团队建设' },
+  { key: 'wealth', label: '财富排行' },
 ];
 
 const PERIOD_TABS: { key: LeaderboardPeriod; label: string }[] = [
@@ -35,26 +33,17 @@ export const LeaderboardScreen = () => {
   const currentBoard = leaderboard.data[category][period];
   const rewards = leaderboard.rewards[category];
   const scoreboardPulse = useNeonPulse({ duration: 6800 });
-  const categoryLabel =
-    CATEGORY_TABS.find((tab) => tab.key === category)?.label ?? '';
-  const periodLabel =
-    PERIOD_TABS.find((tab) => tab.key === period)?.label ?? '';
 
   const myRankingLabel = useMemo(() => {
     if (!currentBoard.myRank) {
-      return '尚未进入榜单';
+      return '暂无排名';
     }
-    const rankText =
-      currentBoard.myRank.rank <= 10
-        ? `#${currentBoard.myRank.rank}`
-        : 'TOP 10+';
-    return `当前排名 ${rankText} · 积分 ${currentBoard.myRank.score}`;
+    const rankText = currentBoard.myRank.rank <= 10 ? currentBoard.myRank.rank : '10+';
+    return `当前排名：${rankText} 名 · 得分 ${currentBoard.myRank.score}`;
   }, [currentBoard.myRank]);
 
   const renderEntry = (entry: LeaderboardEntry) => {
-    const isMe =
-      entry.userId === 'pilot-zero' ||
-      account?.displayName === entry.playerName;
+    const isMe = entry.userId === 'pilot-zero' || account?.displayName === entry.playerName;
     const isTop3 = entry.rank <= 3;
 
     return (
@@ -70,14 +59,10 @@ export const LeaderboardScreen = () => {
         style={[styles.entryGradient, isMe && styles.entryGradientMe]}
       >
         <View style={[styles.entryRow, isMe && styles.entryRowMe]}>
-          <Text style={[styles.entryRank, isTop3 && styles.entryRankTop]}>
-            #{entry.rank}
-          </Text>
+          <Text style={[styles.entryRank, isTop3 && styles.entryRankTop]}>{entry.rank}</Text>
           <View style={styles.entryInfo}>
-            <Text style={[styles.entryName, isMe && styles.entryNameMe]}>
-              {entry.playerName}
-            </Text>
-            <Text style={styles.entryScore}>{entry.score} 分</Text>
+            <Text style={[styles.entryName, isMe && styles.entryNameMe]}>{entry.playerName}</Text>
+            <Text style={styles.entryScore}>{entry.score}</Text>
           </View>
           {isMe ? <Text style={styles.tagMe}>我的</Text> : null}
         </View>
@@ -89,7 +74,7 @@ export const LeaderboardScreen = () => {
     <ScreenContainer scrollable>
       <Text style={styles.heading}>排行榜</Text>
       <Text style={styles.subHeading}>
-        邀请、战队、财富三大榜单，支持日/周/月维度筛选。
+        邀请达人、团队建设、财富排行三大榜单，支持日榜、周榜、月榜切换。
       </Text>
 
       <View style={styles.tabRow}>
@@ -110,12 +95,16 @@ export const LeaderboardScreen = () => {
             label={tab.label}
             active={period === tab.key}
             onPress={() => setPeriod(tab.key)}
-            variant="secondary"
+            secondary
           />
         ))}
       </View>
 
-      <InfoCard title={`${categoryLabel} · ${periodLabel}`}>
+      <InfoCard
+        title={`${CATEGORY_TABS.find((t) => t.key === category)?.label ?? ''} · ${
+          PERIOD_TABS.find((t) => t.key === period)?.label ?? ''
+        }`}
+      >
         <View style={styles.scoreboardHeader}>
           <Text style={styles.scoreboardTitle}>{myRankingLabel}</Text>
           <Text style={styles.scoreboardHint}>显示前 10 名</Text>
@@ -141,139 +130,157 @@ export const LeaderboardScreen = () => {
               },
             ]}
           />
-          <ScrollView
-            style={styles.scoreboard}
-            contentContainerStyle={styles.scoreboardContent}
-          >
+          <ScrollView style={styles.scoreboard} contentContainerStyle={styles.scoreboardContent}>
             {currentBoard.entries.map(renderEntry)}
           </ScrollView>
         </View>
       </InfoCard>
 
-      <View style={styles.rewardPanel}>
-        <Text style={styles.rewardTitle}>奖励说明</Text>
-        <View style={styles.rewardRow}>
-          <Text style={styles.rewardLabel}>TOP 1-3</Text>
-          <Text style={styles.rewardValue}>{rewards.top1To3}</Text>
-        </View>
-        <View style={styles.rewardDivider} />
-        <View style={styles.rewardRow}>
-          <Text style={styles.rewardLabel}>TOP 4-10</Text>
-          <Text style={styles.rewardValue}>{rewards.top4To10}</Text>
-        </View>
-      </View>
+      {period === 'monthly' ? (
+        <InfoCard title="月榜奖励">
+          <View style={styles.rewardRow}>
+            <Text style={styles.rewardLabel}>第 1 - 3 名</Text>
+            <Text style={styles.rewardValue}>{rewards.top1To3}</Text>
+          </View>
+          <View style={styles.rewardRow}>
+            <Text style={styles.rewardLabel}>第 4 - 10 名</Text>
+            <Text style={styles.rewardValue}>{rewards.top4To10}</Text>
+          </View>
+        </InfoCard>
+      ) : null}
     </ScreenContainer>
   );
-};
-
-type TabButtonProps = {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-  variant?: 'primary' | 'secondary';
 };
 
 const TabButton = ({
   label,
   active,
   onPress,
-  variant = 'primary',
-}: TabButtonProps) => (
-  <NeonPressable
-    onPress={onPress}
-    style={[
-      styles.tabButton,
-      variant === 'secondary' && styles.tabButtonSecondary,
-      active && styles.tabButtonActive,
-    ]}
-  >
-    <LinearGradient
-      colors={
-        active
-          ? ['rgba(124, 92, 255, 0.4)', 'rgba(52, 34, 118, 0.65)']
-          : ['rgba(20, 18, 48, 0.9)', 'rgba(12, 14, 32, 0.8)']
-      }
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.tabGradient}
+  secondary,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+  secondary?: boolean;
+}) => {
+  const pulse = useNeonPulse({ duration: secondary ? 5200 : 4600 });
+
+  const glowStyle = {
+    opacity: pulse.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.22, 0.5],
+    }),
+  };
+
+  const colors = active
+    ? secondary
+      ? ['rgba(77, 59, 255, 0.85)', 'rgba(36, 25, 95, 0.95)']
+      : ['rgba(124, 92, 255, 0.9)', 'rgba(45, 24, 104, 0.95)']
+    : ['rgba(16, 16, 44, 0.92)', 'rgba(16, 16, 44, 0.9)'];
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.tabButton,
+        secondary ? styles.tabButtonSecondary : styles.tabButtonPrimary,
+        active ? styles.tabButtonActive : null,
+      ]}
     >
-      <Text
-        style={[styles.tabButtonLabel, active && styles.tabButtonLabelActive]}
+      <LinearGradient
+        colors={colors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.tabGradient}
       >
-        {label}
-      </Text>
-    </LinearGradient>
-  </NeonPressable>
-);
+        {active ? <Animated.View pointerEvents="none" style={[styles.tabGlow, glowStyle]} /> : null}
+        <Text style={[styles.tabButtonLabel, active && styles.tabButtonLabelActive]}>{label}</Text>
+      </LinearGradient>
+    </Pressable>
+  );
+};
 
 const styles = StyleSheet.create({
   heading: {
-    color: designTokens.colors.textPrimary,
-    fontSize: 22,
+    color: neonPalette.textPrimary,
+    fontSize: 26,
     fontWeight: '700',
-    marginBottom: designTokens.spacing.sm,
+    letterSpacing: 0.6,
+    marginBottom: 6,
   },
   subHeading: {
-    color: designTokens.colors.textSecondary,
+    color: neonPalette.textSecondary,
     fontSize: 13,
     lineHeight: 20,
-    marginBottom: designTokens.spacing.lg,
+    marginBottom: 20,
   },
   tabRow: {
     flexDirection: 'row',
-    gap: designTokens.spacing.sm,
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    gap: 8,
   },
   tabRowSecondary: {
     flexDirection: 'row',
-    gap: designTokens.spacing.sm,
-    marginTop: designTokens.spacing.sm,
-    marginBottom: designTokens.spacing.md,
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    gap: 8,
   },
   tabButton: {
     flex: 1,
-    borderRadius: designTokens.radii.lg,
+    borderRadius: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(60, 34, 125, 0.6)',
+  },
+  tabButtonPrimary: {
+    backgroundColor: 'rgba(11, 11, 32, 0.92)',
   },
   tabButtonSecondary: {
-    opacity: 0.9,
+    backgroundColor: 'rgba(14, 14, 40, 0.88)',
   },
   tabButtonActive: {
-    borderWidth: 1,
-    borderColor: designTokens.colors.borderStrong,
+    borderColor: 'rgba(124, 92, 255, 0.6)',
   },
   tabGradient: {
-    paddingVertical: designTokens.spacing.sm,
+    borderRadius: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  tabGlow: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 15,
+    backgroundColor: neonPalette.glowPurple,
+  },
   tabButtonLabel: {
     textAlign: 'center',
-    color: designTokens.colors.textSecondary,
+    color: neonPalette.textSecondary,
     fontSize: 13,
     fontWeight: '600',
-    letterSpacing: 0.4,
   },
   tabButtonLabelActive: {
-    color: designTokens.colors.textPrimary,
+    color: neonPalette.textPrimary,
   },
   scoreboardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: designTokens.spacing.sm,
+    marginBottom: 12,
   },
   scoreboardTitle: {
-    color: designTokens.colors.textPrimary,
+    color: neonPalette.textPrimary,
     fontSize: 15,
     fontWeight: '600',
   },
   scoreboardHint: {
-    color: designTokens.colors.textSecondary,
+    color: neonPalette.textSecondary,
     fontSize: 12,
   },
   scoreboardWrapper: {
     position: 'relative',
-    borderRadius: designTokens.radii.lg,
+    borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(60, 34, 125, 0.6)',
@@ -287,12 +294,12 @@ const styles = StyleSheet.create({
     maxHeight: 360,
   },
   scoreboardContent: {
-    paddingVertical: designTokens.spacing.sm,
-    paddingHorizontal: designTokens.spacing.sm,
-    gap: designTokens.spacing.sm,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    gap: 8,
   },
   entryGradient: {
-    borderRadius: designTokens.radii.md,
+    borderRadius: 14,
   },
   entryGradientMe: {
     borderWidth: 1,
@@ -301,9 +308,9 @@ const styles = StyleSheet.create({
   entryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: designTokens.spacing.sm,
-    paddingHorizontal: designTokens.spacing.md,
-    borderRadius: designTokens.radii.md,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 14,
     backgroundColor: 'rgba(15, 15, 40, 0.72)',
     borderWidth: 1,
     borderColor: 'rgba(60, 34, 125, 0.5)',
@@ -312,67 +319,49 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(36, 20, 70, 0.85)',
   },
   entryRank: {
-    width: 40,
-    color: designTokens.colors.textSecondary,
+    width: 36,
+    color: neonPalette.textSecondary,
     fontSize: 16,
     fontWeight: '700',
   },
   entryRankTop: {
-    color: designTokens.colors.accentAmber,
+    color: neonPalette.accentAmber,
   },
   entryInfo: {
     flex: 1,
   },
   entryName: {
-    color: designTokens.colors.textPrimary,
+    color: neonPalette.textPrimary,
     fontSize: 15,
     fontWeight: '700',
   },
   entryNameMe: {
-    color: designTokens.colors.accentPink,
+    color: neonPalette.accentMagenta,
   },
   entryScore: {
-    marginTop: designTokens.spacing.xs,
-    color: designTokens.colors.textSecondary,
+    marginTop: 4,
+    color: neonPalette.textSecondary,
     fontSize: 12,
   },
   tagMe: {
-    color: designTokens.colors.accentPink,
+    color: neonPalette.accentMagenta,
     fontSize: 12,
     fontWeight: '600',
-  },
-  rewardPanel: {
-    marginTop: designTokens.spacing.xl,
-    borderRadius: designTokens.radii.xl,
-    padding: designTokens.spacing.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(66, 46, 132, 0.4)',
-    backgroundColor: 'rgba(12, 14, 34, 0.9)',
-    gap: designTokens.spacing.sm,
-  },
-  rewardTitle: {
-    color: designTokens.colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
   },
   rewardRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: designTokens.spacing.md,
+    paddingVertical: 12,
   },
   rewardLabel: {
-    color: designTokens.colors.textSecondary,
+    color: neonPalette.textSecondary,
     fontSize: 13,
-    fontWeight: '600',
   },
   rewardValue: {
-    flex: 1,
-    color: designTokens.colors.textPrimary,
+    color: neonPalette.textPrimary,
     fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 12,
     textAlign: 'right',
-  },
-  rewardDivider: {
-    height: 1,
-    backgroundColor: 'rgba(86, 64, 160, 0.35)',
   },
 });

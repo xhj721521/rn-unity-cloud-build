@@ -22,9 +22,7 @@ const unityModule: UnityModule = UnityBridge ?? {
 };
 
 const unityEmitter =
-  UnityBridge != null
-    ? new NativeEventEmitter(UnityBridge)
-    : new NativeEventEmitter();
+  UnityBridge != null ? new NativeEventEmitter(UnityBridge) : new NativeEventEmitter();
 
 export const initUnity = async () => {
   if (__DEV__) {
@@ -33,12 +31,8 @@ export const initUnity = async () => {
   await unityModule.initUnity?.();
 };
 
-export const sendUnityMessage = (
-  type: string,
-  payload?: Record<string, unknown>,
-) => {
-  const serializedPayload =
-    payload !== undefined ? JSON.stringify(payload) : undefined;
+export const sendUnityMessage = (type: string, payload?: Record<string, unknown>) => {
+  const serializedPayload = payload !== undefined ? JSON.stringify(payload) : undefined;
   unityModule.sendMessage?.(type, serializedPayload);
 };
 
@@ -47,36 +41,26 @@ type UnityNativeEvent = {
   payload?: unknown;
 };
 
-export const addUnityListener = (
-  handler: (message: UnityMessage) => void,
-): (() => void) => {
-  const subscription = unityEmitter.addListener(
-    'UnityMessage',
-    (raw: UnityNativeEvent) => {
-      let payload = raw?.payload;
-      if (typeof payload === 'string') {
-        try {
-          payload = JSON.parse(payload);
-        } catch {
-          if (__DEV__) {
-            console.warn(
-              '[UnityBridge] Failed to parse payload string',
-              payload,
-            );
-          }
+export const addUnityListener = (handler: (message: UnityMessage) => void): (() => void) => {
+  const subscription = unityEmitter.addListener('UnityMessage', (raw: UnityNativeEvent) => {
+    let payload = raw?.payload;
+    if (typeof payload === 'string') {
+      try {
+        payload = JSON.parse(payload);
+      } catch {
+        if (__DEV__) {
+          console.warn('[UnityBridge] Failed to parse payload string', payload);
         }
       }
+    }
 
-      const normalizedPayload =
-        payload && typeof payload === 'object'
-          ? (payload as Record<string, unknown>)
-          : undefined;
+    const normalizedPayload =
+      payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : undefined;
 
-      handler({
-        type: raw?.type ?? 'UNKNOWN',
-        payload: normalizedPayload,
-      });
-    },
-  );
+    handler({
+      type: raw?.type ?? 'UNKNOWN',
+      payload: normalizedPayload,
+    });
+  });
   return () => subscription.remove();
 };
