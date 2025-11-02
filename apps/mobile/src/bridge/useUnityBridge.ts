@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { UnityMessage, addUnityListener, initUnity, sendUnityMessage } from './unityBridge';
+import {
+  UnityMessage,
+  addUnityListener,
+  initUnity,
+  sendUnityMessage,
+} from './unityBridge';
 
 export type UnityStatus = 'idle' | 'initializing' | 'ready' | 'error';
 
@@ -12,14 +17,18 @@ let activeSceneName: string | null = null;
 
 export const useUnityBridge = (options: UseUnityBridgeOptions = {}) => {
   const defaultSceneName = options.defaultSceneName ?? 'PlaceholderScene';
-  const [status, setStatus] = useState<UnityStatus>(unityInitialized ? 'ready' : 'idle');
+  const [status, setStatus] = useState<UnityStatus>(
+    unityInitialized ? 'ready' : 'idle',
+  );
   const [lastMessage, setLastMessage] = useState<UnityMessage | null>(null);
 
   useEffect(() => {
     const unsubscribe = addUnityListener((message) => {
       if (message.type === 'SCENE_READY') {
         setStatus('ready');
-        const payloadRecord = message.payload as Record<string, unknown> | undefined;
+        const payloadRecord = message.payload as
+          | Record<string, unknown>
+          | undefined;
         const sceneField = payloadRecord?.sceneName;
         if (typeof sceneField === 'string') {
           activeSceneName = sceneField;
@@ -43,7 +52,11 @@ export const useUnityBridge = (options: UseUnityBridgeOptions = {}) => {
   const bootstrapUnity = useCallback(
     async (sceneName?: string) => {
       const targetScene = sceneName ?? defaultSceneName;
-      if (unityInitialized && activeSceneName === targetScene && status === 'ready') {
+      if (
+        unityInitialized &&
+        activeSceneName === targetScene &&
+        status === 'ready'
+      ) {
         return;
       }
 

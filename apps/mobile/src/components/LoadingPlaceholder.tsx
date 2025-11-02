@@ -1,5 +1,11 @@
 import React from 'react';
-import { ActivityIndicator, Animated, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Animated,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { neonPalette } from '@theme/neonPalette';
 import { useNeonPulse } from '@theme/animations';
 
@@ -30,7 +36,10 @@ export const LoadingPlaceholder = ({
   return (
     <View style={styles.container}>
       <View style={styles.spinnerWrap}>
-        <Animated.View pointerEvents="none" style={[styles.spinnerGlow, glowStyle]} />
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.spinnerGlow, glowStyle]}
+        />
         <ActivityIndicator size="large" color={neonPalette.accentViolet} />
       </View>
       <Text style={styles.label}>{label}</Text>

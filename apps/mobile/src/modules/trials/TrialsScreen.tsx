@@ -7,7 +7,13 @@ import { UnityView } from '@bridge/UnityView';
 import { useUnityBridge } from '@bridge/useUnityBridge';
 
 export const TrialsScreen = () => {
-  const { status, bootstrapUnity, lastMessage, sendUnityMessage, requestScene } = useUnityBridge({
+  const {
+    status,
+    bootstrapUnity,
+    lastMessage,
+    sendUnityMessage,
+    requestScene,
+  } = useUnityBridge({
     defaultSceneName: 'TrialsArena',
   });
   const isFocused = useIsFocused();
@@ -26,9 +32,7 @@ export const TrialsScreen = () => {
   return (
     <ScreenContainer>
       <Text style={styles.title}>试炼场</Text>
-      <Text style={styles.caption}>
-        连接 Unity 引擎，准备进入 3D 场景。
-      </Text>
+      <Text style={styles.caption}>连接 Unity 引擎，准备进入 3D 场景。</Text>
 
       <View style={styles.unityWrapper}>
         {isFocused ? <UnityView style={styles.unityView} /> : null}
@@ -66,7 +70,9 @@ export const TrialsScreen = () => {
       {lastMessage ? (
         <View style={styles.logBox}>
           <Text style={styles.logTitle}>最后事件</Text>
-          <Text style={styles.logText}>{JSON.stringify(lastMessage, null, 2)}</Text>
+          <Text style={styles.logText}>
+            {JSON.stringify(lastMessage, null, 2)}
+          </Text>
         </View>
       ) : null}
     </ScreenContainer>

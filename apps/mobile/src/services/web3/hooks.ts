@@ -12,7 +12,8 @@ export const useAccountSummary = () => {
     }
   }, [accountState.status, dispatch]);
 
-  const loading = accountState.status === 'loading' || accountState.status === 'idle';
+  const loading =
+    accountState.status === 'loading' || accountState.status === 'idle';
   const { data, error } = accountState;
   return {
     data,

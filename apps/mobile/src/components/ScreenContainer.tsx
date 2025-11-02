@@ -46,7 +46,10 @@ const GlowBackdrop = ({ primaryPulse, secondaryPulse }: GlowBackdropProps) => (
   </>
 );
 
-export const ScreenContainer = ({ children, scrollable = false }: ScreenContainerProps) => {
+export const ScreenContainer = ({
+  children,
+  scrollable = false,
+}: ScreenContainerProps) => {
   const primaryPulse = useNeonPulse({ duration: 5200 });
   const secondaryPulse = useNeonPulse({ duration: 6600 });
 
@@ -59,8 +62,14 @@ export const ScreenContainer = ({ children, scrollable = false }: ScreenContaine
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <GlowBackdrop primaryPulse={primaryPulse} secondaryPulse={secondaryPulse} />
-        <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scroll}>
+        <GlowBackdrop
+          primaryPulse={primaryPulse}
+          secondaryPulse={secondaryPulse}
+        />
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          style={styles.scroll}
+        >
           <View style={styles.content}>{children}</View>
         </ScrollView>
       </View>
@@ -75,7 +84,10 @@ export const ScreenContainer = ({ children, scrollable = false }: ScreenContaine
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <GlowBackdrop primaryPulse={primaryPulse} secondaryPulse={secondaryPulse} />
+      <GlowBackdrop
+        primaryPulse={primaryPulse}
+        secondaryPulse={secondaryPulse}
+      />
       <View style={[styles.content, styles.staticContent]}>{children}</View>
     </View>
   );

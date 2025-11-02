@@ -9,23 +9,26 @@ import { useUnityBridge } from '@bridge/useUnityBridge';
 const FEATURE_LIST = [
   {
     title: '领域地图',
-    description:
-      '浏览赛博都市、能源厂与秘境入口，规划探索路线。',
+    description: '浏览赛博都市、能源厂与秘境入口，规划探索路线。',
   },
   {
     title: 'NFT 商店',
-    description:
-      '兑换限时霓虹装备与伙伴，支持链上交易记录。',
+    description: '兑换限时霓虹装备与伙伴，支持链上交易记录。',
   },
   {
     title: '活动副本',
-    description:
-      '参加周期活动和合作副本，获取稀有奖励。',
+    description: '参加周期活动和合作副本，获取稀有奖励。',
   },
 ];
 
 export const ExploreScreen = () => {
-  const { status, bootstrapUnity, requestScene, sendUnityMessage, lastMessage } = useUnityBridge({
+  const {
+    status,
+    bootstrapUnity,
+    requestScene,
+    sendUnityMessage,
+    lastMessage,
+  } = useUnityBridge({
     defaultSceneName: 'ExploreHub',
   });
   const isFocused = useIsFocused();
@@ -44,9 +47,7 @@ export const ExploreScreen = () => {
   return (
     <ScreenContainer>
       <Text style={styles.heading}>探索终端</Text>
-      <Text style={styles.subHeading}>
-        浏览赛博世界地图，规划下一次冒险。
-      </Text>
+      <Text style={styles.subHeading}>浏览赛博世界地图，规划下一次冒险。</Text>
 
       <View style={styles.unityWrapper}>
         {isFocused ? <UnityView style={styles.unityView} /> : null}
@@ -54,9 +55,7 @@ export const ExploreScreen = () => {
           <View style={styles.overlay}>
             <LoadingPlaceholder
               label={
-                status === 'error'
-                  ? '探索场景加载失败'
-                  : '加载探索世界中...'
+                status === 'error' ? '探索场景加载失败' : '加载探索世界中...'
               }
             />
           </View>
@@ -77,7 +76,9 @@ export const ExploreScreen = () => {
         <ActionButton
           label="传送至活动副本"
           description="WARP_TO_EVENT：跳转到限时活动区域"
-          onPress={() => sendUnityMessage('WARP_TO_EVENT', { eventId: 'event-alpha' })}
+          onPress={() =>
+            sendUnityMessage('WARP_TO_EVENT', { eventId: 'event-alpha' })
+          }
         />
       </View>
 
@@ -93,7 +94,9 @@ export const ExploreScreen = () => {
       {lastMessage ? (
         <View style={styles.logBox}>
           <Text style={styles.logTitle}>Unity 回传</Text>
-          <Text style={styles.logText}>{JSON.stringify(lastMessage, null, 2)}</Text>
+          <Text style={styles.logText}>
+            {JSON.stringify(lastMessage, null, 2)}
+          </Text>
         </View>
       ) : null}
     </ScreenContainer>

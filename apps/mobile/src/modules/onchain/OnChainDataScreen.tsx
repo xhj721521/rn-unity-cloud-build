@@ -12,9 +12,7 @@ export const OnChainDataScreen = () => {
   return (
     <ScreenContainer scrollable>
       <Text style={styles.heading}>链鉴中心</Text>
-      <Text style={styles.subHeading}>
-        汇总链上身份、资产凭证与世界事件。
-      </Text>
+      <Text style={styles.subHeading}>汇总链上身份、资产凭证与世界事件。</Text>
 
       {loading ? (
         <LoadingPlaceholder label="同步链上账本中..." />
@@ -40,15 +38,9 @@ export const OnChainDataScreen = () => {
       )}
 
       <InfoCard title="开发中" subtitle="后续将接入">
-        <Text style={styles.todoText}>
-          · 实时交易追踪与安全预警
-        </Text>
-        <Text style={styles.todoText}>
-          · 链游排行榜与赛季信息
-        </Text>
-        <Text style={styles.todoText}>
-          · NFT 管理（上架 / 转移 / 合成）
-        </Text>
+        <Text style={styles.todoText}>· 实时交易追踪与安全预警</Text>
+        <Text style={styles.todoText}>· 链游排行榜与赛季信息</Text>
+        <Text style={styles.todoText}>· NFT 管理（上架 / 转移 / 合成）</Text>
       </InfoCard>
     </ScreenContainer>
   );
