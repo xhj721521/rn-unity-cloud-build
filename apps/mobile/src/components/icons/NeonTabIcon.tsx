@@ -16,29 +16,22 @@ type NeonTabIconProps = {
 };
 
 export const NeonTabIcon = ({ label, type, focused }: NeonTabIconProps) => {
-  const stroke = focused
-    ? designTokens.colors.accentPink
-    : 'rgba(236, 241, 255, 0.6)';
+  const stroke = focused ? designTokens.colors.accentPink : '#4F5175';
 
   return (
     <View style={styles.container}>
-      <View
-        style={[
-          styles.iconRing,
-          focused ? styles.iconRingActive : styles.iconRingIdle,
-        ]}
-      >
-        <View style={styles.iconSurface}>{renderGlyph(type, stroke)}</View>
+      <View style={[styles.badge, focused && styles.badgeActive]}>
+        {renderGlyph(type, stroke)}
       </View>
       <Text
         style={[
           styles.label,
           focused ? styles.labelActive : styles.labelInactive,
         ]}
-        numberOfLines={1}
       >
         {label}
       </Text>
+      <View style={[styles.indicator, focused && styles.indicatorActive]} />
     </View>
   );
 };
@@ -99,39 +92,29 @@ const renderGlyph = (type: TabGlyphType, stroke: string) => {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: designTokens.spacing.xs,
+    paddingHorizontal: designTokens.spacing.sm,
   },
-  iconRing: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 2,
+  badge: {
+    width: 46,
+    height: 46,
+    borderRadius: designTokens.radii.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(70, 58, 128, 0.45)',
+    backgroundColor: designTokens.colors.card,
   },
-  iconRingActive: {
-    borderColor: designTokens.colors.accentPink,
-    shadowColor: designTokens.colors.accentPink,
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-  iconRingIdle: {
-    borderColor: 'rgba(236, 241, 255, 0.22)',
-    opacity: 0.6,
-  },
-  iconSurface: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+  badgeActive: {
+    borderColor: 'rgba(139, 108, 255, 0.85)',
+    shadowColor: designTokens.shadow.neon.color,
+    shadowOffset: designTokens.shadow.neon.offset,
+    shadowOpacity: designTokens.shadow.neon.opacity,
+    shadowRadius: designTokens.shadow.neon.radius,
+    elevation: designTokens.shadow.neon.elevation,
   },
   label: {
-    fontSize: 11,
+    marginTop: designTokens.spacing.xs,
+    fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.4,
   },
@@ -139,28 +122,43 @@ const styles = StyleSheet.create({
     color: designTokens.colors.textPrimary,
   },
   labelInactive: {
-    color: 'rgba(236, 241, 255, 0.6)',
+    color: '#6C7193',
+  },
+  indicator: {
+    marginTop: designTokens.spacing.xs,
+    width: 26,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'transparent',
+  },
+  indicatorActive: {
+    backgroundColor: designTokens.colors.accentPink,
+    shadowColor: designTokens.shadow.glowPink.color,
+    shadowOffset: designTokens.shadow.glowPink.offset,
+    shadowOpacity: designTokens.shadow.glowPink.opacity,
+    shadowRadius: designTokens.shadow.glowPink.radius,
+    elevation: designTokens.shadow.glowPink.elevation,
   },
   glyphRoof: {
-    width: 18,
-    height: 10,
+    width: 20,
+    height: 12,
     borderLeftWidth: 2,
     borderRightWidth: 2,
     borderTopWidth: 2,
-    borderRadius: 3,
+    borderRadius: 4,
   },
   glyphBody: {
-    marginTop: 1,
-    width: 18,
-    height: 8,
+    marginTop: 2,
+    width: 20,
+    height: 10,
     borderWidth: 2,
-    borderRadius: 3,
+    borderRadius: 4,
   },
   glyphShield: {
-    width: 20,
-    height: 24,
+    width: 22,
+    height: 26,
     borderWidth: 2,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -170,10 +168,10 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   glyphCompass: {
-    width: 20,
-    height: 20,
+    width: 22,
+    height: 22,
     borderWidth: 2,
-    borderRadius: 10,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -184,8 +182,8 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '45deg' }],
   },
   glyphChainLink: {
-    width: 18,
-    height: 9,
+    width: 20,
+    height: 10,
     borderWidth: 2,
     borderRadius: 5,
   },
@@ -194,15 +192,15 @@ const styles = StyleSheet.create({
     transform: [{ translateX: 8 }],
   },
   glyphCircle: {
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     borderWidth: 2,
-    borderRadius: 9,
+    borderRadius: 10,
   },
   glyphCircleSmall: {
     position: 'absolute',
-    width: 9,
-    height: 9,
-    borderRadius: 4.5,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
 });
