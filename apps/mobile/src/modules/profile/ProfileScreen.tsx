@@ -13,12 +13,7 @@ import { ProfileStackParamList } from '@app/navigation/types';
 import { neonPalette } from '@theme/neonPalette';
 import { getGlowStyle, useNeonPulse } from '@theme/animations';
 
-const SETTINGS_ITEMS = [
-  '钱包绑定 / 切换',
-  '账户安全设置',
-  '通知与战报推送',
-  '个性化外观主题',
-];
+const SETTINGS_ITEMS = ['钱包绑定 / 切换', '账户安全设置', '通知与战报推送', '个性化外观主题'];
 
 const QUICK_NAV_LINKS: {
   title: string;
@@ -45,6 +40,19 @@ const QUICK_NAV_LINKS: {
     accent: neonPalette.accentAmber,
   },
 ];
+
+const TOKEN_ACCENTS = [neonPalette.accentMagenta, neonPalette.accentCyan, neonPalette.accentAmber];
+
+const getInitials = (name: string) => {
+  if (!name) {
+    return '指';
+  }
+  const trimmed = name.trim();
+  if (!trimmed) {
+    return '指';
+  }
+  return trimmed.slice(0, 1).toUpperCase();
+};
 
 export const ProfileScreen = () => {
   const { data, loading, error } = useAccountSummary();
@@ -88,16 +96,53 @@ export const ProfileScreen = () => {
             />
           ) : data ? (
             <>
-              <Text style={styles.heroEyebrow}>COMMAND CENTER</Text>
-              <Text style={styles.heroTitle}>{data.displayName}</Text>
+              <View style={styles.heroHeader}>
+                <LinearGradient
+                  colors={['rgba(255, 106, 213, 0.6)', 'rgba(63, 242, 255, 0.45)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.avatarBadge}
+                >
+                  <Text style={styles.avatarInitial}>{getInitials(data.displayName)}</Text>
+                </LinearGradient>
+                <View style={styles.heroIdentity}>
+                  <Text style={styles.heroEyebrow}>指挥中心</Text>
+                  <Text style={styles.heroTitle}>{data.displayName}</Text>
+                  <Text style={styles.heroSubtitle}>战术响应就绪 · 欢迎回到基地</Text>
+                </View>
+              </View>
+
+              <View style={styles.walletCard}>
+                <Text style={styles.walletLabel}>主钱包</Text>
+                <Text style={styles.walletValue}>{data.address}</Text>
+              </View>
+
               <View style={styles.heroStats}>
                 <ProfileStat label="等级" value={data.level.toString()} />
                 <ProfileStat label="战斗评分" value={data.powerScore.toString()} />
                 <ProfileStat label="NFT 数" value={data.nfts.length.toString()} />
               </View>
-              <View style={styles.walletCard}>
-                <Text style={styles.walletLabel}>主钱包</Text>
-                <Text style={styles.walletValue}>{data.address}</Text>
+
+              {data.tokens.length > 0 ? (
+                <View style={styles.assetStrip}>
+                  {data.tokens.map((token, index) => (
+                    <AssetChip
+                      key={token.id}
+                      label={token.name}
+                      value={token.amount}
+                      accent={TOKEN_ACCENTS[index % TOKEN_ACCENTS.length]}
+                    />
+                  ))}
+                </View>
+              ) : null}
+
+              <View style={styles.heroActions}>
+                <HeroAction
+                  label="分享邀请"
+                  variant="primary"
+                  onPress={() => navigation.navigate('MyInvites')}
+                />
+                <HeroAction label="导出战报" onPress={() => navigation.navigate('MyTeam')} />
               </View>
             </>
           ) : (
@@ -106,10 +151,7 @@ export const ProfileScreen = () => {
         </View>
       </LinearGradient>
 
-      <SectionHeader
-        title="作战总览"
-        subtitle="团队、仓库与邀请的核心统计"
-      />
+      <SectionHeader title="作战总览" subtitle="团队、仓库与邀请的核心统计" />
       <View style={styles.summaryRow}>
         <SummaryCard
           label="战队成员"
@@ -128,10 +170,7 @@ export const ProfileScreen = () => {
         />
       </View>
 
-      <SectionHeader
-        title="快捷入口"
-        subtitle="快速前往常用配置与管理界面"
-      />
+      <SectionHeader title="快捷入口" subtitle="快速前往常用配置与管理界面" />
       <View style={styles.quickGrid}>
         {QUICK_NAV_LINKS.map((link) => (
           <QuickNavButton
@@ -144,6 +183,19 @@ export const ProfileScreen = () => {
         ))}
       </View>
 
+      {data?.nfts?.length ? (
+        <InfoCard title="收藏亮点" subtitle="最新解锁的核心装备与 NFT">
+          <View style={styles.nftList}>
+            {data.nfts.map((item) => (
+              <View key={item.id} style={styles.nftRow}>
+                <Text style={styles.nftName}>{item.name}</Text>
+                <Text style={styles.nftMeta}>{item.amount}</Text>
+              </View>
+            ))}
+          </View>
+        </InfoCard>
+      ) : null}
+
       <InfoCard title="快速设置">
         {SETTINGS_ITEMS.map((item) => (
           <View key={item} style={styles.settingRow}>
@@ -155,6 +207,42 @@ export const ProfileScreen = () => {
     </ScreenContainer>
   );
 };
+
+const HeroAction = ({
+  label,
+  variant = 'ghost',
+  onPress,
+}: {
+  label: string;
+  variant?: 'primary' | 'ghost';
+  onPress: () => void;
+}) => (
+  <Pressable
+    onPress={onPress}
+    style={({ pressed }) => [
+      styles.actionButton,
+      variant === 'primary' ? styles.actionButtonPrimary : styles.actionButtonGhost,
+      pressed ? styles.actionButtonPressed : null,
+    ]}
+  >
+    <Text
+      style={[
+        styles.actionLabel,
+        variant === 'primary' ? styles.actionLabelPrimary : styles.actionLabelGhost,
+      ]}
+    >
+      {label}
+    </Text>
+  </Pressable>
+);
+
+const AssetChip = ({ label, value, accent }: { label: string; value: string; accent: string }) => (
+  <View style={styles.assetChip}>
+    <View style={[styles.assetDot, { backgroundColor: accent }]} />
+    <Text style={styles.assetLabel}>{label}</Text>
+    <Text style={styles.assetValue}>{value}</Text>
+  </View>
+);
 
 const ProfileStat = ({ label, value }: { label: string; value: string }) => (
   <LinearGradient
@@ -273,24 +361,58 @@ const styles = StyleSheet.create({
     borderRadius: 27,
     backgroundColor: neonPalette.glowPurple,
   },
+  heroHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 18,
+  },
+  avatarBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: neonPalette.glowPurple,
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  avatarInitial: {
+    color: neonPalette.textPrimary,
+    fontSize: 24,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+  },
+  heroIdentity: {
+    flex: 1,
+    marginLeft: 18,
+  },
   heroEyebrow: {
-    color: neonPalette.accentCyan,
+    color: neonPalette.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 2,
-    marginBottom: 10,
+    textTransform: 'uppercase',
   },
   heroTitle: {
+    marginTop: 6,
     color: neonPalette.textPrimary,
     fontSize: 26,
     fontWeight: '700',
-    letterSpacing: 0.6,
-    marginBottom: 18,
+    letterSpacing: 0.8,
+  },
+  heroSubtitle: {
+    marginTop: 8,
+    color: neonPalette.textSecondary,
+    fontSize: 12,
+    letterSpacing: 0.3,
   },
   heroStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
+    marginTop: 20,
     marginBottom: 18,
   },
   statShell: {
@@ -309,9 +431,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(68, 45, 155, 0.45)',
   },
   statValue: {
-    color: neonPalette.accentMagenta,
+    color: neonPalette.textPrimary,
     fontSize: 20,
     fontWeight: '700',
+    fontVariant: ['tabular-nums'],
   },
   statLabel: {
     color: neonPalette.textSecondary,
@@ -326,6 +449,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(14, 14, 40, 0.86)',
     borderWidth: 1,
     borderColor: 'rgba(88, 63, 187, 0.55)',
+    marginTop: 10,
+    marginBottom: 12,
   },
   walletLabel: {
     color: neonPalette.textSecondary,
@@ -337,6 +462,74 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     marginTop: 6,
+  },
+  assetStrip: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 20,
+  },
+  assetChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 14,
+    backgroundColor: 'rgba(9, 11, 32, 0.86)',
+    borderWidth: 1,
+    borderColor: 'rgba(86, 67, 178, 0.6)',
+  },
+  assetDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  assetLabel: {
+    color: neonPalette.textSecondary,
+    fontSize: 12,
+  },
+  assetValue: {
+    marginLeft: 6,
+    color: neonPalette.textPrimary,
+    fontSize: 16,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+  heroActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    borderRadius: 16,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonPrimary: {
+    backgroundColor: 'rgba(124, 92, 255, 0.28)',
+    borderWidth: 1,
+    borderColor: 'rgba(155, 125, 255, 0.6)',
+  },
+  actionButtonGhost: {
+    borderWidth: 1,
+    borderColor: 'rgba(67, 108, 255, 0.45)',
+    backgroundColor: 'rgba(10, 12, 36, 0.82)',
+  },
+  actionButtonPressed: {
+    transform: [{ scale: 0.97 }],
+  },
+  actionLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.4,
+  },
+  actionLabelPrimary: {
+    color: neonPalette.textPrimary,
+  },
+  actionLabelGhost: {
+    color: neonPalette.accentCyan,
   },
   sectionHeader: {
     marginTop: 24,
@@ -426,6 +619,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.4,
+  },
+  nftList: {
+    gap: 14,
+  },
+  nftRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  nftName: {
+    color: neonPalette.textPrimary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  nftMeta: {
+    color: neonPalette.accentCyan,
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   settingRow: {
     flexDirection: 'row',
