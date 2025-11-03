@@ -7,6 +7,7 @@ import {
   ViewProps,
   requireNativeComponent,
 } from 'react-native';
+import { shape } from '@theme/tokens';
 
 type UnityViewProps = ViewProps & {
   fullscreen?: boolean;
@@ -32,7 +33,7 @@ export const UnityView = (props: UnityViewProps) => {
 const styles = StyleSheet.create({
   fallback: {
     backgroundColor: '#14142E',
-    borderRadius: 12,
+    borderRadius: shape.blockRadius,
     borderWidth: 1,
     borderColor: '#24244F',
   },

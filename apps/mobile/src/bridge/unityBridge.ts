@@ -10,6 +10,11 @@ export type UnityMessage = {
 type UnityModule = {
   initUnity?: () => Promise<void> | void;
   sendMessage?: (type: string, payload?: string) => void;
+  postMessage?: (objectName: string, methodName: string, payload?: string) => void;
+  setRenderMode?: (mode: 'surface' | 'texture') => void;
+  pause?: () => void;
+  resume?: () => void;
+  setEffectsQuality?: (quality: 'low' | 'medium' | 'high') => void;
 };
 
 const unityModule: UnityModule = UnityBridge ?? {
@@ -17,6 +22,31 @@ const unityModule: UnityModule = UnityBridge ?? {
   sendMessage: (type: string, payload?: string) => {
     if (__DEV__) {
       console.log('[UnityBridge mock] sendMessage', type, payload);
+    }
+  },
+  postMessage: (objectName: string, methodName: string, payload?: string) => {
+    if (__DEV__) {
+      console.log('[UnityBridge mock] postMessage', objectName, methodName, payload);
+    }
+  },
+  setRenderMode: (mode: 'surface' | 'texture') => {
+    if (__DEV__) {
+      console.log('[UnityBridge mock] setRenderMode', mode);
+    }
+  },
+  pause: () => {
+    if (__DEV__) {
+      console.log('[UnityBridge mock] pause');
+    }
+  },
+  resume: () => {
+    if (__DEV__) {
+      console.log('[UnityBridge mock] resume');
+    }
+  },
+  setEffectsQuality: (quality: 'low' | 'medium' | 'high') => {
+    if (__DEV__) {
+      console.log('[UnityBridge mock] setEffectsQuality', quality);
     }
   },
 };
@@ -34,6 +64,42 @@ export const initUnity = async () => {
 export const sendUnityMessage = (type: string, payload?: Record<string, unknown>) => {
   const serializedPayload = payload !== undefined ? JSON.stringify(payload) : undefined;
   unityModule.sendMessage?.(type, serializedPayload);
+};
+
+export const postUnityMessage = (
+  objectName: string,
+  methodName: string,
+  payload: Record<string, unknown> | string = '',
+) => {
+  const serializedPayload = typeof payload === 'string' ? payload : JSON.stringify(payload);
+  if (unityModule.postMessage) {
+    unityModule.postMessage(objectName, methodName, serializedPayload);
+    return;
+  }
+  sendUnityMessage('UNITY_POST_MESSAGE', {
+    objectName,
+    methodName,
+    payload: serializedPayload,
+  });
+};
+
+export const setUnityRenderMode = (mode: 'surface' | 'texture') => {
+  if (!unityModule.setRenderMode && __DEV__) {
+    console.log('[UnityBridge mock] setRenderMode unavailable');
+  }
+  unityModule.setRenderMode?.(mode);
+};
+
+export const pauseUnity = () => {
+  unityModule.pause?.();
+};
+
+export const resumeUnity = () => {
+  unityModule.resume?.();
+};
+
+export const setUnityEffectsQuality = (quality: 'low' | 'medium' | 'high') => {
+  unityModule.setEffectsQuality?.(quality);
 };
 
 type UnityNativeEvent = {

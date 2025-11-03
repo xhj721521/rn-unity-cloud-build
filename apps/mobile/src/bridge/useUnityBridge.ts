@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { UnityMessage, addUnityListener, initUnity, sendUnityMessage } from './unityBridge';
+import {
+  UnityMessage,
+  addUnityListener,
+  initUnity,
+  pauseUnity,
+  postUnityMessage,
+  resumeUnity,
+  sendUnityMessage,
+  setUnityEffectsQuality,
+  setUnityRenderMode,
+} from './unityBridge';
 
 export type UnityStatus = 'idle' | 'initializing' | 'ready' | 'error';
 
@@ -52,6 +62,7 @@ export const useUnityBridge = (options: UseUnityBridgeOptions = {}) => {
         try {
           await initUnity();
           unityInitialized = true;
+          setUnityRenderMode('texture');
         } catch (error) {
           console.warn('[UnityBridge] init failed', error);
           setStatus('error');
@@ -87,8 +98,22 @@ export const useUnityBridge = (options: UseUnityBridgeOptions = {}) => {
       bootstrapUnity,
       requestScene,
       sendUnityMessage,
+      postUnityMessage,
+      pauseUnity,
+      resumeUnity,
+      setUnityEffectsQuality,
     }),
-    [status, lastMessage, bootstrapUnity, requestScene],
+    [
+      status,
+      lastMessage,
+      bootstrapUnity,
+      requestScene,
+      sendUnityMessage,
+      postUnityMessage,
+      pauseUnity,
+      resumeUnity,
+      setUnityEffectsQuality,
+    ],
   );
 
   return value;

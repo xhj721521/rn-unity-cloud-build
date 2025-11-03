@@ -1,179 +1,125 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { CompositeNavigationProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 import { ErrorState } from '@components/ErrorState';
+import { CommandCenter } from '@components/CommandCenter';
+import { FeatureCard } from '@components/FeatureCard';
+import { GachaDrop, GachaStage } from '@components/GachaStage';
 import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
-import { HomeStackParamList } from '@app/navigation/types';
+import { HomeStackParamList, RootTabParamList } from '@app/navigation/types';
 import { useAppDispatch } from '@state/hooks';
 import { loadAccountSummary } from '@state/account/accountSlice';
-import { neonPalette } from '@theme/neonPalette';
-import { getGlowStyle, useNeonPulse } from '@theme/animations';
-import { UnityStatus, useUnityBridge } from '@bridge/useUnityBridge';
-import { UnityView } from '@bridge/UnityView';
+import { useUnityBridge } from '@bridge/useUnityBridge';
+import { spacing } from '@theme/tokens';
 
-type LocaleKey = 'zh-CN' | 'en-US';
-type QuickLinkKey = 'Leaderboard' | 'Forge' | 'Marketplace' | 'EventShop';
+const ARC_TOKEN_ID = 'tok-energy';
+const ORE_TOKEN_ID = 'tok-neon';
 
-const quickLinkOrder: QuickLinkKey[] = ['Leaderboard', 'Forge', 'Marketplace', 'EventShop'];
+type HomeNavigation = CompositeNavigationProp<
+  NativeStackNavigationProp<HomeStackParamList>,
+  BottomTabNavigationProp<RootTabParamList>
+>;
 
-const localeCopy: Record<
-  LocaleKey,
-  {
-    languageLabel: string;
-    hero: {
-      title: string;
-      subtitle: string;
-      statusOnline: string;
-      arcLabel: string;
-      arcDescription: string;
-      oreLabel: string;
-      oreDescription: string;
-    };
-    quickLinks: Record<QuickLinkKey, { title: string; description: string }>;
-    blindbox: {
-      title: string;
-      hints: string[];
-      status: Record<UnityStatus, string>;
-      cta: { ready: string; other: string };
-      fallbackTitle: string;
-      fallbackDesc: string;
-    };
-  }
-> = {
-  'zh-CN': {
-    languageLabel: '中文',
-    hero: {
-      title: '指挥中心',
-      subtitle: '欢迎回到霓虹链域',
-      statusOnline: '指挥网络已连接',
-      arcLabel: 'Arc',
-      arcDescription: '核心能源储备',
-      oreLabel: '矿石',
-      oreDescription: '锻造与升级材料',
-    },
-    quickLinks: {
-      Leaderboard: {
-        title: '排行榜',
-        description: '查看赛季荣誉与全球排名',
-      },
-      Forge: {
-        title: '铸造坊',
-        description: '合成模块，强化装备',
-      },
-      Marketplace: {
-        title: '集市坊',
-        description: '交易 NFT 与稀有伙伴',
-      },
-      EventShop: {
-        title: '活动商城',
-        description: '兑换赛季限定与礼盒',
-      },
-    },
-    blindbox: {
-      title: '盲盒展示',
-      hints: ['最新掉落：幻彩装甲 · 稀有', '累计开启 12 次 · 史诗奖励 x3'],
-      status: {
-        ready: '盲盒场景已加载，等待指挥官开启',
-        initializing: '唤醒盲盒场景中...',
-        idle: '等待唤醒盲盒场景',
-        error: '盲盒引擎未响应，请稍后重试',
-      },
-      cta: { ready: '立即开启', other: '唤醒盲盒' },
-      fallbackTitle: '盲盒动画准备中',
-      fallbackDesc: '即将唤醒 3D 场景，请稍候',
-    },
-  },
-  'en-US': {
-    languageLabel: 'EN',
-    hero: {
-      title: 'Command Center',
-      subtitle: 'Welcome back to Neon Realm',
-      statusOnline: 'Link established',
-      arcLabel: 'Arc',
-      arcDescription: 'Primary energy reserve',
-      oreLabel: 'Ore',
-      oreDescription: 'Forging & upgrade material',
-    },
-    quickLinks: {
-      Leaderboard: {
-        title: 'Leaderboards',
-        description: 'Track season glory and global ranking',
-      },
-      Forge: {
-        title: 'Forge',
-        description: 'Craft modules and upgrade gear',
-      },
-      Marketplace: {
-        title: 'Market Hub',
-        description: 'Trade NFTs and rare companions',
-      },
-      EventShop: {
-        title: 'Event Mall',
-        description: 'Redeem seasonal exclusives',
-      },
-    },
-    blindbox: {
-      title: 'Blind Box Spotlight',
-      hints: ['Latest drop: Prism Armor · Rare', '12 opened · 3 epic rewards'],
-      status: {
-        ready: '3D scene online, unlock your reward now',
-        initializing: 'Booting blind box scene...',
-        idle: 'Awaiting blind box activation',
-        error: 'Blind box engine offline, please retry later',
-      },
-      cta: { ready: 'Open Now', other: 'Wake Scene' },
-      fallbackTitle: 'Blind box warming up',
-      fallbackDesc: '3D animation will appear shortly',
-    },
-  },
+type FeatureConfig = {
+  key: 'Leaderboard' | 'Forge' | 'Marketplace' | 'EventShop';
+  title: string;
+  subtitle: string;
+  route: keyof HomeStackParamList;
+  accent: string;
+  icon: Parameters<typeof FeatureCard>[0]['icon'];
 };
 
-const findAssetAmount = (assets: ChainAsset[] | undefined, id: string) =>
-  assets?.find((asset) => asset.id === id)?.amount ?? '--';
+const FEATURE_CONFIGS: FeatureConfig[] = [
+  {
+    key: 'Leaderboard',
+    title: '排行榜',
+    subtitle: '追踪赛季荣誉与全球排名',
+    route: 'Leaderboard',
+    accent: '#BE7BFF',
+    icon: 'leaderboard',
+  },
+  {
+    key: 'Forge',
+    title: '铸造坊',
+    subtitle: '强化装备 / 合成模块',
+    route: 'Forge',
+    accent: '#6BB8FF',
+    icon: 'forge',
+  },
+  {
+    key: 'Marketplace',
+    title: '集市坊',
+    subtitle: '挂单 NFT 与稀有伙伴',
+    route: 'Marketplace',
+    accent: '#FF76D5',
+    icon: 'market',
+  },
+  {
+    key: 'EventShop',
+    title: '活动商城',
+    subtitle: '兑换赛季限定奖励',
+    route: 'EventShop',
+    accent: '#7A9BFF',
+    icon: 'events',
+  },
+];
+
+const STAGE_COPY = {
+  loading: '资源加载中…',
+  buttonReady: '开启盲盒',
+  buttonLoading: '开启中…',
+} as const;
+
+const formatAssetAmount = (assets: ChainAsset[] | undefined, id: string): string => {
+  const raw = assets?.find((asset) => asset.id === id)?.amount;
+  if (!raw) {
+    return '--';
+  }
+  const numeric = Number(raw);
+  if (!Number.isFinite(numeric)) {
+    return raw;
+  }
+  return new Intl.NumberFormat('zh-CN').format(numeric);
+};
+
+const buildDrop = (payload: Record<string, unknown> | undefined): GachaDrop => {
+  const name =
+    typeof payload?.name === 'string'
+      ? payload.name
+      : `盲盒奖励 ${payload?.resultId ?? ''}`;
+  return {
+    id: String(payload?.resultId ?? Date.now()),
+    avatarFallback: name.charAt(0).toUpperCase(),
+    name,
+    rarity: typeof payload?.rarity === 'string' ? payload.rarity : '未知',
+    timestamp: Date.now(),
+  };
+};
 
 export const HomeScreen = () => {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<HomeNavigation>();
   const { data, loading, error } = useAccountSummary();
-  const [language, setLanguage] = useState<LocaleKey>('zh-CN');
 
-  const copy = localeCopy[language];
-
-  const quickLinks = useMemo(
-    () =>
-      quickLinkOrder.map((key) => ({
-        key,
-        accent:
-          key === 'Leaderboard'
-            ? '#B778FF'
-            : key === 'Forge'
-            ? '#59D9FF'
-            : key === 'Marketplace'
-            ? '#66FFBC'
-            : '#FFC267',
-        text: copy.quickLinks[key],
-      })),
-    [copy],
-  );
-
-  const arcAmount = useMemo(() => findAssetAmount(data?.tokens, 'tok-energy'), [data?.tokens]);
-  const oreAmount = useMemo(() => findAssetAmount(data?.tokens, 'tok-neon'), [data?.tokens]);
-
-  const playerInitial = data?.displayName?.charAt(0).toUpperCase() ?? 'P';
-
-  const heroPulsePrimary = useNeonPulse({ duration: 5200 });
-  const heroPulseSecondary = useNeonPulse({ duration: 7400 });
-  const blindBoxPulse = useNeonPulse({ duration: 6400 });
+  const [recentDrops, setRecentDrops] = useState<GachaDrop[]>([]);
+  const [currentResult, setCurrentResult] = useState<GachaDrop | null>(null);
+  const [isOpening, setIsOpening] = useState(false);
 
   const {
     status: unityStatus,
     bootstrapUnity,
     requestScene,
+    postUnityMessage,
+    pauseUnity,
+    resumeUnity,
+    setUnityEffectsQuality,
+    lastMessage,
   } = useUnityBridge({
     defaultSceneName: 'BlindBoxShowcase',
   });
@@ -183,16 +129,121 @@ export const HomeScreen = () => {
       bootstrapUnity('BlindBoxShowcase').catch(() => null);
     } else if (unityStatus === 'ready') {
       requestScene('BlindBoxShowcase');
+    } else if (unityStatus === 'error') {
+      setIsOpening(false);
     }
   }, [bootstrapUnity, requestScene, unityStatus]);
 
-  const toggleLanguage = () => setLanguage((prev) => (prev === 'zh-CN' ? 'en-US' : 'zh-CN'));
+  useEffect(() => {
+    if (unityStatus === 'ready') {
+      setIsOpening(false);
+    }
+  }, [unityStatus]);
+
+  useFocusEffect(
+    useCallback(() => {
+      resumeUnity();
+      return () => {
+        pauseUnity();
+      };
+    }, [pauseUnity, resumeUnity]),
+  );
+
+  useEffect(() => {
+    if (!lastMessage) {
+      return;
+    }
+
+    if (lastMessage.type === 'GACHA_RESULT') {
+      const drop = buildDrop(lastMessage.payload);
+      setCurrentResult(drop);
+      setRecentDrops((prev) => [drop, ...prev].slice(0, 8));
+      setIsOpening(false);
+      return;
+    }
+
+    if (lastMessage.type === 'GACHA_ERROR' || lastMessage.type === 'ERROR') {
+      setIsOpening(false);
+      return;
+    }
+
+    if (lastMessage.type === 'PERF_METRIC' || lastMessage.type === 'FPS_UPDATE') {
+      const fpsValue = Number(lastMessage.payload?.fps ?? lastMessage.payload?.value);
+      if (!Number.isFinite(fpsValue)) {
+        return;
+      }
+      if (fpsValue < 30) {
+        setUnityEffectsQuality('low');
+      } else if (fpsValue >= 45) {
+        setUnityEffectsQuality('high');
+      }
+    }
+  }, [lastMessage, setUnityEffectsQuality]);
+
+  const arcAmount = useMemo(
+    () => formatAssetAmount(data?.tokens, ARC_TOKEN_ID),
+    [data?.tokens],
+  );
+  const oreAmount = useMemo(
+    () => formatAssetAmount(data?.tokens, ORE_TOKEN_ID),
+    [data?.tokens],
+  );
+
+  const commandCenterResources = useMemo(
+    () => [
+      {
+        id: 'arc',
+        label: 'Arc',
+        value: arcAmount,
+        unit: 'Arc',
+        description: '核心能源储备',
+        accentColor: '#C795FF',
+        isOnline: true,
+      },
+      {
+        id: 'ore',
+        label: '矿石',
+        value: oreAmount,
+        unit: '颗',
+        description: '锻造与升级材料',
+        accentColor: '#75E7FF',
+        isOnline: true,
+      },
+    ] as const,
+    [arcAmount, oreAmount],
+  );
+
+  const handleOpenStage = useCallback(() => {
+    if (unityStatus !== 'ready') {
+      return;
+    }
+    setIsOpening(true);
+    setCurrentResult(null);
+    postUnityMessage('BoxController', 'Open', '');
+  }, [postUnityMessage, unityStatus]);
+
+  const handleDismissResult = useCallback(() => {
+    setCurrentResult(null);
+  }, []);
+
+  const handleSettingsPress = useCallback(() => {
+    navigation.navigate('Profile');
+  }, [navigation]);
+
+  const features = useMemo(
+    () =>
+      FEATURE_CONFIGS.map((item) => ({
+        ...item,
+        onPress: () => navigation.navigate(item.route),
+      })),
+    [navigation],
+  );
 
   if (loading) {
     return (
-      <ScreenContainer>
+      <ScreenContainer variant="plain">
         <View style={styles.centerBox}>
-          <LoadingPlaceholder label="指挥中心正在加载..." />
+          <LoadingPlaceholder label="指挥中心正在加载…" />
         </View>
       </ScreenContainer>
     );
@@ -200,7 +251,7 @@ export const HomeScreen = () => {
 
   if (error) {
     return (
-      <ScreenContainer>
+      <ScreenContainer variant="plain">
         <View style={styles.centerBox}>
           <ErrorState
             title="暂时无法连接指挥网络"
@@ -212,562 +263,63 @@ export const HomeScreen = () => {
     );
   }
 
-  return (
-    <ScreenContainer>
-      <View style={styles.container}>
-        <LinearGradient
-          colors={['rgba(78, 48, 173, 0.28)', 'rgba(19, 121, 255, 0.18)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroCard}
-        >
-          <Animated.View
-            pointerEvents="none"
-            style={[
-              styles.heroAuraPrimary,
-              getGlowStyle({
-                animated: heroPulsePrimary,
-                minOpacity: 0.18,
-                maxOpacity: 0.48,
-                minScale: 0.88,
-                maxScale: 1.22,
-              }),
-            ]}
-          />
-          <Animated.View
-            pointerEvents="none"
-            style={[
-              styles.heroAuraSecondary,
-              getGlowStyle({
-                animated: heroPulseSecondary,
-                minOpacity: 0.1,
-                maxOpacity: 0.28,
-                minScale: 0.75,
-                maxScale: 1.35,
-              }),
-            ]}
-          />
-          <View style={styles.heroTopRow}>
-            <View style={styles.avatarWrap}>
-              <View style={styles.avatarBadge}>
-                <Text style={styles.avatarInitial}>{playerInitial}</Text>
-              </View>
-              <View style={styles.heroTitleGroup}>
-                <Text style={styles.heroTitle}>{copy.hero.title}</Text>
-                <Text style={styles.heroSubtitle}>{copy.hero.subtitle}</Text>
-              </View>
-            </View>
-            <Pressable style={styles.languageButton} onPress={toggleLanguage}>
-              <Text style={styles.languageLabel}>{copy.languageLabel}</Text>
-            </Pressable>
-          </View>
-          <View style={styles.resourceChipRow}>
-            <ResourceChip
-              label={copy.hero.arcLabel}
-              value={arcAmount}
-              description={copy.hero.arcDescription}
-              accent="#A874FF"
-            />
-            <ResourceChip
-              label={copy.hero.oreLabel}
-              value={oreAmount}
-              description={copy.hero.oreDescription}
-              accent="#59FFD0"
-            />
-          </View>
-          <Text style={styles.statusChip}>{copy.hero.statusOnline}</Text>
-        </LinearGradient>
+  const displayName = data?.displayName ?? '指挥官';
 
-        <View style={styles.quickGrid}>
-          {quickLinks.map(({ key, accent, text }) => (
-            <QuickLinkCard
-              key={key}
-              title={text.title}
-              description={text.description}
-              accent={accent}
-              iconType={key}
-              onPress={() => navigation.navigate(key)}
-            />
+  return (
+    <ScreenContainer scrollable variant="plain">
+      <View style={styles.page}>
+        <CommandCenter
+          displayName={displayName}
+          subtitle="霓虹链域已同步"
+          avatarInitial={displayName.charAt(0).toUpperCase()}
+          onPressSettings={handleSettingsPress}
+          resources={commandCenterResources}
+          connectionLabel="已连接"
+        />
+        <View style={styles.featureGrid}>
+          {features.map(({ key, title, subtitle, accent, icon, onPress }) => (
+            <View key={key} style={styles.featureItem}>
+              <FeatureCard
+                title={title}
+                subtitle={subtitle}
+                accent={accent}
+                icon={icon}
+                onPress={onPress}
+              />
+            </View>
           ))}
         </View>
-
-        <BlindBoxShowcase status={unityStatus} pulse={blindBoxPulse} copy={copy.blindbox} />
+        <GachaStage
+          status={unityStatus}
+          drops={recentDrops}
+          copy={STAGE_COPY}
+          isOpening={isOpening}
+          onOpen={handleOpenStage}
+          currentResult={currentResult ?? undefined}
+          onDismissResult={currentResult ? handleDismissResult : undefined}
+        />
       </View>
     </ScreenContainer>
   );
 };
 
-const ResourceChip = ({
-  label,
-  value,
-  description,
-  accent,
-}: {
-  label: string;
-  value: string;
-  description: string;
-  accent: string;
-}) => (
-  <LinearGradient
-    colors={[`${accent}33`, 'rgba(10, 11, 32, 0.95)']}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 1 }}
-    style={styles.resourceChip}
-  >
-    <View style={styles.resourceChipHeader}>
-      <View style={styles.resourceChipLabelRow}>
-        <View style={[styles.resourceChipDot, { backgroundColor: accent }]} />
-        <Text style={styles.resourceLabel}>{label}</Text>
-      </View>
-      <Text style={styles.resourceValue}>{value}</Text>
-    </View>
-    <Text style={styles.resourceDesc}>{description}</Text>
-  </LinearGradient>
-);
-
-type QuickLinkCardProps = {
-  title: string;
-  description: string;
-  accent: string;
-  iconType: QuickLinkKey;
-  onPress: () => void;
-};
-
-const QuickLinkCard = ({ title, description, accent, iconType, onPress }: QuickLinkCardProps) => (
-  <Pressable
-    style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]}
-    onPress={onPress}
-  >
-    <LinearGradient
-      colors={[`${accent}26`, `${accent}80`]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.quickGradient}
-    >
-      <QuickLinkIcon type={iconType} accent={accent} />
-      <Text style={styles.quickTitle}>{title}</Text>
-      <Text style={styles.quickDesc}>{description}</Text>
-      <Text style={styles.quickAction}>进入</Text>
-    </LinearGradient>
-  </Pressable>
-);
-
-const QuickLinkIcon = ({ type, accent }: { type: QuickLinkKey; accent: string }) => (
-  <View style={styles.iconWrap}>
-    {type === 'Leaderboard' && (
-      <>
-        <View style={[styles.iconTrophyCup, { borderColor: accent }]} />
-        <View style={[styles.iconTrophyStem, { backgroundColor: accent }]} />
-      </>
-    )}
-    {type === 'Forge' && (
-      <>
-        <View style={[styles.iconHammerHead, { backgroundColor: accent }]} />
-        <View style={[styles.iconHammerHandle, { backgroundColor: accent }]} />
-      </>
-    )}
-    {type === 'Marketplace' && (
-      <>
-        <View style={[styles.iconTag, { borderColor: accent }]} />
-        <View style={[styles.iconTagHole, { borderColor: accent }]} />
-      </>
-    )}
-    {type === 'EventShop' && (
-      <>
-        <View style={[styles.iconGiftLid, { backgroundColor: accent }]} />
-        <View style={[styles.iconGiftBox, { borderColor: accent }]} />
-      </>
-    )}
-  </View>
-);
-
-type BlindBoxCopy = (typeof localeCopy)[LocaleKey]['blindbox'];
-
-type BlindBoxShowcaseProps = {
-  status: UnityStatus;
-  pulse: Animated.Value;
-  copy: BlindBoxCopy;
-};
-
-const BlindBoxShowcase = ({ status, pulse, copy }: BlindBoxShowcaseProps) => {
-  const statusText = copy.status[status];
-  const ctaLabel = status === 'ready' ? copy.cta.ready : copy.cta.other;
-
-  return (
-    <LinearGradient
-      colors={['rgba(118, 60, 214, 0.18)', 'rgba(48, 118, 255, 0.16)']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.blindBoxCard}
-    >
-      <View style={styles.blindBoxHeader}>
-        <View>
-          <Text style={styles.blindBoxTitle}>{copy.title}</Text>
-          <Text style={styles.blindBoxSubtitle}>{statusText}</Text>
-        </View>
-        <Pressable style={styles.blindBoxButton}>
-          <Text style={styles.blindBoxButtonText}>{ctaLabel}</Text>
-        </Pressable>
-      </View>
-      <View style={styles.blindBoxViewport}>
-        <UnityView style={styles.unitySurface} />
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.blindBoxAura,
-            getGlowStyle({
-              animated: pulse,
-              minOpacity: 0.16,
-              maxOpacity: 0.38,
-              minScale: 0.85,
-              maxScale: 1.18,
-            }),
-          ]}
-        />
-        {status !== 'ready' && (
-          <View style={styles.blindBoxFallback}>
-            <Text style={styles.fallbackTitle}>{copy.fallbackTitle}</Text>
-            <Text style={styles.fallbackDesc}>{copy.fallbackDesc}</Text>
-          </View>
-        )}
-      </View>
-      <View style={styles.blindBoxFooter}>
-        {copy.hints.map((hint) => (
-          <Text key={hint} style={styles.blindBoxHint}>
-            {hint}
-          </Text>
-        ))}
-      </View>
-    </LinearGradient>
-  );
-};
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+  page: {
+    gap: spacing.section,
+    paddingBottom: spacing.section,
   },
   centerBox: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroCard: {
-    borderRadius: 24,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(92, 62, 188, 0.55)',
-    backgroundColor: 'rgba(8, 10, 30, 0.9)',
-    overflow: 'hidden',
-  },
-  heroAuraPrimary: {
-    position: 'absolute',
-    width: 170,
-    height: 170,
-    borderRadius: 85,
-    top: -26,
-    right: -12,
-    backgroundColor: neonPalette.glowPink,
-  },
-  heroAuraSecondary: {
-    position: 'absolute',
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    bottom: -48,
-    left: -16,
-    backgroundColor: neonPalette.glowCyan,
-  },
-  heroTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  avatarWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  avatarBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(152, 128, 255, 0.75)',
-    backgroundColor: 'rgba(8, 10, 33, 0.95)',
-  },
-  avatarInitial: {
-    color: '#F9F7FF',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  heroTitleGroup: {
-    gap: 4,
-  },
-  heroTitle: {
-    color: neonPalette.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  heroSubtitle: {
-    color: neonPalette.textSecondary,
-    fontSize: 11,
-    letterSpacing: 0.4,
-  },
-  languageButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(122, 100, 255, 0.65)',
-    backgroundColor: 'rgba(14, 16, 38, 0.82)',
-  },
-  languageLabel: {
-    color: '#F3ECFF',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 1,
-  },
-  resourceChipRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-    marginTop: 8,
-  },
-  resourceChip: {
-    flex: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(88, 64, 180, 0.45)',
-    backgroundColor: 'rgba(10, 11, 32, 0.92)',
-    gap: 4,
-  },
-  resourceChipHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  resourceChipLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  resourceChipDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  resourceLabel: {
-    color: 'rgba(236, 241, 255, 0.78)',
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-  resourceValue: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  resourceDesc: {
-    color: 'rgba(236, 241, 255, 0.6)',
-    fontSize: 9,
-    letterSpacing: 0.3,
-    paddingLeft: 12,
-  },
-  statusChip: {
-    marginTop: 8,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: 'rgba(126, 50, 240, 0.24)',
-    color: '#ECE6FF',
-    fontSize: 12,
-    letterSpacing: 0.6,
-  },
-  quickGrid: {
+  featureGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: 6,
+    columnGap: spacing.section,
+    rowGap: spacing.section,
   },
-  quickCard: {
-    width: '46%',
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(60, 36, 125, 0.45)',
-    backgroundColor: 'rgba(9, 10, 28, 0.9)',
-  },
-  quickCardPressed: {
-    opacity: 0.86,
-    transform: [{ scale: 0.97 }],
-  },
-  quickGradient: {
-    padding: 9,
-    gap: 5,
-    minHeight: 86,
-  },
-  quickTitle: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  quickDesc: {
-    color: 'rgba(236, 241, 255, 0.75)',
-    fontSize: 10.5,
-    lineHeight: 15,
-  },
-  quickAction: {
-    color: '#F7E9FF',
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-  iconWrap: {
-    width: 28,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconTrophyCup: {
-    width: 22,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderTopWidth: 3,
-  },
-  iconTrophyStem: {
-    width: 8,
-    height: 6,
-    borderRadius: 2,
-    marginTop: -2,
-  },
-  iconHammerHead: {
-    width: 18,
-    height: 6,
-    borderRadius: 3,
-  },
-  iconHammerHandle: {
-    width: 4,
-    height: 12,
-    borderRadius: 3,
-    marginTop: 2,
-  },
-  iconTag: {
-    width: 18,
-    height: 12,
-    borderRadius: 4,
-    borderWidth: 2,
-    transform: [{ rotate: '-12deg' }],
-  },
-  iconTagHole: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    borderWidth: 2,
-    position: 'absolute',
-    top: 4,
-    right: 6,
-  },
-  iconGiftLid: {
-    width: 18,
-    height: 4,
-    borderRadius: 2,
-  },
-  iconGiftBox: {
-    width: 18,
-    height: 10,
-    borderRadius: 4,
-    borderWidth: 2,
-    marginTop: 2,
-  },
-  blindBoxCard: {
-    borderRadius: 22,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(62, 42, 130, 0.4)',
-    backgroundColor: 'rgba(8, 9, 26, 0.94)',
-  },
-  blindBoxHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderBottomWidth: 1,
-    borderColor: 'rgba(56, 38, 118, 0.35)',
-  },
-  blindBoxTitle: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  blindBoxSubtitle: {
-    color: 'rgba(236, 241, 255, 0.78)',
-    fontSize: 10.5,
-    marginTop: 4,
-  },
-  blindBoxButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: '#FF5BD0',
-  },
-  blindBoxButtonText: {
-    color: '#17021F',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  blindBoxViewport: {
-    height: 138,
-    backgroundColor: 'rgba(6, 8, 24, 0.92)',
-  },
-  unitySurface: {
-    flex: 1,
-  },
-  blindBoxAura: {
-    position: 'absolute',
-    width: 164,
-    height: 164,
-    borderRadius: 82,
-    alignSelf: 'center',
-    top: -28,
-    backgroundColor: neonPalette.glowPurple,
-  },
-  blindBoxFallback: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(6, 8, 24, 0.76)',
-    gap: 4,
-  },
-  fallbackTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  fallbackDesc: {
-    color: 'rgba(236, 241, 255, 0.72)',
-    fontSize: 11,
-  },
-  blindBoxFooter: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 4,
-    borderTopWidth: 1,
-    borderColor: 'rgba(56, 38, 118, 0.35)',
-  },
-  blindBoxHint: {
-    color: 'rgba(236, 241, 255, 0.7)',
-    fontSize: 11,
+  featureItem: {
+    flexBasis: '48%',
   },
 });

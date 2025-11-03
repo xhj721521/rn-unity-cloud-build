@@ -3,6 +3,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { neonPalette } from '@theme/neonPalette';
 import { useNeonPulse } from '@theme/animations';
+import { shadowStyles, shape, spacing, typeScale } from '@theme/tokens';
 
 type ErrorStateProps = {
   title: string;
@@ -22,7 +23,7 @@ export const ErrorState = ({ title, description, onRetry }: ErrorStateProps) => 
 
   return (
     <LinearGradient
-      colors={['rgba(124, 92, 255, 0.28)', 'rgba(11, 11, 32, 0.9)']}
+      colors={['rgba(124, 92, 255, 0.32)', 'rgba(11, 11, 32, 0.92)']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.shell}
@@ -43,49 +44,47 @@ export const ErrorState = ({ title, description, onRetry }: ErrorStateProps) => 
 
 const styles = StyleSheet.create({
   shell: {
-    borderRadius: 18,
+    borderRadius: shape.cardRadius,
     padding: 1,
-    marginBottom: 16,
+    marginBottom: spacing.section,
   },
   container: {
     position: 'relative',
     overflow: 'hidden',
-    borderRadius: 17,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
+    borderRadius: shape.cardRadius,
+    paddingVertical: spacing.section,
+    paddingHorizontal: spacing.section + spacing.grid,
     backgroundColor: 'rgba(10, 10, 32, 0.92)',
     borderWidth: 1,
-    borderColor: 'rgba(68, 45, 155, 0.45)',
-    gap: 10,
+    borderColor: 'rgba(78, 52, 170, 0.45)',
+    gap: spacing.cardGap,
+    ...shadowStyles.card,
   },
   glow: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 17,
+    borderRadius: shape.cardRadius,
     backgroundColor: neonPalette.glowPurple,
   },
   title: {
     color: neonPalette.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
+    ...typeScale.title,
   },
   description: {
     color: neonPalette.textSecondary,
-    fontSize: 13,
-    lineHeight: 20,
+    ...typeScale.body,
   },
   retryButton: {
     alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 999,
+    paddingVertical: spacing.grid,
+    paddingHorizontal: spacing.section,
+    borderRadius: shape.buttonRadius,
     borderWidth: 1,
     borderColor: neonPalette.accentMagenta,
     backgroundColor: 'rgba(124, 92, 255, 0.18)',
   },
   retryText: {
     color: neonPalette.textPrimary,
-    fontSize: 13,
+    ...typeScale.body,
     fontWeight: '600',
-    letterSpacing: 0.4,
   },
 });
