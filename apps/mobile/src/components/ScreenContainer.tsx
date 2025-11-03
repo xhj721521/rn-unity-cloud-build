@@ -10,6 +10,7 @@ type ScreenContainerVariant = 'overlay' | 'plain';
 type ScreenContainerProps = PropsWithChildren<{
   scrollable?: boolean;
   variant?: ScreenContainerVariant;
+  edgeVignette?: boolean;
 }>;
 
 type GlowBackdropProps = {
@@ -54,6 +55,7 @@ export const ScreenContainer = ({
   children,
   scrollable = false,
   variant = 'overlay',
+  edgeVignette = false,
 }: ScreenContainerProps) => {
   const primaryPulse = useNeonPulse({ duration: 5200 });
   const secondaryPulse = useNeonPulse({ duration: 6600 });
@@ -71,6 +73,7 @@ export const ScreenContainer = ({
           style={StyleSheet.absoluteFill}
         />
         <GlowBackdrop primaryPulse={primaryPulse} secondaryPulse={secondaryPulse} />
+        {edgeVignette ? <EdgeVignette /> : null}
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           style={[styles.scroll, variant === 'overlay' ? undefined : styles.plainScroll]}
@@ -90,10 +93,44 @@ export const ScreenContainer = ({
         style={StyleSheet.absoluteFill}
       />
       <GlowBackdrop primaryPulse={primaryPulse} secondaryPulse={secondaryPulse} />
+      {edgeVignette ? <EdgeVignette /> : null}
       <View style={containerStyle}>{children}</View>
     </View>
   );
 };
+
+const EdgeVignette = () => (
+  <>
+    <LinearGradient
+      pointerEvents="none"
+      colors={['rgba(4, 1, 15, 0.6)', 'transparent']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[styles.vignette, styles.vignetteTop]}
+    />
+    <LinearGradient
+      pointerEvents="none"
+      colors={['transparent', 'rgba(4, 1, 15, 0.6)']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[styles.vignette, styles.vignetteBottom]}
+    />
+    <LinearGradient
+      pointerEvents="none"
+      colors={['rgba(4, 1, 15, 0.55)', 'transparent']}
+      start={{ x: 0, y: 0.5 }}
+      end={{ x: 1, y: 0.5 }}
+      style={[styles.vignetteVertical, styles.vignetteLeft]}
+    />
+    <LinearGradient
+      pointerEvents="none"
+      colors={['transparent', 'rgba(4, 1, 15, 0.55)']}
+      start={{ x: 0, y: 0.5 }}
+      end={{ x: 1, y: 0.5 }}
+      style={[styles.vignetteVertical, styles.vignetteRight]}
+    />
+  </>
+);
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -159,5 +196,29 @@ const styles = StyleSheet.create({
     bottom: -60,
     left: -40,
     backgroundColor: neonPalette.glowCyan,
+  },
+  vignette: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 80,
+  },
+  vignetteVertical: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 60,
+  },
+  vignetteTop: {
+    top: 0,
+  },
+  vignetteBottom: {
+    bottom: 0,
+  },
+  vignetteLeft: {
+    left: 0,
+  },
+  vignetteRight: {
+    right: 0,
   },
 });

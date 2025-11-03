@@ -9,10 +9,8 @@ type ResourceCapsule = {
   label: string;
   value: string;
   unit: string;
-  description: string;
   accentColor: string;
   isOnline?: boolean;
-  progress?: number;
 };
 
 type CommandCenterProps = {
@@ -34,64 +32,70 @@ export const CommandCenter = ({
 }: CommandCenterProps) => {
   return (
     <LinearGradient
-      colors={['rgba(24, 18, 54, 0.92)', 'rgba(11, 12, 36, 0.96)']}
+      colors={['rgba(26, 18, 56, 0.96)', 'rgba(10, 10, 34, 0.94)']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.topRow}>
-        <View style={styles.identityBlock}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarLabel}>{avatarInitial}</Text>
+      <View style={styles.body}>
+        <View style={styles.headerRow}>
+          <View style={styles.identityColumn}>
+            <View style={styles.identityBlock}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarLabel}>{avatarInitial}</Text>
+              </View>
+              <View style={styles.identityText}>
+                <Text style={styles.displayName}>{displayName}</Text>
+                <Text style={styles.subtitle}>{subtitle}</Text>
+              </View>
+            </View>
+            <View style={styles.connectionChip} accessibilityElementsHidden>
+              <View style={styles.connectionDot} />
+              <Text style={styles.connectionLabel}>{connectionLabel}</Text>
+            </View>
           </View>
-          <View style={styles.identityText}>
-            <Text style={styles.displayName}>{displayName}</Text>
-            <Text style={styles.subtitle}>{subtitle}</Text>
-          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="打开设置"
+            onPress={onPressSettings}
+            style={styles.settingsButton}
+          >
+            <GearIcon />
+          </Pressable>
         </View>
-        <Pressable accessibilityRole="button" onPress={onPressSettings} style={styles.settingsButton}>
-          <GearIcon />
-        </Pressable>
+        <View style={styles.resourceRow}>
+          {resources.map((resource) => (
+            <ResourceCapsuleView key={resource.id} resource={resource} />
+          ))}
+        </View>
       </View>
-      <View style={styles.resourceRow}>
-        {resources.map((resource) => (
-          <ResourceCapsuleView key={resource.id} resource={resource} />
-        ))}
-      </View>
-      <View style={styles.connectionChip}>
-        <View style={styles.connectionDot} />
-        <Text style={styles.connectionLabel}>{connectionLabel}</Text>
-      </View>
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(255,255,255,0.12)', 'rgba(255,255,255,0)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.topSheen}
+      />
     </LinearGradient>
   );
 };
 
 const ResourceCapsuleView = ({ resource }: { resource: ResourceCapsule }) => {
-  const { label, value, unit, description, accentColor, progress, isOnline } = resource;
+  const { label, value, unit, accentColor, isOnline } = resource;
   return (
     <View style={styles.resourceCapsule}>
-      <View style={styles.resourceHeader}>
-        <View style={styles.resourceLabelRow}>
-          <View
-            style={[
-              styles.resourceDot,
-              { backgroundColor: accentColor, opacity: isOnline === false ? 0.4 : 1 },
-            ]}
-          />
-          <Text style={styles.resourceLabel}>{label}</Text>
-        </View>
-        {typeof progress === 'number' ? (
-          <View style={styles.resourceProgress}>
-            <CircularProgress value={progress} tint={accentColor} />
-          </View>
-        ) : null}
+      <View style={styles.resourceMeta}>
+        <View
+          style={[
+            styles.resourceDot,
+            { backgroundColor: accentColor, opacity: isOnline === false ? 0.4 : 1 },
+          ]}
+        />
+        <Text style={styles.resourceLabel}>{label}</Text>
       </View>
-      <View style={styles.resourceValueRow}>
-        <Text style={styles.resourceValue}>{value}</Text>
-        <Text style={styles.resourceUnit}>{unit}</Text>
-      </View>
-      <Text style={styles.resourceDescription} numberOfLines={2}>
-        {description}
+      <Text style={styles.resourceValue} numberOfLines={1}>
+        {value}
+        <Text style={styles.resourceUnit}> {unit}</Text>
       </Text>
     </View>
   );
@@ -106,31 +110,30 @@ const GearIcon = () => (
   </View>
 );
 
-const CircularProgress = ({ value, tint }: { value: number; tint: string }) => {
-  const clamped = Math.max(0, Math.min(1, value));
-  const rotation = `${clamped * 360}deg`;
-  const transforms = [{ translateX: -1 }, { rotate: rotation }, { translateX: 1 }];
-  return (
-    <View style={[styles.progressBase, { borderColor: `${tint}55` }]}
-    >
-      <View style={[styles.progressPointer, { backgroundColor: tint, transform: transforms }]} />
-    </View>
-  );
-};
-
 const styles = StyleSheet.create({
   container: {
     borderRadius: shape.blockRadius,
     padding: spacing.section,
-    gap: spacing.section,
     borderWidth: 1,
-    borderColor: 'rgba(88, 74, 180, 0.45)',
+    borderColor: 'rgba(122, 108, 230, 0.4)',
+    overflow: 'hidden',
     ...shadowStyles.card,
+    shadowOpacity: 0.26,
+    shadowRadius: 18,
+    elevation: 9,
   },
-  topRow: {
+  body: {
+    gap: spacing.cardGap,
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: spacing.section,
+  },
+  identityColumn: {
+    flex: 1,
+    gap: spacing.cardGap,
   },
   identityBlock: {
     flexDirection: 'row',
@@ -160,7 +163,7 @@ const styles = StyleSheet.create({
     color: neonPalette.textPrimary,
   },
   subtitle: {
-    ...typeScale.caption,
+    ...typeScale.body,
     color: neonPalette.textSecondary,
   },
   settingsButton: {
@@ -175,23 +178,21 @@ const styles = StyleSheet.create({
   },
   resourceRow: {
     flexDirection: 'row',
-    gap: spacing.section,
+    gap: spacing.cardGap,
   },
   resourceCapsule: {
     flex: 1,
+    height: 56,
     borderRadius: shape.capsuleRadius,
-    padding: spacing.cardGap,
     borderWidth: 1,
-    borderColor: 'rgba(101, 82, 200, 0.3)',
-    backgroundColor: 'rgba(14, 16, 38, 0.92)',
-    gap: spacing.cardGap / 2,
-  },
-  resourceHeader: {
+    borderColor: 'rgba(132, 120, 255, 0.4)',
+    backgroundColor: 'rgba(16, 14, 46, 0.85)',
+    paddingHorizontal: spacing.section,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  resourceLabelRow: {
+  resourceMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.grid / 2,
@@ -206,31 +207,19 @@ const styles = StyleSheet.create({
     color: neonPalette.textPrimary,
     letterSpacing: 0.4,
   },
-  resourceProgress: {
-    width: 18,
-    height: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  resourceValueRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: spacing.grid / 2,
-  },
   resourceValue: {
     color: neonPalette.textPrimary,
-    fontSize: 20,
-    lineHeight: 24,
+    fontSize: 18,
+    lineHeight: 22,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
+    letterSpacing: 0.2,
   },
   resourceUnit: {
     color: neonPalette.textSecondary,
-    ...typeScale.caption,
-  },
-  resourceDescription: {
-    color: neonPalette.textMuted,
-    ...typeScale.caption,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '600',
   },
   connectionChip: {
     alignSelf: 'flex-start',
@@ -240,7 +229,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.section,
     paddingVertical: spacing.grid / 2,
     borderRadius: shape.capsuleRadius,
-    backgroundColor: 'rgba(48, 116, 78, 0.24)',
+    backgroundColor: 'rgba(48, 116, 78, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(76, 217, 100, 0.28)',
   },
   connectionDot: {
     width: 8,
@@ -284,19 +275,13 @@ const styles = StyleSheet.create({
   gearSpokeDiagonalB: {
     transform: [{ rotate: '-60deg' }],
   },
-  progressBase: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    backgroundColor: 'transparent',
-  },
-  progressPointer: {
+  topSheen: {
     position: 'absolute',
-    width: 2,
-    height: 6,
-    top: 2,
-    left: 7,
-    borderRadius: 1,
+    top: 1,
+    left: 1,
+    right: 1,
+    height: 36,
+    borderTopLeftRadius: shape.blockRadius - 1,
+    borderTopRightRadius: shape.blockRadius - 1,
   },
 });

@@ -123,13 +123,11 @@ const styles = StyleSheet.create({
   title: {
     color: neonPalette.textPrimary,
     ...typeScale.title,
-    fontSize: 16,
-    lineHeight: 20,
   },
   subtitle: {
     color: neonPalette.textSecondary,
     ...typeScale.body,
-    fontSize: 13,
+    fontSize: 14,
   },
   iconBase: {
     width: 24,

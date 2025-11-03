@@ -196,7 +196,6 @@ export const HomeScreen = () => {
         label: 'Arc',
         value: arcAmount,
         unit: 'Arc',
-        description: '核心能源储备',
         accentColor: '#C795FF',
         isOnline: true,
       },
@@ -205,7 +204,6 @@ export const HomeScreen = () => {
         label: '矿石',
         value: oreAmount,
         unit: '颗',
-        description: '锻造与升级材料',
         accentColor: '#75E7FF',
         isOnline: true,
       },
@@ -241,7 +239,7 @@ export const HomeScreen = () => {
 
   if (loading) {
     return (
-      <ScreenContainer variant="plain">
+      <ScreenContainer variant="plain" edgeVignette>
         <View style={styles.centerBox}>
           <LoadingPlaceholder label="指挥中心正在加载…" />
         </View>
@@ -251,7 +249,7 @@ export const HomeScreen = () => {
 
   if (error) {
     return (
-      <ScreenContainer variant="plain">
+      <ScreenContainer variant="plain" edgeVignette>
         <View style={styles.centerBox}>
           <ErrorState
             title="暂时无法连接指挥网络"
@@ -266,7 +264,7 @@ export const HomeScreen = () => {
   const displayName = data?.displayName ?? '指挥官';
 
   return (
-    <ScreenContainer scrollable variant="plain">
+    <ScreenContainer scrollable variant="plain" edgeVignette>
       <View style={styles.page}>
         <CommandCenter
           displayName={displayName}
@@ -306,7 +304,7 @@ export const HomeScreen = () => {
 const styles = StyleSheet.create({
   page: {
     gap: spacing.section,
-    paddingBottom: spacing.section,
+    paddingBottom: spacing.section * 2,
   },
   centerBox: {
     flex: 1,
@@ -316,10 +314,11 @@ const styles = StyleSheet.create({
   featureGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    columnGap: spacing.section,
-    rowGap: spacing.section,
+    marginHorizontal: -spacing.cardGap / 2,
+    rowGap: spacing.cardGap,
   },
   featureItem: {
-    flexBasis: '48%',
+    width: '50%',
+    paddingHorizontal: spacing.cardGap / 2,
   },
 });

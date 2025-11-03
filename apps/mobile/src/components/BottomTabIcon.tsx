@@ -13,7 +13,7 @@ type BottomTabIconProps = {
 
 export const BottomTabIcon = ({ label, type, focused }: BottomTabIconProps) => {
   return (
-    <View style={[styles.container, focused && styles.containerFocused]}>
+    <View style={[styles.container, focused ? styles.containerFocused : styles.containerInactive]}>
       <View style={[styles.glyphWrap, focused && styles.glyphWrapFocused]}>
         {renderGlyph(type, focused ? '#FF75FF' : '#6A6E92')}
       </View>
@@ -67,15 +67,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     transform: [{ translateY: 0 }],
     gap: spacing.grid / 2,
+    minWidth: 60,
+    paddingVertical: spacing.grid / 2,
   },
   containerFocused: {
     transform: [{ translateY: -2 }],
+    opacity: 1,
+  },
+  containerInactive: {
+    opacity: 0.72,
   },
   glyphWrap: {
     width: 36,
     height: 28,
     borderRadius: shape.buttonRadius,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: 'rgba(60, 58, 120, 0.35)',
     backgroundColor: 'rgba(10, 12, 28, 0.9)',
     alignItems: 'center',

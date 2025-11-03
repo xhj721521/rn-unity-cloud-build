@@ -57,13 +57,13 @@ export const GachaStage = ({
 
   return (
     <LinearGradient
-      colors={['rgba(20, 18, 56, 0.92)', 'rgba(8, 9, 30, 0.96)']}
+      colors={['rgba(20, 18, 56, 0.95)', 'rgba(6, 8, 28, 0.94)']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.stageShell}
     >
-      <View style={styles.stageBody}>
-  <UnityView pointerEvents="none" style={styles.unitySurface} />
+      <View pointerEvents="box-none" style={styles.stageBody}>
+        <UnityView pointerEvents="none" style={styles.unitySurface} />
         {status !== 'ready' ? (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="small" color={neonPalette.accentMagenta} />
@@ -110,6 +110,13 @@ export const GachaStage = ({
           <CTAButton disabled={disabled} label={buttonLabel} isLoading={isOpening} onPress={onOpen} />
         </View>
       </View>
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.stageSheen}
+      />
     </LinearGradient>
   );
 };
@@ -150,13 +157,13 @@ const CTAButton = ({ disabled, label, isLoading, onPress }: CTAButtonProps) => {
         ]}
       >
         <LinearGradient
-          colors={['#7724FF', '#FF5BD0']}
+          colors={disabled ? ['#453A78', '#2A214F'] : ['#7B2EFF', '#FF5BD0']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.ctaGradient}
         >
           {isLoading ? (
-            <ActivityIndicator size="small" color="#1B0329" />
+            <ActivityIndicator size="small" color={disabled ? '#D4CFFF' : '#14031F'} />
           ) : (
             <Text style={styles.ctaLabel}>{label}</Text>
           )}
@@ -171,8 +178,12 @@ const styles = StyleSheet.create({
     borderRadius: shape.blockRadius,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(70, 42, 150, 0.45)',
+    borderColor: 'rgba(86, 68, 172, 0.45)',
+    alignSelf: 'stretch',
     ...shadowStyles.card,
+    shadowOpacity: 0.26,
+    shadowRadius: 18,
+    elevation: 9,
   },
   stageBody: {
     height: 300,
@@ -186,8 +197,9 @@ const styles = StyleSheet.create({
   overlayContent: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
-    padding: spacing.section,
-    gap: spacing.cardGap,
+    paddingHorizontal: spacing.section,
+    paddingBottom: spacing.section,
+    gap: 24,
   },
   infoStrip: {
     backgroundColor: 'rgba(8, 10, 34, 0.86)',
@@ -244,9 +256,12 @@ const styles = StyleSheet.create({
     borderRadius: shape.buttonRadius,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 110, 240, 0.6)',
-    backgroundColor: 'rgba(255, 110, 240, 0.12)',
+    borderColor: 'rgba(255, 110, 240, 0.7)',
+    backgroundColor: 'rgba(255, 110, 240, 0.16)',
     ...shadowStyles.card,
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 10,
   },
   ctaButtonDisabled: {
     borderColor: 'rgba(124, 112, 180, 0.45)',
@@ -304,5 +319,14 @@ const styles = StyleSheet.create({
   resultHint: {
     color: neonPalette.textMuted,
     fontSize: 11,
+  },
+  stageSheen: {
+    position: 'absolute',
+    top: 1,
+    left: 1,
+    right: 1,
+    height: 40,
+    borderTopLeftRadius: shape.blockRadius - 1,
+    borderTopRightRadius: shape.blockRadius - 1,
   },
 });
