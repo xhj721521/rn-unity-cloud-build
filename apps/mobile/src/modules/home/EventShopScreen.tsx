@@ -1,145 +1,351 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { ScreenContainer } from '@components/ScreenContainer';
-import { neonPalette } from '@theme/neonPalette';
-import { getGlowStyle, useNeonPulse } from '@theme/animations';
+import { useNeonPulse } from '@theme/animations';
 
-type LimitedOffer = {
+type ShopTone = 'magenta' | 'cyan' | 'amber' | 'violet';
+type ShopFilter = 'all' | 'limited' | 'subscription' | 'permanent' | 'nft';
+
+type ShopItem = {
   id: string;
   title: string;
   subtitle: string;
+  tagline?: string;
   price: string;
   currency: string;
-  cadence: string;
-  endsIn: string;
+  type: ShopFilter;
+  tone: ShopTone;
+  ctaLabel: string;
   highlight?: string;
+  countdown?: string;
+  stock?: {
+    label: string;
+    level: 'low' | 'normal';
+  };
   perks: string[];
-  gradient: [string, string];
 };
 
-const LIMITED_OFFERS: LimitedOffer[] = [
+const FILTERS: { key: ShopFilter; label: string }[] = [
+  { key: 'all', label: '全部' },
+  { key: 'limited', label: '限时' },
+  { key: 'subscription', label: '订阅' },
+  { key: 'permanent', label: '永久' },
+  { key: 'nft', label: 'NFT' },
+];
+
+const TONE_PRESET: Record<
+  ShopTone,
   {
-    id: 'vip-pass',
+    shell: string[];
+    border: string;
+    backdrop: string;
+    accent: string;
+    accentSoft: string;
+    button: string[];
+    ripple: string;
+    bullet: string;
+    badge: string[];
+  }
+> = {
+  magenta: {
+    shell: ['rgba(255, 106, 213, 0.22)', 'rgba(108, 60, 255, 0.22)'],
+    border: 'rgba(255, 106, 213, 0.55)',
+    backdrop: 'rgba(18, 12, 42, 0.92)',
+    accent: '#FF6AD5',
+    accentSoft: 'rgba(255, 106, 213, 0.16)',
+    button: ['#FF6AD5', '#A855F7'],
+    ripple: 'rgba(255, 106, 213, 0.24)',
+    bullet: '#FFB4F3',
+    badge: ['rgba(255, 106, 213, 0.8)', 'rgba(168, 85, 247, 0.8)'],
+  },
+  cyan: {
+    shell: ['rgba(110, 217, 255, 0.2)', 'rgba(45, 110, 255, 0.24)'],
+    border: 'rgba(96, 165, 250, 0.55)',
+    backdrop: 'rgba(10, 24, 42, 0.9)',
+    accent: '#3FF2FF',
+    accentSoft: 'rgba(63, 242, 255, 0.16)',
+    button: ['#3FF2FF', '#2563EB'],
+    ripple: 'rgba(96, 165, 250, 0.24)',
+    bullet: '#8CEBFF',
+    badge: ['rgba(63, 242, 255, 0.85)', 'rgba(37, 99, 235, 0.85)'],
+  },
+  amber: {
+    shell: ['rgba(255, 196, 105, 0.25)', 'rgba(242, 148, 61, 0.22)'],
+    border: 'rgba(251, 191, 36, 0.55)',
+    backdrop: 'rgba(32, 20, 20, 0.92)',
+    accent: '#F8B04B',
+    accentSoft: 'rgba(251, 191, 36, 0.16)',
+    button: ['#F8B04B', '#F97316'],
+    ripple: 'rgba(251, 191, 36, 0.22)',
+    bullet: '#FCD34D',
+    badge: ['rgba(251, 191, 36, 0.85)', 'rgba(249, 115, 22, 0.85)'],
+  },
+  violet: {
+    shell: ['rgba(203, 160, 255, 0.22)', 'rgba(124, 92, 255, 0.24)'],
+    border: 'rgba(167, 139, 250, 0.5)',
+    backdrop: 'rgba(15, 16, 46, 0.92)',
+    accent: '#A07CFF',
+    accentSoft: 'rgba(160, 124, 255, 0.18)',
+    button: ['#A07CFF', '#7C3AED'],
+    ripple: 'rgba(167, 139, 250, 0.24)',
+    bullet: '#CABDFF',
+    badge: ['rgba(160, 124, 255, 0.85)', 'rgba(124, 58, 237, 0.78)'],
+  },
+};
+
+const STOCK_PROGRESS = {
+  low: 0.35,
+  normal: 0.75,
+};
+
+const SHOP_ITEMS: ShopItem[] = [
+  {
+    id: 'fantasy-arc-box',
+    title: '幻想 Arc 盲盒',
+    subtitle: '含稀有掉落和必得皮肤奖励，适合快速补充奇遇资源。',
+    tagline: '限定光谱掉落 · 10 连保底史诗',
+    price: '9.9',
+    currency: 'USDT',
+    type: 'limited',
+    tone: 'magenta',
+    ctaLabel: '立即唤醒',
+    highlight: '限时',
+    countdown: '剩余 12 小时',
+    stock: {
+      label: '库存 42 / 100',
+      level: 'low',
+    },
+    perks: ['稀有掉落概率 5%', '累计 10 次赠史诗皮肤', '追加霓虹粒子背景特效'],
+  },
+  {
+    id: 'team-expansion',
+    title: '团队拓展证',
+    subtitle: '扩容团队人数上限，解锁进阶团本与训练计划。',
+    tagline: '战队席位扩容 + 周度训练加成',
+    price: '299',
+    currency: 'USDT',
+    type: 'subscription',
+    tone: 'cyan',
+    ctaLabel: '激活权益',
+    highlight: '月度权益',
+    perks: ['团队人数上限 +50%', '战斗收益 +10%', '专属团队任务线'],
+  },
+  {
+    id: 'permanent-member',
     title: '永久会员',
-    subtitle: '解锁全平台特权与每周空投池',
+    subtitle: '一次性解锁尊享特权，享受资源加成与专属奖励。',
+    tagline: '一次升级 · 全局增益终身有效',
     price: '79',
     currency: 'USDT',
-    cadence: '一次性购买',
-    endsIn: '剩余 48 小时',
-    highlight: '推荐',
-    perks: ['专属霓虹主题与身份标识', '专享任务倍率 +20%', '每周链上奖励空投'],
-    gradient: ['rgba(255, 106, 213, 0.45)', 'rgba(34, 18, 68, 0.95)'],
+    type: 'permanent',
+    tone: 'violet',
+    ctaLabel: '立即升级',
+    highlight: '热门',
+    perks: ['专属霓虹头像框', '副本奖励 +20%', '每周盲盒补给'],
   },
   {
     id: 'shareholder-nft',
     title: '股东 NFT',
-    subtitle: '限量治理凭证，享受利润分红',
+    subtitle: '稀缺治理凭证，绑定 DAO 投票与收益分红权益。',
+    tagline: '治理投票 + 收益分红双通道',
     price: '1000',
     currency: 'USDT',
-    cadence: '一次性铸造',
-    endsIn: '剩余 3 天 12 小时',
-    highlight: '限量 200 枚',
-    perks: ['季度利润按持仓比例分红', 'DAO 治理投票权 +3', '优先体验全新 3D 剧情卡'],
-    gradient: ['rgba(63, 242, 255, 0.38)', 'rgba(18, 29, 74, 0.94)'],
-  },
-  {
-    id: 'fantasy-arc-box',
-    title: '幻想 Arc 盲盒',
-    subtitle: '赛博潮玩造型，含史诗概率',
-    price: '9.9',
-    currency: 'USDT',
-    cadence: '单次开盒',
-    endsIn: '剩余 12 小时',
-    perks: ['100% 获得限时皮肤或饰品', '5% 概率掉落传奇级别宠物', '累积 10 次必出史诗奖励'],
-    gradient: ['rgba(140, 114, 255, 0.45)', 'rgba(28, 16, 62, 0.95)'],
-  },
-  {
-    id: 'team-expansion',
-    title: '团队一级开拓证',
-    subtitle: '拓展战队上限，激活高级分润',
-    price: '299',
-    currency: 'USDT',
-    cadence: '月度订阅',
-    endsIn: '剩余 1 天 6 小时',
-    perks: ['团队人数上限 +50%', '团队战绩分润 +10%', '解锁团队专属联合作战副本'],
-    gradient: ['rgba(255, 200, 97, 0.42)', 'rgba(40, 22, 70, 0.92)'],
+    type: 'nft',
+    tone: 'amber',
+    ctaLabel: '立即预定',
+    highlight: '限量 200',
+    stock: {
+      label: '剩余 12 枚',
+      level: 'low',
+    },
+    perks: ['协议收益分红 ≥12%', 'DAO 投票权 +3', '全新 3D 场景优先体验'],
   },
 ];
 
 export const EventShopScreen = () => {
+  const [filter, setFilter] = useState<ShopFilter>('all');
+
+  const displayedItems = useMemo(() => {
+    if (filter === 'all') {
+      return SHOP_ITEMS;
+    }
+    return SHOP_ITEMS.filter((item) => item.type === filter);
+  }, [filter]);
+
   return (
     <ScreenContainer scrollable>
-      <Text style={styles.heading}>活动商城</Text>
-      <Text style={styles.subHeading}>限时特供的核心资产，请在倒计时结束前锁定你的权益。</Text>
+      <View style={styles.header}>
+        <Text style={styles.heading}>活动商城</Text>
+        <Text style={styles.subHeading}>
+          限时特卖、订阅特权与传奇 NFT 汇集于此，留意倒计时和库存提示。
+        </Text>
+      </View>
 
-      <View style={styles.offerList}>
-        {LIMITED_OFFERS.map((offer) => (
-          <LimitedOfferCard key={offer.id} offer={offer} />
+      <View style={styles.filterRow}>
+        {FILTERS.map((item) => {
+          const selected = item.key === filter;
+          return (
+            <Pressable
+              key={item.key}
+              style={[styles.filterChip, selected && styles.filterChipActive]}
+              android_ripple={{ color: 'rgba(96, 165, 250, 0.18)' }}
+              onPress={() => setFilter(item.key)}
+            >
+              <Text style={[styles.filterLabel, selected && styles.filterLabelActive]}>
+                {item.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <View style={styles.cardList}>
+        {displayedItems.map((item) => (
+          <ShopCard key={item.id} item={item} />
         ))}
       </View>
     </ScreenContainer>
   );
 };
 
-const LimitedOfferCard = ({ offer }: { offer: LimitedOffer }) => {
+type ShopCardProps = {
+  item: ShopItem;
+};
+
+const ShopCard = ({ item }: ShopCardProps) => {
+  const tone = TONE_PRESET[item.tone];
   const pulse = useNeonPulse({ duration: 5200 });
+  const isLowStock = item.stock?.level === 'low';
+  const countdownUrgent = Boolean(item.countdown && item.countdown.includes('剩余'));
+  const ctaGlowStyle = {
+    opacity: pulse.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.45, 0.85],
+    }),
+    transform: [
+      {
+        scale: pulse.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.94, 1.06],
+        }),
+      },
+    ],
+  };
+
+  const stockProgress = item.stock ? STOCK_PROGRESS[item.stock.level] ?? 0.6 : 0.8;
 
   return (
     <LinearGradient
-      colors={offer.gradient}
+      colors={tone.shell}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={styles.offerShell}
+      style={styles.cardShell}
     >
-      <View style={styles.offerCard}>
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.offerGlow,
-            getGlowStyle({
-              animated: pulse,
-              minOpacity: 0.12,
-              maxOpacity: 0.28,
-              minScale: 0.9,
-              maxScale: 1.15,
-            }),
-          ]}
+      <View
+        style={[
+          styles.cardBody,
+          {
+            borderColor: tone.border,
+            backgroundColor: tone.backdrop,
+            shadowColor: tone.accent,
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={[tone.accentSoft, 'transparent']}
+          start={{ x: 0.2, y: 0 }}
+          end={{ x: 0.8, y: 1 }}
+          style={styles.cardHalo}
         />
-        <View style={styles.offerHeader}>
-          <View style={styles.offerTitleGroup}>
-            <Text style={styles.offerTitle}>{offer.title}</Text>
-            {offer.highlight ? (
-              <View style={styles.offerTag}>
-                <Text style={styles.offerTagText}>{offer.highlight}</Text>
-              </View>
+
+        <View style={styles.cardHeader}>
+          <View style={styles.cardTitleWrapper}>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            {item.highlight ? (
+              <LinearGradient
+                colors={tone.badge}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.cardHighlight}
+              >
+                <Text style={styles.cardHighlightText}>{item.highlight}</Text>
+              </LinearGradient>
             ) : null}
           </View>
-          <Text style={styles.offerTimer}>{offer.endsIn}</Text>
+          {item.countdown ? (
+            <Text style={[styles.countdownText, countdownUrgent && styles.countdownTextDanger]}>
+              {item.countdown}
+            </Text>
+          ) : null}
         </View>
-        <Text style={styles.offerSubtitle}>{offer.subtitle}</Text>
 
-        <View style={styles.offerPriceRow}>
-          <Text style={styles.offerPrice}>
-            <Text style={styles.offerPriceCurrency}>{offer.currency}</Text>
-            {` ${offer.price}`}
-          </Text>
-          <Text style={styles.offerCadence}>{offer.cadence}</Text>
+        {item.tagline ? (
+          <Text style={[styles.cardTagline, { color: tone.accent }]}>{item.tagline}</Text>
+        ) : null}
+
+        <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
+
+        <View style={styles.priceRow}>
+          <View style={styles.priceBlock}>
+            <Text style={styles.priceValue}>
+              {item.price}
+              <Text style={styles.priceCurrency}> {item.currency}</Text>
+            </Text>
+            <Text style={styles.priceHint}>
+              {item.type === 'subscription' ? '月度结算' : '一次性结算'}
+            </Text>
+          </View>
+          <Pressable style={styles.previewLink} android_ripple={{ color: tone.ripple }}>
+            <Text style={[styles.previewText, { color: tone.accent }]}>权益详情</Text>
+          </Pressable>
         </View>
 
         <View style={styles.perkList}>
-          {offer.perks.map((perk) => (
+          {item.perks.map((perk) => (
             <View key={perk} style={styles.perkRow}>
-              <View style={styles.perkBullet} />
+              <Text style={[styles.perkBullet, { color: tone.bullet }]}>✦</Text>
               <Text style={styles.perkText}>{perk}</Text>
             </View>
           ))}
         </View>
 
-        <Pressable
-          style={({ pressed }) => [styles.offerButton, pressed ? styles.offerButtonPressed : null]}
-        >
-          <Text style={styles.offerButtonLabel}>立即购买</Text>
+        {item.stock ? (
+          <View style={styles.stockWrapper}>
+            <View style={styles.stockRow}>
+              <Text style={[styles.stockLabel, isLowStock && styles.stockLabelWarning]}>
+                {item.stock.label}
+              </Text>
+              {isLowStock ? (
+                <Text style={styles.stockAlert}>库存告急</Text>
+              ) : (
+                <Text style={styles.stockSteady}>现货充足</Text>
+              )}
+            </View>
+            <View style={styles.stockBar}>
+              <View style={styles.stockBarTrack} />
+              <View
+                style={[
+                  styles.stockBarFill,
+                  { width: `${Math.round(stockProgress * 100)}%`, backgroundColor: tone.accent },
+                ]}
+              />
+            </View>
+          </View>
+        ) : null}
+
+        <Pressable style={styles.buyButtonShell} android_ripple={{ color: tone.ripple }}>
+          <LinearGradient
+            colors={tone.button}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.buyButton}
+          >
+            <Animated.View
+              style={[styles.buyButtonGlow, { backgroundColor: tone.accent }, ctaGlowStyle]}
+            />
+            <Text style={styles.buyButtonText}>{item.ctaLabel}</Text>
+          </LinearGradient>
         </Pressable>
       </View>
     </LinearGradient>
@@ -147,102 +353,152 @@ const LimitedOfferCard = ({ offer }: { offer: LimitedOffer }) => {
 };
 
 const styles = StyleSheet.create({
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    gap: 8,
+  },
   heading: {
-    color: neonPalette.textPrimary,
-    fontSize: 26,
+    color: '#F7FAFF',
+    fontSize: 22,
     fontWeight: '700',
-    letterSpacing: 0.6,
-    marginBottom: 6,
   },
   subHeading: {
-    color: neonPalette.textSecondary,
-    fontSize: 13,
+    color: 'rgba(226, 231, 255, 0.72)',
+    fontSize: 14,
     lineHeight: 20,
-    marginBottom: 22,
   },
-  offerList: {
-    gap: 18,
-    paddingBottom: 24,
+  filterRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 20,
+    paddingHorizontal: 20,
   },
-  offerShell: {
-    borderRadius: 24,
-    padding: 1,
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(96, 58, 162, 0.55)',
+    borderColor: 'rgba(94, 106, 255, 0.26)',
+    backgroundColor: 'rgba(18, 24, 50, 0.8)',
   },
-  offerCard: {
+  filterChipActive: {
+    borderColor: '#7C3AED',
+    backgroundColor: 'rgba(124, 92, 237, 0.28)',
+    shadowColor: 'rgba(124, 92, 237, 0.6)',
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+  },
+  filterLabel: {
+    color: 'rgba(226, 231, 255, 0.7)',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  filterLabelActive: {
+    color: '#FFFFFF',
+  },
+  cardList: {
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+    gap: 20,
+  },
+  cardShell: {
+    borderRadius: 26,
+    padding: 2,
+  },
+  cardBody: {
     position: 'relative',
-    overflow: 'hidden',
-    borderRadius: 23,
+    borderRadius: 24,
+    borderWidth: 1.2,
     padding: 20,
-    backgroundColor: 'rgba(10, 11, 32, 0.92)',
-    borderWidth: 1,
-    borderColor: 'rgba(58, 36, 118, 0.55)',
-    gap: 16,
+    gap: 18,
+    shadowOpacity: 0.24,
+    shadowRadius: 18,
+    elevation: 4,
   },
-  offerGlow: {
+  cardHalo: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 23,
-    backgroundColor: neonPalette.glowPurple,
+    borderRadius: 24,
+    opacity: 0.6,
   },
-  offerHeader: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  offerTitleGroup: {
+  cardTitleWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    flexShrink: 1,
+    flex: 1,
   },
-  offerTitle: {
-    color: neonPalette.textPrimary,
+  cardTitle: {
+    color: '#F7FAFF',
     fontSize: 20,
     fontWeight: '700',
+    letterSpacing: 0.2,
   },
-  offerTag: {
-    paddingHorizontal: 10,
+  cardHighlight: {
+    paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 106, 213, 0.2)',
-    borderWidth: 1,
-    borderColor: neonPalette.accentMagenta,
   },
-  offerTagText: {
-    color: neonPalette.accentMagenta,
+  cardHighlightText: {
+    color: '#FFFFFF',
     fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+  countdownText: {
+    color: '#FDE68A',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  countdownTextDanger: {
+    color: '#F97316',
+  },
+  cardTagline: {
+    fontSize: 13,
     fontWeight: '600',
     letterSpacing: 0.4,
   },
-  offerTimer: {
-    color: neonPalette.accentAmber,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  offerSubtitle: {
-    color: neonPalette.textSecondary,
+  cardSubtitle: {
+    color: 'rgba(226, 231, 255, 0.72)',
     fontSize: 13,
     lineHeight: 20,
   },
-  offerPriceRow: {
+  priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
   },
-  offerPrice: {
-    color: neonPalette.textPrimary,
-    fontSize: 24,
+  priceBlock: {
+    gap: 6,
+  },
+  priceValue: {
+    color: '#F8FAFF',
+    fontSize: 28,
     fontWeight: '700',
   },
-  offerPriceCurrency: {
-    color: neonPalette.accentCyan,
+  priceCurrency: {
+    color: '#60A5FA',
     fontSize: 16,
     fontWeight: '700',
   },
-  offerCadence: {
-    color: neonPalette.textSecondary,
+  priceHint: {
+    color: 'rgba(226, 231, 255, 0.64)',
     fontSize: 12,
+  },
+  previewLink: {
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(32, 52, 96, 0.36)',
+  },
+  previewText: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   perkList: {
     gap: 10,
@@ -253,29 +509,71 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   perkBullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: neonPalette.accentCyan,
+    fontSize: 12,
   },
   perkText: {
-    color: neonPalette.textPrimary,
-    fontSize: 13,
     flex: 1,
+    color: '#F7FAFF',
+    fontSize: 13,
+    lineHeight: 20,
   },
-  offerButton: {
-    marginTop: 8,
-    borderRadius: 14,
+  stockWrapper: {
+    gap: 8,
+  },
+  stockRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  stockLabel: {
+    color: 'rgba(226, 231, 255, 0.72)',
+    fontSize: 12,
+  },
+  stockLabelWarning: {
+    color: '#F97316',
+    fontWeight: '600',
+  },
+  stockAlert: {
+    color: '#F97316',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  stockSteady: {
+    color: '#60A5FA',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  stockBar: {
+    height: 6,
+    borderRadius: 4,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(52, 62, 96, 0.6)',
+  },
+  stockBarTrack: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 4,
+  },
+  stockBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  buyButtonShell: {
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+  buyButton: {
+    borderRadius: 18,
     paddingVertical: 14,
     alignItems: 'center',
-    backgroundColor: neonPalette.accentMagenta,
+    justifyContent: 'center',
   },
-  offerButtonPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.98 }],
+  buyButtonGlow: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 18,
+    opacity: 0.5,
   },
-  offerButtonLabel: {
-    color: '#170624',
+  buyButtonText: {
+    color: '#F8FAFF',
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.6,

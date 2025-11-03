@@ -161,14 +161,8 @@ export const HomeScreen = () => {
     [copy],
   );
 
-  const arcAmount = useMemo(
-    () => findAssetAmount(data?.tokens, 'tok-energy'),
-    [data?.tokens],
-  );
-  const oreAmount = useMemo(
-    () => findAssetAmount(data?.tokens, 'tok-neon'),
-    [data?.tokens],
-  );
+  const arcAmount = useMemo(() => findAssetAmount(data?.tokens, 'tok-energy'), [data?.tokens]);
+  const oreAmount = useMemo(() => findAssetAmount(data?.tokens, 'tok-neon'), [data?.tokens]);
 
   const playerInitial = data?.displayName?.charAt(0).toUpperCase() ?? 'P';
 
@@ -340,7 +334,10 @@ type QuickLinkCardProps = {
 };
 
 const QuickLinkCard = ({ title, description, accent, iconType, onPress }: QuickLinkCardProps) => (
-  <Pressable style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]} onPress={onPress}>
+  <Pressable
+    style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]}
+    onPress={onPress}
+  >
     <LinearGradient
       colors={[`${accent}26`, `${accent}80`]}
       start={{ x: 0, y: 0 }}

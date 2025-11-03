@@ -7,9 +7,7 @@ type LoadingPlaceholderProps = {
   label?: string;
 };
 
-export const LoadingPlaceholder = ({
-  label = '功能开发中...',
-}: LoadingPlaceholderProps) => {
+export const LoadingPlaceholder = ({ label = '功能开发中...' }: LoadingPlaceholderProps) => {
   const pulse = useNeonPulse({ duration: 4200 });
 
   const glowStyle = {

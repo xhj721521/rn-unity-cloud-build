@@ -26,20 +26,14 @@ export const TrialsScreen = () => {
   return (
     <ScreenContainer>
       <Text style={styles.title}>试炼场</Text>
-      <Text style={styles.caption}>
-        连接 Unity 引擎，准备进入 3D 场景。
-      </Text>
+      <Text style={styles.caption}>连接 Unity 引擎，准备进入 3D 场景。</Text>
 
       <View style={styles.unityWrapper}>
         {isFocused ? <UnityView style={styles.unityView} /> : null}
         {status !== 'ready' || !isFocused ? (
           <View style={styles.overlay}>
             <LoadingPlaceholder
-              label={
-                status === 'error'
-                  ? 'Unity 初始化失败，请稍后重试'
-                  : '3D 场景加载中...'
-              }
+              label={status === 'error' ? 'Unity 初始化失败，请稍后重试' : '3D 场景加载中...'}
             />
           </View>
         ) : null}
