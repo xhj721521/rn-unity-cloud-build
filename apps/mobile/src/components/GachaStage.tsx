@@ -1,7 +1,6 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
-  Animated,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -36,7 +35,13 @@ type GachaStageProps = {
   onOpen: () => void;
   currentResult?: GachaDrop;
   onDismissResult?: () => void;
+  stageHeight: number;
 };
+
+const CTA_HEIGHT = 56;
+const CTA_BOTTOM_INSET = spacing.section;
+const INFO_STRIP_GAP = 24;
+const INFO_BOTTOM_OFFSET = CTA_BOTTOM_INSET + CTA_HEIGHT + INFO_STRIP_GAP;
 
 export const GachaStage = ({
   status,
@@ -46,6 +51,7 @@ export const GachaStage = ({
   onOpen,
   currentResult,
   onDismissResult,
+  stageHeight,
 }: GachaStageProps) => {
   const disabled = status !== 'ready' || isOpening;
   const buttonLabel = useMemo(() => {
@@ -56,13 +62,15 @@ export const GachaStage = ({
   }, [copy.buttonLoading, copy.buttonReady, copy.loading, isOpening, status]);
 
   return (
-    <LinearGradient
-      colors={['rgba(20, 18, 56, 0.95)', 'rgba(6, 8, 28, 0.94)']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.stageShell}
-    >
-      <View pointerEvents="box-none" style={styles.stageBody}>
+    <View style={[styles.frame, { height: stageHeight }]}>
+      <View pointerEvents="none" style={styles.frameHighlight} />
+      <View style={styles.inner}>
+        <LinearGradient
+          colors={['rgba(20, 18, 56, 0.95)', 'rgba(6, 8, 28, 0.94)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
         <UnityView pointerEvents="none" style={styles.unitySurface} />
         {status !== 'ready' ? (
           <View style={styles.loadingOverlay}>
@@ -82,7 +90,7 @@ export const GachaStage = ({
             <Text style={styles.resultHint}>点击收起</Text>
           </Pressable>
         ) : null}
-        <View pointerEvents="box-none" style={styles.overlayContent}>
+        <View pointerEvents="box-none" style={styles.infoStripContainer}>
           <View pointerEvents="box-none" style={styles.infoStrip}>
             <ScrollView
               horizontal
@@ -107,17 +115,10 @@ export const GachaStage = ({
               )}
             </ScrollView>
           </View>
-          <CTAButton disabled={disabled} label={buttonLabel} isLoading={isOpening} onPress={onOpen} />
         </View>
+        <CTAButton disabled={disabled} label={buttonLabel} isLoading={isOpening} onPress={onOpen} />
       </View>
-      <LinearGradient
-        pointerEvents="none"
-        colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.stageSheen}
-      />
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -129,77 +130,81 @@ type CTAButtonProps = {
 };
 
 const CTAButton = ({ disabled, label, isLoading, onPress }: CTAButtonProps) => {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const animateTo = (value: number) => {
-    Animated.spring(scale, {
-      toValue: value,
-      useNativeDriver: true,
-      speed: 20,
-      bounciness: 6,
-    }).start();
-  };
-
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      onPressIn={() => animateTo(0.98)}
-      onPressOut={() => animateTo(1)}
-      style={styles.ctaPressable}
       accessibilityRole="button"
+      style={({ pressed }) => [
+        styles.ctaButton,
+        disabled && styles.ctaButtonDisabled,
+        pressed && !disabled ? styles.ctaButtonPressed : null,
+      ]}
     >
-      <Animated.View
-        style={[
-          styles.ctaButton,
-          disabled && styles.ctaButtonDisabled,
-          { transform: [{ scale }] },
-        ]}
+      <LinearGradient
+        colors={disabled ? ['#453A78', '#2A214F'] : ['#7B2EFF', '#FF5BD0']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.ctaGradient}
       >
-        <LinearGradient
-          colors={disabled ? ['#453A78', '#2A214F'] : ['#7B2EFF', '#FF5BD0']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.ctaGradient}
-        >
-          {isLoading ? (
-            <ActivityIndicator size="small" color={disabled ? '#D4CFFF' : '#14031F'} />
-          ) : (
-            <Text style={styles.ctaLabel}>{label}</Text>
-          )}
-        </LinearGradient>
-      </Animated.View>
+        {isLoading ? (
+          <ActivityIndicator size="small" color={disabled ? '#D4CFFF' : '#14031F'} />
+        ) : (
+          <Text style={styles.ctaLabel}>{label}</Text>
+        )}
+      </LinearGradient>
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
-  stageShell: {
+  frame: {
+    marginHorizontal: 0,
     borderRadius: shape.blockRadius,
-    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(86, 68, 172, 0.45)',
-    alignSelf: 'stretch',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    padding: 1,
+    overflow: 'hidden',
     ...shadowStyles.card,
-    shadowOpacity: 0.26,
-    shadowRadius: 18,
-    elevation: 9,
+    alignSelf: 'stretch',
   },
-  stageBody: {
-    height: 300,
-    borderRadius: shape.blockRadius,
+  frameHighlight: {
+    position: 'absolute',
+    top: 1,
+    left: 1,
+    right: 1,
+    height: 1,
+    borderTopLeftRadius: shape.blockRadius - 1,
+    borderTopRightRadius: shape.blockRadius - 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  inner: {
+    flex: 1,
+    borderRadius: shape.blockRadius - 1,
     overflow: 'hidden',
     backgroundColor: 'rgba(6, 7, 24, 0.95)',
+    position: 'relative',
   },
   unitySurface: {
     ...StyleSheet.absoluteFillObject,
   },
-  overlayContent: {
+  loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: 'flex-end',
-    paddingHorizontal: spacing.section,
-    paddingBottom: spacing.section,
-    gap: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(6, 7, 24, 0.6)',
+    gap: spacing.grid,
+  },
+  loadingLabel: {
+    color: neonPalette.textSecondary,
+    fontSize: 13,
+  },
+  infoStripContainer: {
+    position: 'absolute',
+    left: spacing.section,
+    right: spacing.section,
+    bottom: INFO_BOTTOM_OFFSET,
   },
   infoStrip: {
     backgroundColor: 'rgba(8, 10, 34, 0.86)',
@@ -238,7 +243,7 @@ const styles = StyleSheet.create({
   infoName: {
     color: neonPalette.textPrimary,
     fontSize: 12,
-    maxWidth: 80,
+    maxWidth: 96,
   },
   infoRarity: {
     color: '#84FCE7',
@@ -249,10 +254,12 @@ const styles = StyleSheet.create({
     color: neonPalette.textMuted,
     ...typeScale.caption,
   },
-  ctaPressable: {
-    alignSelf: 'stretch',
-  },
   ctaButton: {
+    position: 'absolute',
+    left: spacing.section,
+    right: spacing.section,
+    bottom: CTA_BOTTOM_INSET,
+    height: CTA_HEIGHT,
     borderRadius: shape.buttonRadius,
     overflow: 'hidden',
     borderWidth: 1,
@@ -263,12 +270,15 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 10,
   },
+  ctaButtonPressed: {
+    transform: [{ scale: 0.98 }],
+  },
   ctaButtonDisabled: {
     borderColor: 'rgba(124, 112, 180, 0.45)',
     backgroundColor: 'rgba(16, 16, 36, 0.64)',
   },
   ctaGradient: {
-    height: 56,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -277,17 +287,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.3,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(6, 7, 24, 0.6)',
-    gap: spacing.grid,
-  },
-  loadingLabel: {
-    color: neonPalette.textSecondary,
-    fontSize: 13,
   },
   resultCard: {
     position: 'absolute',
@@ -319,14 +318,5 @@ const styles = StyleSheet.create({
   resultHint: {
     color: neonPalette.textMuted,
     fontSize: 11,
-  },
-  stageSheen: {
-    position: 'absolute',
-    top: 1,
-    left: 1,
-    right: 1,
-    height: 40,
-    borderTopLeftRadius: shape.blockRadius - 1,
-    borderTopRightRadius: shape.blockRadius - 1,
   },
 });

@@ -12,9 +12,10 @@ type FeatureCardProps = {
   accent: string;
   onPress: () => void;
   icon: FeatureCardType;
+  height?: number;
 };
 
-export const FeatureCard = ({ title, subtitle, accent, onPress, icon }: FeatureCardProps) => {
+export const FeatureCard = ({ title, subtitle, accent, onPress, icon, height = 120 }: FeatureCardProps) => {
   const scale = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -37,7 +38,7 @@ export const FeatureCard = ({ title, subtitle, accent, onPress, icon }: FeatureC
 
   return (
     <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} style={styles.pressable}>
-      <Animated.View style={[styles.card, { transform: [{ scale }] }]}
+      <Animated.View style={[styles.card, { height, transform: [{ scale }] }]}
       >
         <LinearGradient
           colors={[`${accent}26`, `${accent}66`]}
@@ -100,7 +101,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   card: {
-    height: 120,
     borderRadius: shape.cardRadius,
     overflow: 'hidden',
     borderWidth: 1,

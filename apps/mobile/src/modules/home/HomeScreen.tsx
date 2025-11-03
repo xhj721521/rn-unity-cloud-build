@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { CompositeNavigationProp } from '@react-navigation/native';
@@ -106,6 +106,10 @@ export const HomeScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<HomeNavigation>();
   const { data, loading, error } = useAccountSummary();
+  const { height: windowHeight } = useWindowDimensions();
+  const isCompactHeight = windowHeight < 740;
+  const featureCardHeight = isCompactHeight ? 108 : 120;
+  const stageHeight = isCompactHeight ? 260 : 280;
 
   const [recentDrops, setRecentDrops] = useState<GachaDrop[]>([]);
   const [currentResult, setCurrentResult] = useState<GachaDrop | null>(null);
@@ -283,6 +287,7 @@ export const HomeScreen = () => {
                 accent={accent}
                 icon={icon}
                 onPress={onPress}
+                height={featureCardHeight}
               />
             </View>
           ))}
@@ -295,6 +300,7 @@ export const HomeScreen = () => {
           onOpen={handleOpenStage}
           currentResult={currentResult ?? undefined}
           onDismissResult={currentResult ? handleDismissResult : undefined}
+          stageHeight={stageHeight}
         />
       </View>
     </ScreenContainer>

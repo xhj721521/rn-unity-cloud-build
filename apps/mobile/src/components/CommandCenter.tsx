@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { neonPalette } from '@theme/neonPalette';
 import { shadowStyles, shape, spacing, typeScale } from '@theme/tokens';
@@ -31,52 +31,48 @@ export const CommandCenter = ({
   connectionLabel,
 }: CommandCenterProps) => {
   return (
-    <LinearGradient
-      colors={['rgba(26, 18, 56, 0.96)', 'rgba(10, 10, 34, 0.94)']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
-      <View style={styles.body}>
-        <View style={styles.headerRow}>
-          <View style={styles.identityColumn}>
-            <View style={styles.identityBlock}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarLabel}>{avatarInitial}</Text>
-              </View>
-              <View style={styles.identityText}>
-                <Text style={styles.displayName}>{displayName}</Text>
-                <Text style={styles.subtitle}>{subtitle}</Text>
-              </View>
-            </View>
-            <View style={styles.connectionChip} accessibilityElementsHidden>
-              <View style={styles.connectionDot} />
-              <Text style={styles.connectionLabel}>{connectionLabel}</Text>
-            </View>
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="打开设置"
-            onPress={onPressSettings}
-            style={styles.settingsButton}
-          >
-            <GearIcon />
-          </Pressable>
-        </View>
-        <View style={styles.resourceRow}>
-          {resources.map((resource) => (
-            <ResourceCapsuleView key={resource.id} resource={resource} />
-          ))}
-        </View>
-      </View>
+    <View style={styles.frame}>
+      <View pointerEvents="none" style={styles.frameHighlight} />
       <LinearGradient
-        pointerEvents="none"
-        colors={['rgba(255,255,255,0.12)', 'rgba(255,255,255,0)']}
+        colors={['rgba(26, 18, 56, 0.96)', 'rgba(10, 10, 34, 0.94)']}
         start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.topSheen}
-      />
-    </LinearGradient>
+        end={{ x: 1, y: 1 }}
+        style={styles.container}
+      >
+        <View style={styles.body}>
+          <View style={styles.headerRow}>
+            <View style={styles.identityColumn}>
+              <View style={styles.identityBlock}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarLabel}>{avatarInitial}</Text>
+                </View>
+                <View style={styles.identityText}>
+                  <Text style={styles.displayName}>{displayName}</Text>
+                  <Text style={styles.subtitle}>{subtitle}</Text>
+                </View>
+              </View>
+              <View style={styles.connectionChip} accessibilityElementsHidden>
+                <View style={styles.connectionDot} />
+                <Text style={styles.connectionLabel}>{connectionLabel}</Text>
+              </View>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="打开设置"
+              onPress={onPressSettings}
+              style={styles.settingsButton}
+            >
+              <GearIcon />
+            </Pressable>
+          </View>
+          <View style={styles.resourceRow}>
+            {resources.map((resource) => (
+              <ResourceCapsuleView key={resource.id} resource={resource} />
+            ))}
+          </View>
+        </View>
+      </LinearGradient>
+    </View>
   );
 };
 
@@ -93,9 +89,8 @@ const ResourceCapsuleView = ({ resource }: { resource: ResourceCapsule }) => {
         />
         <Text style={styles.resourceLabel}>{label}</Text>
       </View>
-      <Text style={styles.resourceValue} numberOfLines={1}>
-        {value}
-        <Text style={styles.resourceUnit}> {unit}</Text>
+      <Text style={styles.resourceValue} numberOfLines={1} ellipsizeMode="tail">
+        {`${value} ${unit}`}
       </Text>
     </View>
   );
@@ -111,16 +106,30 @@ const GearIcon = () => (
 );
 
 const styles = StyleSheet.create({
-  container: {
+  frame: {
     borderRadius: shape.blockRadius,
-    padding: spacing.section,
     borderWidth: 1,
-    borderColor: 'rgba(122, 108, 230, 0.4)',
-    overflow: 'hidden',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    padding: 1,
     ...shadowStyles.card,
-    shadowOpacity: 0.26,
-    shadowRadius: 18,
-    elevation: 9,
+    alignSelf: 'stretch',
+  },
+  frameHighlight: {
+    position: 'absolute',
+    top: 1,
+    left: 1,
+    right: 1,
+    height: 1,
+    borderTopLeftRadius: shape.blockRadius - 1,
+    borderTopRightRadius: shape.blockRadius - 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  container: {
+    borderRadius: shape.blockRadius - 1,
+    padding: spacing.section,
+    overflow: 'hidden',
+    flex: 1,
   },
   body: {
     gap: spacing.cardGap,
@@ -185,9 +194,10 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: shape.capsuleRadius,
     borderWidth: 1,
-    borderColor: 'rgba(132, 120, 255, 0.4)',
-    backgroundColor: 'rgba(16, 14, 46, 0.85)',
-    paddingHorizontal: spacing.section,
+    borderColor: 'rgba(132, 120, 255, 0.32)',
+    backgroundColor: 'rgba(16, 14, 46, 0.9)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -209,17 +219,12 @@ const styles = StyleSheet.create({
   },
   resourceValue: {
     color: neonPalette.textPrimary,
-    fontSize: 18,
-    lineHeight: 22,
-    fontWeight: '700',
+    fontSize: 20,
+    lineHeight: 24,
+    fontWeight: '600',
     fontVariant: ['tabular-nums'],
     letterSpacing: 0.2,
-  },
-  resourceUnit: {
-    color: neonPalette.textSecondary,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '600',
+    paddingBottom: Platform.OS === 'android' ? 2 : 0,
   },
   connectionChip: {
     alignSelf: 'flex-start',
@@ -274,14 +279,5 @@ const styles = StyleSheet.create({
   },
   gearSpokeDiagonalB: {
     transform: [{ rotate: '-60deg' }],
-  },
-  topSheen: {
-    position: 'absolute',
-    top: 1,
-    left: 1,
-    right: 1,
-    height: 36,
-    borderTopLeftRadius: shape.blockRadius - 1,
-    borderTopRightRadius: shape.blockRadius - 1,
   },
 });
