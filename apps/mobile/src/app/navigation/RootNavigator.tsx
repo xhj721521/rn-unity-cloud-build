@@ -1,82 +1,104 @@
-import React from 'react';
+﻿import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, StyleSheet } from 'react-native';
-import { RootTabParamList } from './types';
 import { HomeNavigator } from './HomeNavigator';
 import { TrialsScreen } from '@modules/trials/TrialsScreen';
 import { ExploreScreen } from '@modules/explore/ExploreScreen';
 import { OnChainDataScreen } from '@modules/onchain/OnChainDataScreen';
 import { ProfileNavigator } from './ProfileNavigator';
+import { RootTabParamList } from './types';
 
-const Tab = createBottomTabNavigator<RootTabParamList>();
-
-export const RootNavigator = () => {
-  return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: '#090820',
-          borderTopColor: '#1F2040',
-          height: 62,
-          paddingBottom: 8,
-        },
-        tabBarActiveTintColor: '#FFFFFF',
-        tabBarInactiveTintColor: '#6C7193',
-      }}
-    >
-      <Tab.Screen
-        name="Home"
-        component={HomeNavigator}
-        options={{
-          title: '首页',
-          tabBarIcon: ({ focused }) => <TabIcon label="首页" type="home" focused={focused} />,
-        }}
-      />
-      <Tab.Screen
-        name="Trials"
-        component={TrialsScreen}
-        options={{
-          title: '试炼',
-          tabBarIcon: ({ focused }) => <TabIcon label="试炼" type="trials" focused={focused} />,
-        }}
-      />
-      <Tab.Screen
-        name="Explore"
-        component={ExploreScreen}
-        options={{
-          title: '探索',
-          tabBarIcon: ({ focused }) => <TabIcon label="探索" type="explore" focused={focused} />,
-        }}
-      />
-      <Tab.Screen
-        name="OnChainData"
-        component={OnChainDataScreen}
-        options={{
-          title: '链鉴',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="链鉴" type="onchain" focused={focused} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileNavigator}
-        options={{
-          title: '我的',
-          tabBarIcon: ({ focused }) => <TabIcon label="我的" type="profile" focused={focused} />,
-        }}
-      />
-    </Tab.Navigator>
-  );
-};
+type TabIconType = 'home' | 'trials' | 'explore' | 'onchain' | 'profile';
 
 type TabIconProps = {
   label: string;
-  type: 'home' | 'trials' | 'explore' | 'onchain' | 'profile';
+  type: TabIconType;
   focused: boolean;
 };
+
+type TabConfig = {
+  name: keyof RootTabParamList;
+  component: React.ComponentType<Record<string, unknown>>;
+  title: string;
+  label: string;
+  icon: TabIconType;
+};
+
+const TAB_ITEMS: TabConfig[] = [
+  {
+    name: 'Home',
+    component: HomeNavigator,
+    title: '首页',
+    label: '首页',
+    icon: 'home',
+  },
+  {
+    name: 'Trials',
+    component: TrialsScreen,
+    title: '试炼',
+    label: '试炼',
+    icon: 'trials',
+  },
+  {
+    name: 'Explore',
+    component: ExploreScreen,
+    title: '探索',
+    label: '探索',
+    icon: 'explore',
+  },
+  {
+    name: 'OnChainData',
+    component: OnChainDataScreen,
+    title: '链鉴',
+    label: '链鉴',
+    icon: 'onchain',
+  },
+  {
+    name: 'Profile',
+    component: ProfileNavigator,
+    title: '我的',
+    label: '我的',
+    icon: 'profile',
+  },
+];
+
+const Tab = createBottomTabNavigator<RootTabParamList>();
+
+const createTabIcon = (label: string, type: TabIconType) => {
+  const IconComponent = ({ focused }: { focused: boolean }) => (
+    <TabIcon label={label} type={type} focused={focused} />
+  );
+  return IconComponent;
+};
+
+export const RootNavigator = () => (
+  <Tab.Navigator
+    screenOptions={{
+      headerShown: false,
+      tabBarShowLabel: false,
+      tabBarStyle: {
+        backgroundColor: '#090820',
+        borderTopColor: '#1F2040',
+        height: 62,
+        paddingBottom: 8,
+      },
+      tabBarActiveTintColor: '#FFFFFF',
+      tabBarInactiveTintColor: '#6C7193',
+    }}
+  >
+    {TAB_ITEMS.map((item) => (
+      <Tab.Screen
+        key={item.name}
+        name={item.name}
+        component={item.component}
+        options={{
+          title: item.title,
+          tabBarIcon: createTabIcon(item.label, item.icon),
+        }}
+      />
+    ))}
+  </Tab.Navigator>
+);
 
 const TabIcon = ({ label, type, focused }: TabIconProps) => {
   const color = focused ? '#FFFFFF' : '#6C7193';
@@ -90,7 +112,7 @@ const TabIcon = ({ label, type, focused }: TabIconProps) => {
   );
 };
 
-const renderGlyph = (type: TabIconProps['type'], stroke: string) => {
+const renderGlyph = (type: TabIconType, stroke: string) => {
   switch (type) {
     case 'home':
       return (
@@ -107,16 +129,17 @@ const renderGlyph = (type: TabIconProps['type'], stroke: string) => {
       );
     case 'explore':
       return (
-        <>
-          <View style={[styles.glyphCompass, { borderColor: stroke }]} />
+        <View style={[styles.glyphCompass, { borderColor: stroke }]}>
           <View style={[styles.glyphCompassNeedle, { backgroundColor: stroke }]} />
-        </>
+        </View>
       );
     case 'onchain':
       return (
         <>
           <View style={[styles.glyphChainLink, { borderColor: stroke }]} />
-          <View style={[styles.glyphChainLink, styles.glyphChainLinkOffset, { borderColor: stroke }]} />
+          <View
+            style={[styles.glyphChainLink, styles.glyphChainLinkOffset, { borderColor: stroke }]}
+          />
         </>
       );
     case 'profile':

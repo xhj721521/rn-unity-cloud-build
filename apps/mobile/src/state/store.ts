@@ -4,6 +4,8 @@ import { teamReducer } from './team/teamSlice';
 import { inventoryReducer } from './inventory/inventorySlice';
 import { inviteReducer } from './invites/inviteSlice';
 import { leaderboardReducer } from './leaderboard/leaderboardSlice';
+import { forgeReducer } from './forge/forgeSlice';
+import { marketReducer } from './market/marketSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +14,8 @@ export const store = configureStore({
     inventory: inventoryReducer,
     invites: inviteReducer,
     leaderboard: leaderboardReducer,
+    forge: forgeReducer,
+    market: marketReducer,
   },
 });
 
