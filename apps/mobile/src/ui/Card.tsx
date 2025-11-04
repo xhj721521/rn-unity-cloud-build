@@ -3,6 +3,15 @@ import { Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Circle, Defs, G, Line, Pattern, RadialGradient, Rect, Stop } from 'react-native-svg';
 
+const withAlpha = (hex: string, alpha: number) => {
+  const normalized = hex.replace('#', '');
+  const bigint = parseInt(normalized, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 const microFrame = (radius: number) => ({
   borderRadius: radius,
   borderWidth: StyleSheet.hairlineWidth,
@@ -47,8 +56,8 @@ export function SurfaceCard({ style, children }: CardProps) {
       <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
         <Defs>
           <Pattern id="grid" width="12" height="12" patternUnits="userSpaceOnUse">
-            <Line x1="0" y1="0" x2="12" y2="0" stroke="white" strokeOpacity="0.06" strokeWidth="1" />
-            <Line x1="0" y1="0" x2="0" y2="12" stroke="white" strokeOpacity="0.06" strokeWidth="1" />
+            <Line x1="0" y1="0" x2="14" y2="0" stroke="#ffffff" strokeOpacity="0.04" strokeWidth="1" />
+            <Line x1="0" y1="0" x2="0" y2="14" stroke="#ffffff" strokeOpacity="0.04" strokeWidth="1" />
           </Pattern>
           <RadialGradient id="vig2" cx="100%" cy="100%" r="70%">
             <Stop offset="0%" stopColor="#000" stopOpacity={0.18} />
@@ -65,8 +74,9 @@ export function SurfaceCard({ style, children }: CardProps) {
 
 export function FeatureCard({ style, children, colors = ['#7B5CFF', '#2D87FF'] }: FeatureCardProps) {
   const radius = 18;
+  const shaded = [withAlpha(colors[0], 0.32), withAlpha(colors[1], 0.58)];
   return (
-    <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.featureBase, microFrame(radius), style]}>
+    <LinearGradient colors={shaded} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.featureBase, microFrame(radius), style]}>
       <TopHighlight r={radius} />
       <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
         <Defs>
@@ -76,13 +86,14 @@ export function FeatureCard({ style, children, colors = ['#7B5CFF', '#2D87FF'] }
           </RadialGradient>
         </Defs>
         <Rect width="100%" height="100%" fill="url(#halo)" />
-        <G opacity={0.1} stroke={colors[1]} strokeWidth={1.5}>
+        <G opacity={0.08} stroke={colors[1]} strokeWidth={1.4}>
           <Line x1="72%" y1="16%" x2="94%" y2="16%" />
           <Line x1="94%" y1="16%" x2="94%" y2="38%" />
           <Circle cx="72%" cy="16%" r="2" />
           <Circle cx="94%" cy="38%" r="2" />
         </G>
       </Svg>
+      <View pointerEvents="none" style={styles.featureTone} />
       {children}
     </LinearGradient>
   );
@@ -94,7 +105,6 @@ export function CapsuleCard({ style, children }: CardProps) {
     <View style={[styles.capsuleBase, microFrame(radius), style]}>
       <TopHighlight r={radius} />
       <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.capsuleInset]} />
-      <View pointerEvents="none" style={styles.capsuleReflect} />
       {children}
     </View>
   );
@@ -104,7 +114,7 @@ const styles = StyleSheet.create({
   surfaceBase: {
     borderRadius: 20,
     padding: 16,
-    backgroundColor: 'rgba(20,22,40,0.78)',
+    backgroundColor: 'rgba(16,18,38,0.86)',
     overflow: 'hidden',
   },
   featureBase: {
@@ -112,24 +122,19 @@ const styles = StyleSheet.create({
     padding: 16,
     overflow: 'hidden',
   },
+  featureTone: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(8,10,26,0.32)',
+  },
   capsuleBase: {
     borderRadius: 14,
     padding: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(20,22,40,0.78)',
     overflow: 'hidden',
   },
   capsuleInset: {
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.1)',
-  },
-  capsuleReflect: {
-    position: 'absolute',
-    left: 12,
-    right: 12,
-    top: 28,
-    height: 4,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 2,
+    borderColor: 'rgba(0,0,0,0.18)',
   },
 });

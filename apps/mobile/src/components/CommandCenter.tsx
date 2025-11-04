@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
   },
   surfaceContent: {
     position: 'relative',
+    paddingBottom: spacing.section,
   },
   body: {
     gap: spacing.cardGap,
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(18, 16, 44, 0.92)',
   },
   avatarLabel: {
-    color: neonPalette.textPrimary,
+    color: '#EAEAFB',
     fontSize: 18,
     fontWeight: '700',
   },
@@ -160,11 +161,13 @@ const styles = StyleSheet.create({
   },
   displayName: {
     ...typeScale.title,
-    color: neonPalette.textPrimary,
+    color: '#EAEAFB',
   },
   subtitle: {
-    ...typeScale.body,
-    color: neonPalette.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '500',
+    color: 'rgba(234,234,251,0.78)',
   },
   settingsButton: {
     width: 44,
@@ -201,7 +204,7 @@ const styles = StyleSheet.create({
   },
   resourceLabel: {
     ...typeScale.caption,
-    color: neonPalette.textPrimary,
+    color: 'rgba(234,234,251,0.78)',
     letterSpacing: 0.4,
   },
   resourceValueRow: {
@@ -210,16 +213,16 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   resourceValue: {
-    color: neonPalette.textPrimary,
-    fontSize: 20,
-    lineHeight: 24,
+    color: '#EAEAFB',
+    fontSize: 18,
+    lineHeight: 22,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
     letterSpacing: 0.2,
-    paddingBottom: Platform.OS === 'android' ? 2 : 0,
+    paddingBottom: Platform.OS === 'android' ? 1 : 0,
   },
   resourceUnit: {
-    color: neonPalette.textSecondary,
+    color: 'rgba(234,234,251,0.78)',
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '500',

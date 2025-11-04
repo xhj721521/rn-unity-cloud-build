@@ -1,6 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Animated, LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
-import { neonPalette } from '@theme/neonPalette';
 import { spacing, typeScale } from '@theme/tokens';
 import { FeatureCard as FeatureFrame } from '../ui/Card';
 import PerforatedGrid from '../ui/decor/PerforatedGrid';
@@ -21,7 +20,7 @@ export const FeatureCard = ({ title, subtitle, accent, onPress, icon, height = 1
   const [cardSize, setCardSize] = useState({ width: 0, height: 0 });
 
   const gradientColors = useMemo<[string, string]>(() => {
-    return [hexToRgba(accent, 0.42), hexToRgba(accent, 0.88)];
+    return [hexToRgba(accent, 0.32), hexToRgba(accent, 0.58)];
   }, [accent]);
 
   const handlePressIn = () => {
@@ -132,13 +131,14 @@ const styles = StyleSheet.create({
     gap: spacing.grid / 2,
   },
   title: {
-    color: neonPalette.textPrimary,
+    color: '#EAEAFB',
     ...typeScale.title,
   },
   subtitle: {
-    color: neonPalette.textSecondary,
-    ...typeScale.body,
-    fontSize: 14,
+    color: 'rgba(234,234,251,0.78)',
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '500',
   },
   iconBase: {
     width: 24,

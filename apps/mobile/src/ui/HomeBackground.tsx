@@ -130,8 +130,8 @@ export default function HomeBackground({
           <Svg width="100%" height="100%">
             <Defs>
               <RadialGradient id="home-fog-a" cx="82%" cy="14%" r="50%" gradientUnits="userSpaceOnUse">
-                <Stop offset="0%" stopColor="rgba(138, 99, 246, 0.22)" />
-                <Stop offset="70%" stopColor="rgba(138, 99, 246, 0.35)" />
+                <Stop offset="0%" stopColor="rgba(138, 99, 246, 0.18)" />
+                <Stop offset="70%" stopColor="rgba(138, 99, 246, 0.26)" />
                 <Stop offset="100%" stopColor="rgba(138, 99, 246, 0)" />
               </RadialGradient>
             </Defs>
@@ -145,8 +145,8 @@ export default function HomeBackground({
           <Svg width="100%" height="100%">
             <Defs>
               <RadialGradient id="home-fog-b" cx="22%" cy="82%" r="46%" gradientUnits="userSpaceOnUse">
-                <Stop offset="0%" stopColor="rgba(45, 210, 255, 0.18)" />
-                <Stop offset="70%" stopColor="rgba(45, 210, 255, 0.28)" />
+                <Stop offset="0%" stopColor="rgba(45, 210, 255, 0.14)" />
+                <Stop offset="70%" stopColor="rgba(45, 210, 255, 0.22)" />
                 <Stop offset="100%" stopColor="rgba(45, 210, 255, 0)" />
               </RadialGradient>
             </Defs>
@@ -169,6 +169,7 @@ export default function HomeBackground({
           <Rect x="0" y="0" width="100%" height="100%" fill="url(#home-scan)" />
         </Svg>
       ) : null}
+      <View pointerEvents="none" style={styles.vignetteOverlay} />
     </View>
   );
 }
@@ -179,6 +180,10 @@ const styles = StyleSheet.create({
   },
   scanLayer: {
     position: 'absolute',
-    opacity: 0.05,
+    opacity: 0.04,
+  },
+  vignetteOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(4, 6, 14, 0.35)',
   },
 });
