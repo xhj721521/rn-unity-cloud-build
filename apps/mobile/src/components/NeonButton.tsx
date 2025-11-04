@@ -1,55 +1,33 @@
-import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { palette } from '../theme/colors';
-import { PRESS_SCALE, RADIUS } from '../theme/metrics';
+﻿import React from 'react';
+import { Animated, Image, Pressable, StyleSheet, Text } from 'react-native';
+import { PRESS_SCALE } from '@theme/metrics';
 
-const glowBtn = require('../../assets/glow_btn.png');
-
-type Props = {
-  title: string;
-  onPress: () => void;
-};
-
-export default function NeonButton({ title, onPress }: Props) {
+export default function NeonButton({ title, onPress }: { title: string; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={styles.pressable} accessibilityRole="button">
-      {({ pressed }) => (
-        <View style={[styles.body, { transform: [{ scale: pressed ? PRESS_SCALE : 1 }] }]}
-        >
-          <Image source={glowBtn} resizeMode="stretch" style={[styles.glow, { opacity: pressed ? 0.6 : 0.9 }]} />
-          <Text style={styles.label}>{title}</Text>
-        </View>
-      )}
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}> 
+      <Image source={require('../../assets/glow_btn.png')} style={StyleSheet.absoluteFill} resizeMode="stretch" />
+      <Text style={styles.btnText}>{title}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  pressable: {
-    alignSelf: 'center',
-  },
-  body: {
-    minWidth: 168,
-    height: 48,
+  btn: {
+    borderRadius: 999,
+    paddingVertical: 10,
     paddingHorizontal: 18,
-    borderRadius: RADIUS,
-    borderWidth: 1,
-    borderColor: palette.magenta,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(124, 92, 255, 0.28)',
+    overflow: 'hidden',
     alignItems: 'center',
-    overflow: 'visible',
   },
-  glow: {
-    position: 'absolute',
-    left: -20,
-    right: -20,
-    top: -18,
-    bottom: -18,
+  btnPressed: {
+    transform: [{ scale: PRESS_SCALE }],
+    opacity: 0.9,
   },
-  label: {
-    color: palette.text,
+  btnText: {
+    color: '#F8FAFF',
+    fontSize: 14,
     fontWeight: '700',
-    fontSize: 15,
+    letterSpacing: 0.4,
   },
 });

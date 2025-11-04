@@ -1,51 +1,25 @@
-import React from 'react';
+﻿import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { palette } from '../theme/colors';
-import { NAV_H, PRESS_SCALE } from '../theme/metrics';
+import { NAV_H } from '@theme/metrics';
+import { palette } from '@theme/colors';
 
-type TabKey = 'home' | 'explore' | 'trials' | 'chain' | 'me';
+const TABS: { key: string; label: string; icon: any }[] = [
+  { key: 'home', label: '首页', icon: require('../../assets/icons/home.png') },
+  { key: 'trial', label: '试炼', icon: require('../../assets/icons/trial.png') },
+  { key: 'explore', label: '探索', icon: require('../../assets/icons/explore.png') },
+  { key: 'chain', label: '链鉴', icon: require('../../assets/icons/chain.png') },
+  { key: 'me', label: '我的', icon: require('../../assets/icons/me.png') },
+];
 
-type Props = {
-  active: TabKey;
-  onTabPress: (key: TabKey) => void;
-};
-
-const icons: Record<TabKey, number> = {
-  home: require('../../assets/icons/home.png'),
-  explore: require('../../assets/icons/explore.png'),
-  trials: require('../../assets/icons/trials.png'),
-  chain: require('../../assets/icons/chain.png'),
-  me: require('../../assets/icons/me.png'),
-};
-
-const labels: Record<TabKey, string> = {
-  home: 'Home',
-  explore: 'Explore',
-  trials: 'Trials',
-  chain: 'On-chain',
-  me: 'Me',
-};
-
-export default function BottomNav({ active, onTabPress }: Props) {
+export default function BottomNav({ active, onChange }: { active: string; onChange: (k: string) => void }) {
   return (
-    <View style={styles.container}>
-      {Object.keys(icons).map(key => {
-        const tab = key as TabKey;
-        const focused = tab === active;
+    <View style={styles.bar}>
+      {TABS.map((t) => {
+        const selected = t.key === active;
         return (
-          <Pressable
-            key={tab}
-            accessibilityRole="tab"
-            onPress={() => onTabPress(tab)}
-            style={styles.item}
-          >
-            {({ pressed }) => (
-              <View style={[styles.inner, { transform: [{ scale: pressed ? PRESS_SCALE : 1 }] }]}
-              >
-                <Image source={icons[tab]} style={[styles.icon, focused && styles.iconActive]} />
-                <Text style={[styles.label, focused && styles.labelActive]}>{labels[tab]}</Text>
-              </View>
-            )}
+          <Pressable key={t.key} onPress={() => onChange(t.key)} style={styles.item}>
+            <Image source={t.icon} style={[styles.icon, selected && styles.iconActive]} />
+            <Text style={[styles.label, selected && styles.labelActive]}>{t.label}</Text>
           </Pressable>
         );
       })}
@@ -54,38 +28,37 @@ export default function BottomNav({ active, onTabPress }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    backgroundColor: palette.bg0,
-    borderTopWidth: 1,
-    borderTopColor: palette.cyan,
+  bar: {
     height: NAV_H,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    backgroundColor: 'rgba(10, 12, 26, 0.86)',
+    borderTopWidth: 1,
+    borderColor: 'rgba(92, 100, 255, 0.25)',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 18,
   },
   item: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  inner: {
+    width: '20%',
     alignItems: 'center',
   },
   icon: {
-    width: 28,
-    height: 28,
-    opacity: 0.7,
+    width: 22,
+    height: 22,
+    tintColor: 'rgba(180, 190, 255, 0.8)',
+    marginBottom: 4,
   },
   iconActive: {
-    opacity: 1,
+    tintColor: palette.cyan,
   },
   label: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 4,
+    color: 'rgba(226, 231, 255, 0.66)',
+    fontSize: 11,
   },
   labelActive: {
-    color: palette.text,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
 });

@@ -1,0 +1,399 @@
+下面这份一次性可执行的任务单你直接贴到仓库的「Issues / Copilot chat」里就行。包括：文件结构、完整代码骨架、路由接线、Unity 盲盒消息桥、色板/尺寸常量、验收标准、提交切分。不改依赖，跑不起来也有兜底占位（UnityView stub、占位图标）。
+
+🧩 Task: Home 斜框 UI + Unity 盲盒集成（RN Bare + UN）
+🎯 目标
+
+首页所有卡片采用统一左右对齐线与倾斜框（skew）：
+
+顶部资产卡：大斜框，长度与盲盒卡一致，高度小于盲盒。
+
+中部四卡 2×2：小斜框，长度与资产/盲盒一致，高度最小。
+
+底部盲盒卡：最大斜框，与资产/四卡同宽。
+
+盲盒由 Unity 提供：点击盲盒卡→进入全屏 Unity 场景播放开盒动画→Unity 回传结果→RN 更新余额/背包并弹窗。
+
+底部导航：半玻璃胶囊样式，5 个 tab（首页/试炼/探索/链鉴/我的）。
+
+说明：斜框只影响边框与背景；内容保持正（子容器做反向 skew）。Unity 画面保持矩形，需要斜边观感用覆盖 PNG 或后续原生裁剪。
+
+🔧 约束
+
+不要升级/新增依赖（不改 package.json）。
+
+若工程里已有 react-native-linear-gradient / svg / skia 可后续替换实现，本次使用纯 RN + PNG glow 保证稳定。
+
+TypeScript/JS 任一可用；若项目是 JS，把 .ts/.tsx 后缀换成 .js/.jsx 即可。
+
+📁 新增文件结构
+src/
+  theme/
+    colors.ts
+    metrics.ts
+  unity/
+    UnityBridge.ts
+  components/
+    TiltFrame.tsx
+    NeonButton.tsx
+    BottomNav.tsx
+  screens/
+    HomeScreen.tsx
+    BlindBoxScreen.tsx
+assets/
+  glow_btn.png
+  glow_card.png
+  overlay_scanline.png
+  icons/
+    home.png  trial.png  explore.png  chain.png  me.png
+    trophy.png  forge.png  market.png  gift.png  cube.png
+
+
+assets/* 用占位图先放（任意 2x PNG），后续替换美术即可；没有就建 1×1 透明图也能跑。
+
+🎨 主题常量
+
+src/theme/colors.ts
+
+export const palette = {
+  bg0:'#0B0B14', bg1:'#120022', bg2:'#19002D',
+  magenta:'#FF3DF7', violet:'#8F00FF', cyan:'#00E8FF',
+  text:'#EDE8FF', sub:'#9BA3C6', success:'#29FF9D', danger:'#FF5577',
+};
+
+
+src/theme/metrics.ts
+
+import {Dimensions} from 'react-native';
+const W = Dimensions.get('window').width;
+export const SIDE = 12;             // 页面左右内边距
+export const GUTTER = 10;           // 卡片间距
+export const CARD_WIDTH = W - SIDE*2;
+
+export const H_ASSET = 112;         // 资产卡高度（中）
+export const H_SMALL = 88;          // 四卡高度（小）
+export const H_BOX   = 150;         // 盲盒卡高度（大）
+
+export const TILT_ASSET = -12;      // 大斜
+export const TILT_SMALL = -10;      // 小斜
+export const TILT_BOX   = -14;      // 最大斜
+
+export const RADIUS = 20;
+export const NAV_H = 72;
+export const PRESS_SCALE = 0.98;    // 按压反馈
+
+🧱 公共组件
+
+src/components/TiltFrame.tsx
+
+import React from 'react';
+import {View, Image, StyleSheet, ViewStyle} from 'react-native';
+import {RADIUS} from '../theme/metrics';
+
+type Props = {
+  style?: ViewStyle;
+  tiltDeg: number;                   // -10 ~ -14
+  borderColor: string;               // 描边色（单色，配合 glow PNG）
+  glass?: [string, string];          // [上浅, 下深] 玻璃底
+  children?: React.ReactNode;
+};
+
+export default function TiltFrame({
+  style,
+  tiltDeg,
+  borderColor,
+  glass=['rgba(255,255,255,0.08)','rgba(255,255,255,0.02)'],
+  children,
+}: Props) {
+  return (
+    <View style={[style, {overflow:'visible'}]}>
+      {/* 背后发光 */}
+      <Image source={require('../../assets/glow_card.png')}
+             style={StyleSheet.absoluteFill} resizeMode="stretch" />
+      {/* 斜框 */}
+      <View style={[
+        styles.skew, {transform:[{skewX:`${tiltDeg}deg`}], borderColor}
+      ]}>
+        {/* 玻璃底（上浅下深） */}
+        <View style={[StyleSheet.absoluteFill, {backgroundColor:glass[1]}]} />
+        <View style={[StyleSheet.absoluteFill, {opacity:0.5, backgroundColor:glass[0]}]} />
+        {/* 内容反斜矫正 */}
+        <View style={{transform:[{skewX:`${-tiltDeg}deg`}], padding:14}}>
+          {children}
+        </View>
+      </View>
+    </View>
+  );
+}
+const styles = StyleSheet.create({
+  skew:{
+    borderWidth:1,
+    borderRadius:RADIUS,
+    backgroundColor:'rgba(10,10,20,0.6)',
+  },
+});
+
+
+src/components/NeonButton.tsx
+
+import React from 'react';
+import {Pressable, Text, View, Image} from 'react-native';
+import {palette} from '../theme/colors';
+import {RADIUS, PRESS_SCALE} from '../theme/metrics';
+
+export default function NeonButton({title,onPress}:{title:string;onPress:()=>void;}){
+  return (
+    <Pressable onPress={onPress} style={{alignSelf:'center'}}>
+      {({pressed})=>(
+        <View style={{
+          transform:[{scale: pressed? PRESS_SCALE:1}],
+          height:48, minWidth:168, paddingHorizontal:18,
+          borderRadius:RADIUS, borderWidth:1, borderColor:palette.magenta,
+          justifyContent:'center', alignItems:'center', overflow:'visible',
+          backgroundColor:'rgba(255,255,255,0.06)'
+        }}>
+          <Image source={require('../../assets/glow_btn.png')}
+                 style={{position:'absolute', left:-20,right:-20, top:-18,bottom:-18, opacity: pressed?0.6:0.9}} />
+          <Text style={{color:palette.text, fontWeight:'700'}}>{title}</Text>
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+
+src/components/BottomNav.tsx
+
+import React from 'react';
+import {View, Image, Text, Pressable} from 'react-native';
+import {palette} from '../theme/colors';
+import {NAV_H, SIDE, RADIUS} from '../theme/metrics';
+
+const items = [
+  {key:'home',   label:'首页', icon:require('../../assets/icons/home.png')},
+  {key:'trial',  label:'试炼', icon:require('../../assets/icons/trial.png')},
+  {key:'explore',label:'探索', icon:require('../../assets/icons/explore.png')},
+  {key:'chain',  label:'链鉴', icon:require('../../assets/icons/chain.png')},
+  {key:'me',     label:'我的', icon:require('../../assets/icons/me.png')},
+];
+
+export default function BottomNav({active='home', onChange}:{active?:string; onChange:(k:string)=>void;}){
+  return (
+    <View style={{
+      height:NAV_H, marginHorizontal:SIDE, marginBottom:SIDE,
+      backgroundColor:'rgba(15,15,24,0.6)', borderRadius:RADIUS*1.2,
+      borderWidth:1, borderColor:'rgba(255,255,255,0.12)',
+      flexDirection:'row', alignItems:'center', justifyContent:'space-around'
+    }}>
+      {items.map(it=>{
+        const focused = it.key===active;
+        return (
+          <Pressable key={it.key} onPress={()=>onChange(it.key)} style={{alignItems:'center'}}>
+            <Image source={it.icon} style={{width:22,height:22, tintColor: focused? palette.cyan:'#8BA0C6'}} />
+            <Text style={{fontSize:12, color: focused? palette.text:'#9BA3C6', marginTop:6}}>{it.label}</Text>
+            {focused && <View style={{
+              position:'absolute', top:6, width:36, height:18, borderRadius:9,
+              borderWidth:1, borderColor:palette.cyan, opacity:0.35
+            }}/>}
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+🔗 Unity 盲盒消息桥
+
+src/unity/UnityBridge.ts
+
+type Payload = Record<string, any>;
+
+export const UnityBridge = {
+  send(fn: string, payload: Payload) {
+    // TODO: 使用现有 RN↔︎Unity 插件发送消息
+    // 例子（按你们项目改名）：
+    // UnityModule.postMessage('BlindBoxController', fn, JSON.stringify(payload));
+  },
+
+  // 在 App 入口注册，转发到各页面
+  onMessage(evt: {name: string; data: string}) {
+    try {
+      const data = JSON.parse(evt.data || '{}');
+      // 统一分发，项目中用事件总线/状态管理替换
+      // Emitter.emit(evt.name, data);
+    } catch {}
+  },
+};
+
+
+全屏承载页 src/screens/BlindBoxScreen.tsx
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+import {UnityBridge} from '../unity/UnityBridge';
+
+const UnityView = (global as any).UnityView || (()=> <View />); // stub
+
+export default function BlindBoxScreen(){
+  useEffect(()=>{ UnityBridge.send('INIT_BOX_SCENE', {}); },[]);
+  return <UnityView style={{flex:1, backgroundColor:'#000'}} />;
+}
+
+📱 首页
+
+src/screens/HomeScreen.tsx
+
+import React from 'react';
+import {View, Text, Image, ScrollView} from 'react-native';
+import {palette} from '../theme/colors';
+import {SIDE, GUTTER, CARD_WIDTH, H_ASSET, H_SMALL, H_BOX, TILT_ASSET, TILT_SMALL, TILT_BOX, RADIUS} from '../theme/metrics';
+import TiltFrame from '../components/TiltFrame';
+import NeonButton from '../components/NeonButton';
+import BottomNav from '../components/BottomNav';
+import {UnityBridge} from '../unity/UnityBridge';
+
+export default function HomeScreen({navigation}: any){
+  const half = (CARD_WIDTH - GUTTER) / 2;
+
+  return (
+    <View style={{flex:1, backgroundColor: palette.bg0}}>
+      {/* 背景覆盖（扫描线/噪点） */}
+      <Image source={require('../../assets/overlay_scanline.png')}
+             style={{position:'absolute',left:0,right:0,top:0,bottom:0,opacity:0.06}} />
+
+      <ScrollView contentContainerStyle={{paddingTop:12, paddingBottom:90}}>
+
+        {/* 资产卡（同宽，略小高度） */}
+        <View style={{paddingHorizontal:SIDE}}>
+          <TiltFrame tiltDeg={TILT_ASSET} borderColor={palette.cyan}
+            style={{width:CARD_WIDTH, height:H_ASSET, borderRadius:RADIUS}}>
+            <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between'}}>
+              <View style={{flexDirection:'row', alignItems:'center'}}>
+                <View style={{width:40,height:40,borderRadius:20,borderWidth:1,borderColor:palette.cyan, alignItems:'center',justifyContent:'center'}}>
+                  <Text style={{color:palette.text}}>P</Text>
+                </View>
+                <View style={{marginLeft:10}}>
+                  <Text style={{color:palette.text, fontSize:18, fontWeight:'700'}}>Pilot Zero</Text>
+                  <Text style={{color:palette.sub, fontSize:12}}>雾虹链域已同步</Text>
+                </View>
+              </View>
+              <View>
+                <Text style={{color:palette.text, fontWeight:'700'}}>2,450 Arc</Text>
+                <Text style={{color:palette.sub, textAlign:'right'}}>矿石 780 颗</Text>
+              </View>
+            </View>
+          </TiltFrame>
+        </View>
+
+        {/* 四卡 2×2（小斜框，同宽） */}
+        <View style={{paddingHorizontal:SIDE, marginTop:12}}>
+          <RowCard width={half} title="排行榜" sub="赛季与全服排名" icon="trophy" color={palette.magenta} />
+          <RowCard width={half} title="锻造坊" sub="强化装备/合成模块" icon="forge" color={palette.cyan} />
+          <RowCard width={half} title="集市坊" sub="挂单NFT与稀有伙伴" icon="market" color={palette.magenta} />
+          <RowCard width={half} title="活动商城" sub="兑换赛季限定奖励" icon="gift" color={palette.violet} />
+        </View>
+
+        {/* 盲盒卡（最大斜框，同宽） */}
+        <View style={{paddingHorizontal:SIDE, marginTop:12}}>
+          <TiltFrame tiltDeg={TILT_BOX} borderColor={palette.magenta}
+            style={{width:CARD_WIDTH, height:H_BOX, borderRadius:RADIUS}}>
+            <View style={{flex:1, alignItems:'center', justifyContent:'center'}}>
+              <Image source={require('../../assets/icons/cube.png')} style={{width:56,height:56, tintColor:palette.cyan}} />
+              <Text style={{color:palette.sub, marginTop:8}}>今日剩余 2 次机会</Text>
+              <View style={{height:10}}/>
+              <NeonButton title="打开盲盒（100 Arc）" onPress={()=>{
+                UnityBridge.send('OPEN_BLIND_BOX', { cost:100 });
+                navigation?.navigate?.('BlindBox'); // 路由在宿主App注册
+              }}/>
+            </View>
+          </TiltFrame>
+        </View>
+
+      </ScrollView>
+
+      <BottomNav active="home" onChange={()=>{}} />
+    </View>
+  );
+}
+
+function RowCard({width, title, sub, icon, color}:{width:number; title:string; sub:string; icon:string; color:string;}){
+  return (
+    <View style={{flexDirection:'row', justifyContent:'space-between', marginBottom:GUTTER}}>
+      <TiltFrame tiltDeg={-10} borderColor={color} style={{width, height:H_SMALL}}>
+        <View style={{flexDirection:'row', alignItems:'center'}}>
+          <Image source={
+            icon==='trophy'? require('../../assets/icons/trophy.png'):
+            icon==='forge'? require('../../assets/icons/forge.png'):
+            icon==='market'? require('../../assets/icons/market.png'):
+            require('../../assets/icons/gift.png')
+          } style={{width:28,height:28, tintColor:'#BDE1FF'}}/>
+          <View style={{marginLeft:10}}>
+            <Text style={{color:'#EDE8FF', fontWeight:'700'}}>{title}</Text>
+            <Text numberOfLines={1} style={{color:'#9BA3C6', fontSize:12, marginTop:4}}>{sub}</Text>
+          </View>
+        </View>
+      </TiltFrame>
+
+      {/* 占位以维持两列布局（由父组件两行分别渲染时可删） */}
+      <View style={{width: GUTTER}} />
+    </View>
+  );
+}
+
+
+路由侧：把 HomeScreen 挂到 Home，BlindBoxScreen 挂到 BlindBox。没有导航库就用现有导航方法；没有就暂时不跳转也能编译。
+
+✅ 验收标准
+
+对齐与尺寸
+
+资产卡、四卡、盲盒卡 左右对齐线一致（CARD_WIDTH 控制）。
+
+倾斜角：资产 -12°、四卡 -10°、盲盒 -14°。
+
+高度层级：H_BOX > H_ASSET > H_SMALL（150 / 112 / 88，或等比）。
+
+交互
+
+卡/按钮按压时整体 scale 0.98，按钮 glow 由 0.9→0.6。
+
+底部导航选中项有细描边光圈、图标/文字高亮。
+
+Unity 集成
+
+点击盲盒按钮→进入 Unity 全屏；Unity 动画结束后发送 BOX_RESULT {ok, itemId, rarity, newArcBalance} → RN 收到后更新余额并给出结果弹窗（可先用 alert(JSON.stringify(res)) 占位）。
+
+Unity 错误或 10s 超时→RN toast 并允许重试。
+
+兼容
+
+iOS/Android 均可编译运行；在无 Unity 插件环境下，BlindBoxScreen 用黑屏 stub，不报错。
+
+🧪 本地验证步骤
+
+将以上文件/代码落到对应路径；准备 assets/* 占位 PNG。
+
+运行 App，打开首页，检查三类卡片同宽、全部斜。
+
+点「打开盲盒」：若项目已接 Unity → 进入全屏并有消息回传；未接 → 正常跳转到黑屏 stub，无崩溃。
+
+切换不同机型，确认发光 PNG 不失真、滚动流畅。
+
+📦 提交切分（建议 4 个 commit）
+
+feat(theme): add colors & metrics（新增主题常量与占位资源）
+
+feat(components): TiltFrame/NeonButton/BottomNav（三组件落地）
+
+feat(screens): HomeScreen slanted layout（首页斜框布局与导航栏）
+
+feat(unity): BlindBoxScreen + UnityBridge stubs（Unity 全屏承载与消息桥占位）
+
+🔜 后续可选增强（非本次必须）
+
+SVG 渐变描边/发光（react-native-svg）替换单色 + glow PNG。
+
+盲盒卡内嵌 Unity 迷你预览（老机型可通过开关关闭）。
+
+原生多边形裁剪/Skia clip，让 Unity 迷你预览被真斜边裁切。
+
+主题切换（紫粉主/蓝青主）。

@@ -1,12 +1,9 @@
-import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
-import type { StyleProp, ViewStyle } from 'react-native';
-import { RADIUS } from '../theme/metrics';
-
-const glowCard = require('../../assets/glow_card.png');
+﻿import React from 'react';
+import { View, Image, StyleSheet, ViewStyle } from 'react-native';
+import { RADIUS } from '@theme/metrics';
 
 type Props = {
-  style?: StyleProp<ViewStyle>;
+  style?: ViewStyle;
   tiltDeg: number;
   borderColor: string;
   glass?: [string, string];
@@ -21,39 +18,21 @@ export default function TiltFrame({
   children,
 }: Props) {
   return (
-    <View style={[style, styles.root]}>
-      <Image source={glowCard} resizeMode="stretch" style={StyleSheet.absoluteFill} />
-      <View
-        style={[
-          styles.frame,
-          {
-            borderColor,
-            transform: [{ skewX: `${tiltDeg}deg` }],
-          },
-        ]}
-      >
+    <View style={[style, { overflow: 'visible' }]}> 
+      <Image source={require('../../assets/glow_card.png')} style={StyleSheet.absoluteFill} resizeMode="stretch" />
+      <View style={[styles.skew, { transform: [{ skewX: `${tiltDeg}deg` }], borderColor }]}> 
         <View style={[StyleSheet.absoluteFill, { backgroundColor: glass[1] }]} />
-        <View style={[StyleSheet.absoluteFill, styles.glassTop, { backgroundColor: glass[0] }]} />
-        <View style={[styles.content, { transform: [{ skewX: `${-tiltDeg}deg` }] }]}>{children}</View>
+        <View style={[StyleSheet.absoluteFill, { opacity: 0.5, backgroundColor: glass[0] }]} />
+        <View style={{ transform: [{ skewX: `${-tiltDeg}deg` }], padding: 14 }}>{children}</View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    overflow: 'visible',
-  },
-  frame: {
-    borderWidth: 1,
+  skew: {
     borderRadius: RADIUS,
-    backgroundColor: 'rgba(10, 10, 20, 0.6)',
-    overflow: 'hidden',
-  },
-  glassTop: {
-    opacity: 0.5,
-  },
-  content: {
-    padding: 14,
+    borderWidth: 1,
+    backgroundColor: 'rgba(10, 12, 28, 0.86)',
   },
 });
