@@ -11,6 +11,7 @@ type ScreenContainerProps = PropsWithChildren<{
   scrollable?: boolean;
   variant?: ScreenContainerVariant;
   edgeVignette?: boolean;
+  background?: React.ReactNode;
 }>;
 
 type GlowBackdropProps = {
@@ -56,6 +57,7 @@ export const ScreenContainer = ({
   scrollable = false,
   variant = 'overlay',
   edgeVignette = false,
+  background,
 }: ScreenContainerProps) => {
   const primaryPulse = useNeonPulse({ duration: 5200 });
   const secondaryPulse = useNeonPulse({ duration: 6600 });
@@ -63,16 +65,29 @@ export const ScreenContainer = ({
   const contentStyle = [styles.contentBase, variant === 'overlay' ? styles.overlayContent : styles.plainContent];
   const containerStyle = [styles.contentBase, variant === 'overlay' ? styles.overlayStatic : styles.plainStatic];
 
+  const shouldRenderDefaultBackground = !background;
+  const BackgroundWrapper = background ? (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      {background}
+    </View>
+  ) : null;
+
   if (scrollable) {
     return (
       <View style={styles.wrapper}>
-        <LinearGradient
-          colors={neonPalette.backgroundGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <GlowBackdrop primaryPulse={primaryPulse} secondaryPulse={secondaryPulse} />
+        {shouldRenderDefaultBackground ? (
+          <>
+            <LinearGradient
+              colors={neonPalette.backgroundGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <GlowBackdrop primaryPulse={primaryPulse} secondaryPulse={secondaryPulse} />
+          </>
+        ) : (
+          BackgroundWrapper
+        )}
         {edgeVignette ? <EdgeVignette /> : null}
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -86,13 +101,19 @@ export const ScreenContainer = ({
 
   return (
     <View style={styles.wrapper}>
-      <LinearGradient
-        colors={neonPalette.backgroundGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <GlowBackdrop primaryPulse={primaryPulse} secondaryPulse={secondaryPulse} />
+      {shouldRenderDefaultBackground ? (
+        <>
+          <LinearGradient
+            colors={neonPalette.backgroundGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          <GlowBackdrop primaryPulse={primaryPulse} secondaryPulse={secondaryPulse} />
+        </>
+      ) : (
+        BackgroundWrapper
+      )}
       {edgeVignette ? <EdgeVignette /> : null}
       <View style={containerStyle}>{children}</View>
     </View>

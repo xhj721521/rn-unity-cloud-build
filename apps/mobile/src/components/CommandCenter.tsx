@@ -1,8 +1,9 @@
 import React from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import { LayoutChangeEvent, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { neonPalette } from '@theme/neonPalette';
-import { shadowStyles, shape, spacing, typeScale } from '@theme/tokens';
+import { shape, spacing, typeScale } from '@theme/tokens';
+import { SurfaceCard, CapsuleCard } from '../ui/Card';
+import PerforatedGrid from '../ui/decor/PerforatedGrid';
 
 type ResourceCapsule = {
   id: string;
@@ -30,15 +31,19 @@ export const CommandCenter = ({
   resources,
   connectionLabel,
 }: CommandCenterProps) => {
+  const [cardSize, setCardSize] = React.useState({ width: 0, height: 0 });
+
+  const handleLayout = React.useCallback((event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    setCardSize((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
+  }, []);
+
+  const showGrid = cardSize.width > 0 && cardSize.height > 0;
+
   return (
-    <View style={styles.frame}>
-      <View pointerEvents="none" style={styles.frameHighlight} />
-      <LinearGradient
-        colors={['rgba(26, 18, 56, 0.96)', 'rgba(10, 10, 34, 0.94)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.container}
-      >
+    <SurfaceCard style={styles.surface}>
+      <View style={styles.surfaceContent} onLayout={handleLayout}>
+        {showGrid ? <PerforatedGrid width={cardSize.width} height={cardSize.height} align="tr" /> : null}
         <View style={styles.body}>
           <View style={styles.headerRow}>
             <View style={styles.identityColumn}>
@@ -71,28 +76,33 @@ export const CommandCenter = ({
             ))}
           </View>
         </View>
-      </LinearGradient>
-    </View>
+      </View>
+    </SurfaceCard>
   );
 };
 
 const ResourceCapsuleView = ({ resource }: { resource: ResourceCapsule }) => {
   const { label, value, unit, accentColor, isOnline } = resource;
   return (
-    <View style={styles.resourceCapsule}>
-      <View style={styles.resourceMeta}>
-        <View
-          style={[
-            styles.resourceDot,
-            { backgroundColor: accentColor, opacity: isOnline === false ? 0.4 : 1 },
-          ]}
-        />
-        <Text style={styles.resourceLabel}>{label}</Text>
+    <CapsuleCard style={styles.capsule}>
+      <View style={styles.capsuleContent}>
+        <View style={styles.resourceMeta}>
+          <View
+            style={[
+              styles.resourceDot,
+              { backgroundColor: accentColor, opacity: isOnline === false ? 0.4 : 1 },
+            ]}
+          />
+          <Text style={styles.resourceLabel}>{label}</Text>
+        </View>
+        <View style={styles.resourceValueRow}>
+          <Text style={styles.resourceValue} numberOfLines={1} ellipsizeMode="tail">
+            {value}
+          </Text>
+          <Text style={styles.resourceUnit}>{unit}</Text>
+        </View>
       </View>
-      <Text style={styles.resourceValue} numberOfLines={1} ellipsizeMode="tail">
-        {`${value} ${unit}`}
-      </Text>
-    </View>
+    </CapsuleCard>
   );
 };
 
@@ -106,30 +116,11 @@ const GearIcon = () => (
 );
 
 const styles = StyleSheet.create({
-  frame: {
-    borderRadius: shape.blockRadius,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    padding: 1,
-    ...shadowStyles.card,
-    alignSelf: 'stretch',
+  surface: {
+    position: 'relative',
   },
-  frameHighlight: {
-    position: 'absolute',
-    top: 1,
-    left: 1,
-    right: 1,
-    height: 1,
-    borderTopLeftRadius: shape.blockRadius - 1,
-    borderTopRightRadius: shape.blockRadius - 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-  },
-  container: {
-    borderRadius: shape.blockRadius - 1,
-    padding: spacing.section,
-    overflow: 'hidden',
-    flex: 1,
+  surfaceContent: {
+    position: 'relative',
   },
   body: {
     gap: spacing.cardGap,
@@ -189,18 +180,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.cardGap,
   },
-  resourceCapsule: {
+  capsule: {
     flex: 1,
-    height: 56,
-    borderRadius: shape.capsuleRadius,
-    borderWidth: 1,
-    borderColor: 'rgba(132, 120, 255, 0.32)',
-    backgroundColor: 'rgba(16, 14, 46, 0.9)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
+    minHeight: 56,
+  },
+  capsuleContent: {
+    flex: 1,
     justifyContent: 'space-between',
+    gap: spacing.grid,
   },
   resourceMeta: {
     flexDirection: 'row',
@@ -208,14 +195,19 @@ const styles = StyleSheet.create({
     gap: spacing.grid / 2,
   },
   resourceDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   resourceLabel: {
     ...typeScale.caption,
     color: neonPalette.textPrimary,
     letterSpacing: 0.4,
+  },
+  resourceValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
   },
   resourceValue: {
     color: neonPalette.textPrimary,
@@ -225,6 +217,13 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     letterSpacing: 0.2,
     paddingBottom: Platform.OS === 'android' ? 2 : 0,
+  },
+  resourceUnit: {
+    color: neonPalette.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '500',
+    letterSpacing: 0.4,
   },
   connectionChip: {
     alignSelf: 'flex-start',

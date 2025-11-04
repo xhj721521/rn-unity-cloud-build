@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import React, { useMemo, useRef, useState } from 'react';
+import { Animated, LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { neonPalette } from '@theme/neonPalette';
-import { shape, spacing, shadowStyles, typeScale } from '@theme/tokens';
+import { spacing, typeScale } from '@theme/tokens';
+import { FeatureCard as FeatureFrame } from '../ui/Card';
+import PerforatedGrid from '../ui/decor/PerforatedGrid';
 
 export type FeatureCardType = 'leaderboard' | 'forge' | 'market' | 'events';
 
@@ -17,6 +18,11 @@ type FeatureCardProps = {
 
 export const FeatureCard = ({ title, subtitle, accent, onPress, icon, height = 120 }: FeatureCardProps) => {
   const scale = useRef(new Animated.Value(1)).current;
+  const [cardSize, setCardSize] = useState({ width: 0, height: 0 });
+
+  const gradientColors = useMemo<[string, string]>(() => {
+    return [hexToRgba(accent, 0.42), hexToRgba(accent, 0.88)];
+  }, [accent]);
 
   const handlePressIn = () => {
     Animated.spring(scale, {
@@ -36,26 +42,32 @@ export const FeatureCard = ({ title, subtitle, accent, onPress, icon, height = 1
     }).start();
   };
 
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { width, height: measuredHeight } = event.nativeEvent.layout;
+    setCardSize((prev) => (prev.width === width && prev.height === measuredHeight ? prev : { width, height: measuredHeight }));
+  };
+
+  const showGrid = cardSize.width > 0 && cardSize.height > 0;
+
   return (
     <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} style={styles.pressable}>
-      <Animated.View style={[styles.card, { height, transform: [{ scale }] }]}
-      >
-        <LinearGradient
-          colors={[`${accent}26`, `${accent}66`]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.gradient}
-        >
-          <View style={styles.iconRow}>
-            <FeatureIcon tint={accent} type={icon} />
-          </View>
-          <View style={styles.textBlock}>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle} numberOfLines={2}>
-              {subtitle}
-            </Text>
-          </View>
-        </LinearGradient>
+      <Animated.View style={[styles.cardWrapper, { height, transform: [{ scale }] }]}>
+        <View style={styles.cardSurface} onLayout={handleLayout}>
+          <FeatureFrame colors={gradientColors} style={styles.frameContent}>
+            <View style={styles.iconRow}>
+              <FeatureIcon tint={accent} type={icon} />
+            </View>
+            <View style={styles.textBlock}>
+              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.subtitle} numberOfLines={2}>
+                {subtitle}
+              </Text>
+            </View>
+          </FeatureFrame>
+          {showGrid ? (
+            <PerforatedGrid width={cardSize.width} height={cardSize.height} align="tl" />
+          ) : null}
+        </View>
       </Animated.View>
     </Pressable>
   );
@@ -100,15 +112,14 @@ const styles = StyleSheet.create({
   pressable: {
     flex: 1,
   },
-  card: {
-    borderRadius: shape.cardRadius,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(68, 42, 138, 0.35)',
-    backgroundColor: neonPalette.cardBackground,
-    ...shadowStyles.card,
+  cardWrapper: {
+    flex: 1,
   },
-  gradient: {
+  cardSurface: {
+    flex: 1,
+    position: 'relative',
+  },
+  frameContent: {
     flex: 1,
     padding: spacing.section,
     gap: spacing.cardGap,
@@ -197,3 +208,12 @@ const styles = StyleSheet.create({
     top: 3,
   },
 });
+
+const hexToRgba = (hex: string, alpha: number) => {
+  const normalized = hex.replace('#', '');
+  const bigint = parseInt(normalized, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
