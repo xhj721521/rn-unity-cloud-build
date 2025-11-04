@@ -19,7 +19,7 @@ export default function TiltFrame({
 }: Props) {
   return (
     <View style={[style, { overflow: 'visible' }]}> 
-      <Image source={require('../../assets/glow_card.png')} style={StyleSheet.absoluteFill} resizeMode="stretch" />
+      <Image source={require('../assets/glow_card.png')} style={StyleSheet.absoluteFill} resizeMode="stretch" />
       <View style={[styles.skew, { transform: [{ skewX: `${tiltDeg}deg` }], borderColor }]}> 
         <View style={[StyleSheet.absoluteFill, { backgroundColor: glass[1] }]} />
         <View style={[StyleSheet.absoluteFill, { opacity: 0.5, backgroundColor: glass[0] }]} />

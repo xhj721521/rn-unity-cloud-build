@@ -5,7 +5,7 @@ import { PRESS_SCALE } from '@theme/metrics';
 export default function NeonButton({ title, onPress }: { title: string; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}> 
-      <Image source={require('../../assets/glow_btn.png')} style={StyleSheet.absoluteFill} resizeMode="stretch" />
+      <Image source={require('../assets/glow_btn.png')} style={StyleSheet.absoluteFill} resizeMode="stretch" />
       <Text style={styles.btnText}>{title}</Text>
     </Pressable>
   );

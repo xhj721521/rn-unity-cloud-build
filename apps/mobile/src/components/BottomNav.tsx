@@ -4,11 +4,11 @@ import { NAV_H } from '@theme/metrics';
 import { palette } from '@theme/colors';
 
 const TABS: { key: string; label: string; icon: any }[] = [
-  { key: 'home', label: '首页', icon: require('../../assets/icons/home.png') },
-  { key: 'trial', label: '试炼', icon: require('../../assets/icons/trial.png') },
-  { key: 'explore', label: '探索', icon: require('../../assets/icons/explore.png') },
-  { key: 'chain', label: '链鉴', icon: require('../../assets/icons/chain.png') },
-  { key: 'me', label: '我的', icon: require('../../assets/icons/me.png') },
+  { key: 'home', label: '首页', icon: require('../assets/icons/home.png') },
+  { key: 'trial', label: '试炼', icon: require('../assets/icons/trial.png') },
+  { key: 'explore', label: '探索', icon: require('../assets/icons/explore.png') },
+  { key: 'chain', label: '链鉴', icon: require('../assets/icons/chain.png') },
+  { key: 'me', label: '我的', icon: require('../assets/icons/me.png') },
 ];
 
 export default function BottomNav({ active, onChange }: { active: string; onChange: (k: string) => void }) {
