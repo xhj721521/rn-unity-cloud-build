@@ -11,7 +11,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 import { ErrorState } from '@components/ErrorState';
-import TiltFrame from '@components/TiltFrame';
+import ParallelogramPanel from '@components/ParallelogramPanel';
 import NeonButton from '@components/NeonButton';
 import { CyberCavernBackdrop } from '../../ui/CyberCavernBackdrop';
 import { useAccountSummary } from '@services/web3/hooks';
@@ -111,6 +111,7 @@ export const HomeScreen = () => {
       })),
     [navigation],
   );
+  const quickCardWidth = useMemo(() => (CARD_WIDTH - GUTTER) / 2, []);
   const cavernBackdrop = useMemo(() => <CyberCavernBackdrop />, []);
 
   if (loading) {
@@ -136,7 +137,13 @@ export const HomeScreen = () => {
   return (
     <ScreenContainer scrollable variant="plain" edgeVignette background={cavernBackdrop}>
       <View style={styles.section}>
-        <TiltFrame tiltDeg={TILT_ASSET} borderColor={palette.magenta} style={styles.assetFrame}>
+        <ParallelogramPanel
+          width={CARD_WIDTH}
+          height={H_ASSET}
+          tiltDeg={TILT_ASSET}
+          strokeColors={['#FF5AE0', '#7DD3FC']}
+          fillColors={['rgba(18, 8, 32, 0.94)', 'rgba(12, 6, 24, 0.86)']}
+        >
           <View style={styles.assetHeader}>
             <View style={styles.avatar}>
               <Text style={styles.avatarLabel}>{displayName.charAt(0).toUpperCase()}</Text>
@@ -153,7 +160,7 @@ export const HomeScreen = () => {
             <ResourceChip label="Arc" value={arcAmount} unit="枚" accent={palette.magenta} />
             <ResourceChip label="矿石" value={oreAmount} unit="颗" accent={palette.cyan} />
           </View>
-        </TiltFrame>
+        </ParallelogramPanel>
       </View>
 
       <View style={styles.quickGrid}>
@@ -161,12 +168,19 @@ export const HomeScreen = () => {
           <Pressable
             key={card.key}
             onPress={card.onPress}
-            style={({ pressed }) => [styles.quickPressable, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              styles.quickPressable,
+              { width: quickCardWidth, height: H_SMALL },
+              pressed && styles.pressed,
+            ]}
           >
-            <TiltFrame
+            <ParallelogramPanel
+              width={quickCardWidth}
+              height={H_SMALL}
               tiltDeg={TILT_SMALL}
-              borderColor={card.borderColor}
-              style={[styles.quickCard, { height: H_SMALL }]}
+              strokeColors={[card.borderColor, '#7DD3FC']}
+              fillColors={['rgba(10, 5, 18, 0.95)', 'rgba(16, 10, 26, 0.86)']}
+              padding={12}
             >
               <View style={styles.quickCardBody}>
                 <Image source={card.icon} style={styles.quickIcon} />
@@ -177,13 +191,19 @@ export const HomeScreen = () => {
                   </Text>
                 </View>
               </View>
-            </TiltFrame>
+            </ParallelogramPanel>
           </Pressable>
         ))}
       </View>
 
       <View style={styles.section}>
-        <TiltFrame tiltDeg={TILT_BOX} borderColor={palette.violet} style={styles.blindBoxFrame}>
+        <ParallelogramPanel
+          width={CARD_WIDTH}
+          height={H_BOX}
+          tiltDeg={TILT_BOX}
+          strokeColors={['#FF5AE0', '#7DD3FC']}
+          fillColors={['rgba(15, 4, 24, 0.94)', 'rgba(9, 7, 20, 0.88)']}
+        >
           <View style={styles.blindBoxContent}>
             <View>
               <Text style={styles.blindBoxLabel}>盲盒展示</Text>
@@ -195,7 +215,7 @@ export const HomeScreen = () => {
               <NeonButton title="打开盲盒（100 Arc）" onPress={() => navigation.navigate('BlindBox')} />
             </View>
           </View>
-        </TiltFrame>
+        </ParallelogramPanel>
       </View>
     </ScreenContainer>
   );
@@ -315,12 +335,13 @@ const styles = StyleSheet.create({
   quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: GUTTER,
+    justifyContent: 'space-between',
+    rowGap: GUTTER,
     paddingHorizontal: SIDE,
     marginBottom: 4,
   },
   quickPressable: {
-    width: (CARD_WIDTH - GUTTER) / 2,
+    alignItems: 'stretch',
   },
   pressed: {
     transform: [{ scale: PRESS_SCALE }],
