@@ -12,6 +12,7 @@ export type HomeStackParamList = {
   Forge: undefined;
   Marketplace: undefined;
   EventShop: undefined;
+  BlindBox: undefined;
 };
 
 export type ProfileStackParamList = {
