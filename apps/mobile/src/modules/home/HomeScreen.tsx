@@ -17,7 +17,6 @@ import { useAppDispatch } from '@state/hooks';
 import { loadAccountSummary } from '@state/account/accountSlice';
 import { useUnityBridge } from '@bridge/useUnityBridge';
 import { spacing } from '@theme/tokens';
-import HomeBackground from '../../ui/HomeBackground';
 
 const ARC_TOKEN_ID = 'tok-energy';
 const ORE_TOKEN_ID = 'tok-neon';
@@ -244,7 +243,7 @@ export const HomeScreen = () => {
 
   if (loading) {
     return (
-      <ScreenContainer variant="plain" edgeVignette background={<HomeBackground />}>
+  <ScreenContainer variant="plain" edgeVignette>
         <View style={styles.centerBox}>
           <LoadingPlaceholder label="指挥中心正在加载…" />
         </View>
@@ -254,7 +253,7 @@ export const HomeScreen = () => {
 
   if (error) {
     return (
-      <ScreenContainer variant="plain" edgeVignette background={<HomeBackground />}>
+  <ScreenContainer variant="plain" edgeVignette>
         <View style={styles.centerBox}>
           <ErrorState
             title="暂时无法连接指挥网络"
@@ -269,7 +268,7 @@ export const HomeScreen = () => {
   const displayName = data?.displayName ?? '指挥官';
 
   return (
-    <ScreenContainer scrollable variant="plain" edgeVignette background={<HomeBackground />}>
+  <ScreenContainer scrollable variant="plain" edgeVignette>
       <View style={styles.page}>
         <CommandCenter
           displayName={displayName}
