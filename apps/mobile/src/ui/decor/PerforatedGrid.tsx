@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 
 let Reanimated: typeof import('react-native-reanimated') | null = null;
@@ -9,9 +9,6 @@ try {
 } catch (error) {
   Reanimated = null;
 }
-
-const AnimatedG = Reanimated?.default?.createAnimatedComponent ? Reanimated.default.createAnimatedComponent(G) : G;
-
 type Align = 'tl' | 'tr' | 'bl' | 'br';
 
 type PerforatedGridProps = {
@@ -46,39 +43,67 @@ export default function PerforatedGrid({
     return nodes;
   }, [areaHeight, areaWidth, gap, r]);
 
-  if (!Reanimated || disabled) {
+  if (!Reanimated || disabled || !('useSharedValue' in Reanimated)) {
     return (
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <G opacity={0.08} transform={`translate(${offsetX}, ${offsetY})`}>
+            {dots}
+          </G>
+        </Svg>
+      </View>
+    );
+  }
+
+  const { useSharedValue, withRepeat, withTiming, Easing, useAnimatedStyle } = Reanimated;
+  const AnimatedContainer = (Reanimated as any).default?.View ?? (Reanimated as any).View;
+  const cancelAnimation = (Reanimated as any).cancelAnimation as ((value: unknown) => void) | undefined;
+
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    progress.value = withRepeat(
+      withTiming(1, { duration: 16000, easing: Easing.inOut(Easing.quad) }),
+      -1,
+      true,
+    );
+
+    return () => {
+      if (cancelAnimation) {
+        cancelAnimation(progress);
+      } else {
+        progress.value = 0;
+      }
+    };
+  }, [cancelAnimation, progress, withRepeat, withTiming]);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const phase = Math.sin(progress.value * Math.PI * 2);
+    return {
+      opacity: 0.06 + (phase + 1) * 0.02,
+      transform: [{ translateX: phase * 8 }],
+    };
+  });
+
+  if (!AnimatedContainer) {
+    return (
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <G opacity={0.08} transform={`translate(${offsetX}, ${offsetY})`}>
+            {dots}
+          </G>
+        </Svg>
+      </View>
+    );
+  }
+
+  return (
+    <AnimatedContainer pointerEvents="none" style={[StyleSheet.absoluteFill, animatedStyle]}>
       <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
         <G opacity={0.08} transform={`translate(${offsetX}, ${offsetY})`}>
           {dots}
         </G>
       </Svg>
-    );
-  }
-
-  const { useSharedValue, withRepeat, withTiming, Easing, useAnimatedProps } = Reanimated;
-  const t = useSharedValue(0);
-  t.value = withRepeat(
-    withTiming(1, { duration: 16000, easing: Easing.inOut(Easing.quad) }),
-    -1,
-    true,
-  );
-
-  const animatedProps = useAnimatedProps(() => {
-    const phase = Math.sin(t.value * Math.PI * 2);
-    return {
-      opacity: 0.06 + (phase + 1) * 0.02,
-      transform: `translate(${offsetX + phase * 8}, ${offsetY})`,
-    } as Record<string, unknown>;
-  });
-
-  const AnimatedGroup = AnimatedG as any;
-
-  return (
-    <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <AnimatedGroup animatedProps={animatedProps}>
-        {dots}
-      </AnimatedGroup>
-    </Svg>
+    </AnimatedContainer>
   );
 }
