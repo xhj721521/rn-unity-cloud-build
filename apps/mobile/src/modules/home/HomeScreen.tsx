@@ -13,6 +13,7 @@ import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 import { ErrorState } from '@components/ErrorState';
 import TiltFrame from '@components/TiltFrame';
 import NeonButton from '@components/NeonButton';
+import { CyberCavernBackdrop } from '../../ui/CyberCavernBackdrop';
 import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
 import { useAppDispatch } from '@state/hooks';
@@ -110,10 +111,11 @@ export const HomeScreen = () => {
       })),
     [navigation],
   );
+  const cavernBackdrop = useMemo(() => <CyberCavernBackdrop />, []);
 
   if (loading) {
     return (
-      <ScreenContainer variant="plain" edgeVignette>
+      <ScreenContainer variant="plain" edgeVignette background={cavernBackdrop}>
         <View style={styles.centerBox}>
           <LoadingPlaceholder label="指挥中心正在唤醒…" />
         </View>
@@ -123,7 +125,7 @@ export const HomeScreen = () => {
 
   if (error) {
     return (
-      <ScreenContainer variant="plain" edgeVignette>
+      <ScreenContainer variant="plain" edgeVignette background={cavernBackdrop}>
         <View style={styles.centerBox}>
           <ErrorState title="暂时无法连接指挥网络" description={error} onRetry={() => dispatch(loadAccountSummary())} />
         </View>
@@ -132,7 +134,7 @@ export const HomeScreen = () => {
   }
 
   return (
-    <ScreenContainer scrollable variant="plain" edgeVignette>
+    <ScreenContainer scrollable variant="plain" edgeVignette background={cavernBackdrop}>
       <View style={styles.section}>
         <TiltFrame tiltDeg={TILT_ASSET} borderColor={palette.magenta} style={styles.assetFrame}>
           <View style={styles.assetHeader}>
