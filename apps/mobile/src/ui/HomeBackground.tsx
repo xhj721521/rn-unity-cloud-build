@@ -119,7 +119,7 @@ export default function HomeBackground({
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <LinearGradient
-        colors={['#0C0F1A', '#141A2E', '#1C2440']}
+        colors={['#050612', '#0D1327', '#161F35']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -129,9 +129,9 @@ export default function HomeBackground({
         <AnimatedView style={[StyleSheet.absoluteFill, fogAStyle]}>
           <Svg width="100%" height="100%">
             <Defs>
-              <RadialGradient id="home-fog-a" cx="82%" cy="14%" r="50%" gradientUnits="userSpaceOnUse">
-                <Stop offset="0%" stopColor="rgba(138, 99, 246, 0.18)" />
-                <Stop offset="70%" stopColor="rgba(138, 99, 246, 0.26)" />
+              <RadialGradient id="home-fog-a" cx="78%" cy="18%" r="36%" gradientUnits="userSpaceOnUse">
+                <Stop offset="0%" stopColor="rgba(138, 99, 246, 0.12)" />
+                <Stop offset="70%" stopColor="rgba(138, 99, 246, 0.2)" />
                 <Stop offset="100%" stopColor="rgba(138, 99, 246, 0)" />
               </RadialGradient>
             </Defs>
@@ -144,9 +144,9 @@ export default function HomeBackground({
         <AnimatedView style={[StyleSheet.absoluteFill, fogBStyle]}>
           <Svg width="100%" height="100%">
             <Defs>
-              <RadialGradient id="home-fog-b" cx="22%" cy="82%" r="46%" gradientUnits="userSpaceOnUse">
-                <Stop offset="0%" stopColor="rgba(45, 210, 255, 0.14)" />
-                <Stop offset="70%" stopColor="rgba(45, 210, 255, 0.22)" />
+              <RadialGradient id="home-fog-b" cx="24%" cy="80%" r="32%" gradientUnits="userSpaceOnUse">
+                <Stop offset="0%" stopColor="rgba(45, 210, 255, 0.1)" />
+                <Stop offset="70%" stopColor="rgba(45, 210, 255, 0.18)" />
                 <Stop offset="100%" stopColor="rgba(45, 210, 255, 0)" />
               </RadialGradient>
             </Defs>
@@ -176,7 +176,7 @@ export default function HomeBackground({
 
 const styles = StyleSheet.create({
   noiseLayer: {
-    opacity: 0.055,
+    opacity: 0.04,
   },
   scanLayer: {
     position: 'absolute',
@@ -184,6 +184,6 @@ const styles = StyleSheet.create({
   },
   vignetteOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(4, 6, 14, 0.35)',
+    backgroundColor: 'rgba(2, 3, 10, 0.42)',
   },
 });

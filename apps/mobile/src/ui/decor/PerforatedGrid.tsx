@@ -28,8 +28,8 @@ export default function PerforatedGrid({
   gap = 12,
   disabled = false,
 }: PerforatedGridProps) {
-  const areaWidth = Math.round(width * 0.45);
-  const areaHeight = Math.round(height * 0.42);
+  const areaWidth = Math.round(width * 0.36);
+  const areaHeight = Math.round(height * 0.34);
   const offsetX = align.includes('r') ? width - areaWidth : 0;
   const offsetY = align.includes('b') ? height - areaHeight : 0;
 
@@ -37,7 +37,7 @@ export default function PerforatedGrid({
     const nodes = [] as React.ReactNode[];
     for (let y = r; y < areaHeight; y += gap) {
       for (let x = r; x < areaWidth; x += gap) {
-        nodes.push(<Circle key={`${x}-${y}`} cx={x} cy={y} r={r} fill="#fff" />);
+  nodes.push(<Circle key={`${x}-${y}`} cx={x} cy={y} r={r} fill="#fff" />);
       }
     }
     return nodes;
@@ -47,7 +47,7 @@ export default function PerforatedGrid({
     return (
       <View pointerEvents="none" style={StyleSheet.absoluteFill}>
         <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
-          <G opacity={0.08} transform={`translate(${offsetX}, ${offsetY})`}>
+          <G opacity={0.06} transform={`translate(${offsetX}, ${offsetY})`}>
             {dots}
           </G>
         </Svg>
@@ -100,7 +100,7 @@ export default function PerforatedGrid({
   return (
     <AnimatedContainer pointerEvents="none" style={[StyleSheet.absoluteFill, animatedStyle]}>
       <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
-        <G opacity={0.08} transform={`translate(${offsetX}, ${offsetY})`}>
+        <G opacity={0.06} transform={`translate(${offsetX}, ${offsetY})`}>
           {dots}
         </G>
       </Svg>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Svg, { Circle, Defs, G, Line, Pattern, RadialGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 const withAlpha = (hex: string, alpha: number) => {
   const normalized = hex.replace('#', '');
@@ -15,12 +15,12 @@ const withAlpha = (hex: string, alpha: number) => {
 const microFrame = (radius: number) => ({
   borderRadius: radius,
   borderWidth: StyleSheet.hairlineWidth,
-  borderColor: 'rgba(255,255,255,0.08)',
+  borderColor: 'rgba(255,255,255,0.05)',
   shadowColor: '#000',
-  shadowOpacity: 0.35,
-  shadowRadius: 20,
-  shadowOffset: { width: 0, height: 6 },
-  ...(Platform.OS === 'android' ? { elevation: 6 } : null),
+  shadowOpacity: 0.28,
+  shadowRadius: 16,
+  shadowOffset: { width: 0, height: 4 },
+  ...(Platform.OS === 'android' ? { elevation: 4 } : null),
 });
 
 const TopHighlight = ({ r }: { r: number }) => (
@@ -55,16 +55,11 @@ export function SurfaceCard({ style, children }: CardProps) {
       <TopHighlight r={radius} />
       <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
         <Defs>
-          <Pattern id="grid" width="12" height="12" patternUnits="userSpaceOnUse">
-            <Line x1="0" y1="0" x2="14" y2="0" stroke="#ffffff" strokeOpacity="0.04" strokeWidth="1" />
-            <Line x1="0" y1="0" x2="0" y2="14" stroke="#ffffff" strokeOpacity="0.04" strokeWidth="1" />
-          </Pattern>
-          <RadialGradient id="vig2" cx="100%" cy="100%" r="70%">
-            <Stop offset="0%" stopColor="#000" stopOpacity={0.18} />
+          <RadialGradient id="vig2" cx="82%" cy="88%" r="68%">
+            <Stop offset="0%" stopColor="#000" stopOpacity={0.16} />
             <Stop offset="100%" stopColor="#000" stopOpacity={0} />
           </RadialGradient>
         </Defs>
-        <Rect x="0" y="0" width="45%" height="42%" fill="url(#grid)" />
         <Rect width="100%" height="100%" fill="url(#vig2)" />
       </Svg>
       {children}
@@ -80,18 +75,17 @@ export function FeatureCard({ style, children, colors = ['#7B5CFF', '#2D87FF'] }
       <TopHighlight r={radius} />
       <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
         <Defs>
-          <RadialGradient id="halo" cx="28%" cy="24%" r="46%">
-            <Stop offset="0%" stopColor={colors[0]} stopOpacity={0.22} />
+          <RadialGradient id="halo" cx="36%" cy="30%" r="42%">
+            <Stop offset="0%" stopColor={colors[0]} stopOpacity={0.18} />
             <Stop offset="100%" stopColor={colors[0]} stopOpacity={0} />
+          </RadialGradient>
+          <RadialGradient id="halo-accent" cx="78%" cy="68%" r="40%">
+            <Stop offset="0%" stopColor={colors[1]} stopOpacity={0.18} />
+            <Stop offset="100%" stopColor={colors[1]} stopOpacity={0} />
           </RadialGradient>
         </Defs>
         <Rect width="100%" height="100%" fill="url(#halo)" />
-        <G opacity={0.08} stroke={colors[1]} strokeWidth={1.4}>
-          <Line x1="72%" y1="16%" x2="94%" y2="16%" />
-          <Line x1="94%" y1="16%" x2="94%" y2="38%" />
-          <Circle cx="72%" cy="16%" r="2" />
-          <Circle cx="94%" cy="38%" r="2" />
-        </G>
+        <Rect width="100%" height="100%" fill="url(#halo-accent)" />
       </Svg>
       <View pointerEvents="none" style={styles.featureTone} />
       {children}
