@@ -18,9 +18,7 @@ const STAGE_COPY = {
 
 const buildDrop = (payload: Record<string, unknown> | undefined): GachaDrop => {
   const name =
-    typeof payload?.name === 'string'
-      ? payload.name
-      : `盲盒奖励 ${payload?.resultId ?? ''}`;
+    typeof payload?.name === 'string' ? payload.name : `盲盒奖励 ${payload?.resultId ?? ''}`;
   return {
     id: String(payload?.resultId ?? Date.now()),
     avatarFallback: name.charAt(0).toUpperCase(),

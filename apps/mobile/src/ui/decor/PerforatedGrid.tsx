@@ -37,7 +37,7 @@ export default function PerforatedGrid({
     const nodes = [] as React.ReactNode[];
     for (let y = r; y < areaHeight; y += gap) {
       for (let x = r; x < areaWidth; x += gap) {
-  nodes.push(<Circle key={`${x}-${y}`} cx={x} cy={y} r={r} fill="#fff" />);
+        nodes.push(<Circle key={`${x}-${y}`} cx={x} cy={y} r={r} fill="#fff" />);
       }
     }
     return nodes;
@@ -57,7 +57,9 @@ export default function PerforatedGrid({
 
   const { useSharedValue, withRepeat, withTiming, Easing, useAnimatedStyle } = Reanimated;
   const AnimatedContainer = (Reanimated as any).default?.View ?? (Reanimated as any).View;
-  const cancelAnimation = (Reanimated as any).cancelAnimation as ((value: unknown) => void) | undefined;
+  const cancelAnimation = (Reanimated as any).cancelAnimation as
+    | ((value: unknown) => void)
+    | undefined;
 
   const progress = useSharedValue(0);
 

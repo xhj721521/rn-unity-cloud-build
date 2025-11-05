@@ -1,12 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { UnityView } from '@bridge/UnityView';
 import { neonPalette } from '@theme/neonPalette';
@@ -79,11 +72,7 @@ export const GachaStage = ({
           </View>
         ) : null}
         {currentResult ? (
-          <Pressable
-            onPress={onDismissResult}
-            style={styles.resultCard}
-            accessibilityRole="button"
-          >
+          <Pressable onPress={onDismissResult} style={styles.resultCard} accessibilityRole="button">
             <Text style={styles.resultTitle}>恭喜获得</Text>
             <Text style={styles.resultItem}>{currentResult.name}</Text>
             <Text style={styles.resultRarity}>{currentResult.rarity}</Text>

@@ -129,7 +129,13 @@ export default function HomeBackground({
         <AnimatedView style={[StyleSheet.absoluteFill, fogAStyle]}>
           <Svg width="100%" height="100%">
             <Defs>
-              <RadialGradient id="home-fog-a" cx="78%" cy="18%" r="36%" gradientUnits="userSpaceOnUse">
+              <RadialGradient
+                id="home-fog-a"
+                cx="78%"
+                cy="18%"
+                r="36%"
+                gradientUnits="userSpaceOnUse"
+              >
                 <Stop offset="0%" stopColor="rgba(138, 99, 246, 0.12)" />
                 <Stop offset="70%" stopColor="rgba(138, 99, 246, 0.2)" />
                 <Stop offset="100%" stopColor="rgba(138, 99, 246, 0)" />
@@ -144,7 +150,13 @@ export default function HomeBackground({
         <AnimatedView style={[StyleSheet.absoluteFill, fogBStyle]}>
           <Svg width="100%" height="100%">
             <Defs>
-              <RadialGradient id="home-fog-b" cx="24%" cy="80%" r="32%" gradientUnits="userSpaceOnUse">
+              <RadialGradient
+                id="home-fog-b"
+                cx="24%"
+                cy="80%"
+                r="32%"
+                gradientUnits="userSpaceOnUse"
+              >
                 <Stop offset="0%" stopColor="rgba(45, 210, 255, 0.1)" />
                 <Stop offset="70%" stopColor="rgba(45, 210, 255, 0.18)" />
                 <Stop offset="100%" stopColor="rgba(45, 210, 255, 0)" />
@@ -156,7 +168,11 @@ export default function HomeBackground({
       ) : null}
 
       {showNoise ? (
-        <Image source={noiseTexture} resizeMode="repeat" style={[StyleSheet.absoluteFill, styles.noiseLayer]} />
+        <Image
+          source={noiseTexture}
+          resizeMode="repeat"
+          style={[StyleSheet.absoluteFill, styles.noiseLayer]}
+        />
       ) : null}
 
       {enableScanlines ? (

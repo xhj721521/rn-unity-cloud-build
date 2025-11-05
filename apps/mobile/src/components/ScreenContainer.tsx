@@ -62,8 +62,14 @@ export const ScreenContainer = ({
   const primaryPulse = useNeonPulse({ duration: 5200 });
   const secondaryPulse = useNeonPulse({ duration: 6600 });
 
-  const contentStyle = [styles.contentBase, variant === 'overlay' ? styles.overlayContent : styles.plainContent];
-  const containerStyle = [styles.contentBase, variant === 'overlay' ? styles.overlayStatic : styles.plainStatic];
+  const contentStyle = [
+    styles.contentBase,
+    variant === 'overlay' ? styles.overlayContent : styles.plainContent,
+  ];
+  const containerStyle = [
+    styles.contentBase,
+    variant === 'overlay' ? styles.overlayStatic : styles.plainStatic,
+  ];
 
   const shouldRenderDefaultBackground = !background;
   const BackgroundWrapper = background ? (

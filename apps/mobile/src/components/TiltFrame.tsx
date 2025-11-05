@@ -19,8 +19,12 @@ export default function TiltFrame({
 }: Props) {
   const tiltY = tiltDeg * 0.25;
   return (
-    <View style={[style, { overflow: 'visible' }]}> 
-      <Image source={require('../assets/glow_card.png')} style={StyleSheet.absoluteFill} resizeMode="stretch" />
+    <View style={[style, { overflow: 'visible' }]}>
+      <Image
+        source={require('../assets/glow_card.png')}
+        style={StyleSheet.absoluteFill}
+        resizeMode="stretch"
+      />
       <View
         style={[
           styles.skew,

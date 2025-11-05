@@ -67,11 +67,20 @@ export function SurfaceCard({ style, children }: CardProps) {
   );
 }
 
-export function FeatureCard({ style, children, colors = ['#7B5CFF', '#2D87FF'] }: FeatureCardProps) {
+export function FeatureCard({
+  style,
+  children,
+  colors = ['#7B5CFF', '#2D87FF'],
+}: FeatureCardProps) {
   const radius = 18;
   const shaded = [withAlpha(colors[0], 0.32), withAlpha(colors[1], 0.58)];
   return (
-    <LinearGradient colors={shaded} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.featureBase, microFrame(radius), style]}>
+    <LinearGradient
+      colors={shaded}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.featureBase, microFrame(radius), style]}
+    >
       <TopHighlight r={radius} />
       <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
         <Defs>

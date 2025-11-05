@@ -1,11 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer } from '@components/ScreenContainer';
@@ -51,23 +45,23 @@ const QUICK_LINKS: QuickLink[] = [
   {
     key: 'Leaderboard',
     title: '排行榜',
-    subtitle: '赛季与全服排名',
+    subtitle: '与全服指挥官实时比拼',
     route: 'Leaderboard',
     borderColor: palette.magenta,
     icon: require('../../assets/icons/trophy.png'),
   },
   {
     key: 'Forge',
-    title: '铸造坊',
-    subtitle: '强化装备/合成模块',
+    title: '铸造',
+    subtitle: '凝铸装备与模块',
     route: 'Forge',
     borderColor: palette.cyan,
     icon: require('../../assets/icons/forge.png'),
   },
   {
     key: 'Marketplace',
-    title: '集市坊',
-    subtitle: '挂单 NFT 与稀有伙伴',
+    title: '集市',
+    subtitle: '交易 NFT 与蓝图',
     route: 'Marketplace',
     borderColor: palette.magenta,
     icon: require('../../assets/icons/market.png'),
@@ -75,7 +69,7 @@ const QUICK_LINKS: QuickLink[] = [
   {
     key: 'EventShop',
     title: '活动商城',
-    subtitle: '兑换赛季限定奖励',
+    subtitle: '兑换限时补给',
     route: 'EventShop',
     borderColor: palette.violet,
     icon: require('../../assets/icons/gift.png'),
@@ -111,14 +105,7 @@ export const HomeScreen = () => {
       })),
     [navigation],
   );
-  const quickCardWidth = useMemo(() => (CARD_WIDTH - GUTTER) / 2 - 6, []);
-  const quickRows = useMemo(() => {
-    const rows: typeof quickCards[][] = [];
-    for (let i = 0; i < quickCards.length; i += 2) {
-      rows.push(quickCards.slice(i, i + 2));
-    }
-    return rows;
-  }, [quickCards]);
+  const quickCardWidth = useMemo(() => (CARD_WIDTH - GUTTER) / 2, []);
   const cavernBackdrop = useMemo(() => <CyberCavernBackdrop />, []);
 
   if (loading) {
@@ -135,7 +122,11 @@ export const HomeScreen = () => {
     return (
       <ScreenContainer variant="plain" edgeVignette background={cavernBackdrop}>
         <View style={styles.centerBox}>
-          <ErrorState title="暂时无法连接指挥网络" description={error} onRetry={() => dispatch(loadAccountSummary())} />
+          <ErrorState
+            title="暂时无法连接指挥网络"
+            description={error}
+            onRetry={() => dispatch(loadAccountSummary())}
+          />
         </View>
       </ScreenContainer>
     );
@@ -171,43 +162,46 @@ export const HomeScreen = () => {
       </View>
 
       <View style={styles.quickGrid}>
-        {quickRows.map((row, index) => (
-          <View key={row[0].key + index} style={styles.quickRow}>
-            {row.map((card) => (
-              <Pressable
-                key={card.key}
-                onPress={card.onPress}
-                style={({ pressed }) => [
-                  styles.quickPressable,
-                  { width: quickCardWidth, height: H_SMALL },
-                  pressed && styles.pressed,
-                ]}
+        {quickCards.map((card, index) => {
+          const isRightColumn = index % 2 === 1;
+          return (
+            <Pressable
+              key={card.key}
+              onPress={card.onPress}
+              style={({ pressed }) => [
+                styles.quickPressable,
+                {
+                  width: quickCardWidth,
+                  height: H_SMALL,
+                  marginRight: isRightColumn ? 0 : GUTTER,
+                  marginBottom: GUTTER,
+                },
+                pressed && styles.pressed,
+              ]}
+            >
+              <ParallelogramPanel
+                width={quickCardWidth}
+                height={H_SMALL}
+                tiltDeg={TILT_SMALL}
+                strokeColors={[card.borderColor, '#7DD3FC']}
+                fillColors={['rgba(10, 5, 18, 0.95)', 'rgba(16, 10, 26, 0.86)']}
+                padding={18}
               >
-                <ParallelogramPanel
-                  width={quickCardWidth}
-                  height={H_SMALL}
-                  tiltDeg={TILT_SMALL}
-                  strokeColors={[card.borderColor, '#7DD3FC']}
-                  fillColors={['rgba(10, 5, 18, 0.95)', 'rgba(16, 10, 26, 0.86)']}
-                  padding={12}
-                >
-                  <View style={styles.quickCardBody}>
-                    <Image source={card.icon} style={styles.quickIcon} />
-                    <View style={styles.quickText}>
-                      <Text style={styles.quickTitle} numberOfLines={1}>
-                        {card.title}
-                      </Text>
-                      <Text numberOfLines={1} style={styles.quickSubtitle}>
-                        {card.subtitle}
-                      </Text>
-                    </View>
+                <View style={styles.quickCardBody}>
+                  <Image source={card.icon} style={styles.quickIcon} />
+                  <View style={styles.quickText}>
+                    <Text style={styles.quickTitle} numberOfLines={1}>
+                      {card.title}
+                    </Text>
+                    <Text numberOfLines={1} style={styles.quickSubtitle}>
+                      {card.subtitle}
+                    </Text>
                   </View>
-                </ParallelogramPanel>
-              </Pressable>
-            ))}
-            {row.length < 2 ? <View style={{ width: quickCardWidth }} /> : null}
-          </View>
-        ))}
+                </View>
+              </ParallelogramPanel>
+            </Pressable>
+          );
+        })}
       </View>
 
       <View style={styles.section}>
@@ -221,12 +215,17 @@ export const HomeScreen = () => {
           <View style={styles.blindBoxContent}>
             <View>
               <Text style={styles.blindBoxLabel}>盲盒展示</Text>
-              <Text style={styles.blindBoxTitle}>霓虹立方 · 今日剩余 2 次机会</Text>
-              <Text style={styles.blindBoxDesc}>进入 Unity 空间开盒，所得奖励将自动发放至钱包与仓库。</Text>
+              <Text style={styles.blindBoxTitle}>觉醒方阵 · 今日加赠 2 次掉落</Text>
+              <Text style={styles.blindBoxDesc}>
+                进入 Unity 空间唤醒盲盒，奖励将自动结算进资产仓。
+              </Text>
             </View>
             <View style={styles.blindBoxFooter}>
               <Image source={require('../../assets/icons/cube.png')} style={styles.blindBoxIcon} />
-              <NeonButton title="打开盲盒（100 Arc）" onPress={() => navigation.navigate('BlindBox')} />
+              <NeonButton
+                title="唤醒盲盒 · 200 Arc"
+                onPress={() => navigation.navigate('BlindBox')}
+              />
             </View>
           </View>
         </ParallelogramPanel>
@@ -246,12 +245,15 @@ const ResourceChip = ({
   unit: string;
   accent: string;
 }) => (
-  <View style={[styles.resourceChip, { borderColor: accent }]}>
-    <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
-    <Text style={styles.resourceValue}>
-      {value}
-      <Text style={styles.resourceUnit}> {unit}</Text>
-    </Text>
+  <View style={[styles.resourceChip, { borderColor: accent, shadowColor: accent }]}>
+    <View style={styles.resourceChipHeader}>
+      <View style={[styles.resourceDot, { backgroundColor: accent }]} />
+      <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
+    </View>
+    <View style={styles.resourceValueRow}>
+      <Text style={styles.resourceValue}>{value}</Text>
+      <Text style={styles.resourceUnit}>{unit}</Text>
+    </View>
   </View>
 );
 
@@ -321,14 +323,35 @@ const styles = StyleSheet.create({
   resourceRow: {
     flexDirection: 'row',
     gap: 12,
+    marginTop: 8,
   },
   resourceChip: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(12, 14, 34, 0.9)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(8, 10, 24, 0.92)',
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  resourceChipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  resourceDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 999,
+  },
+  resourceValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
   },
   resourceLabel: {
     fontSize: 12,
@@ -337,24 +360,21 @@ const styles = StyleSheet.create({
   },
   resourceValue: {
     color: palette.text,
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: '700',
-    marginTop: 6,
   },
   resourceUnit: {
-    fontSize: 12,
+    fontSize: 13,
     color: palette.sub,
     fontWeight: '400',
   },
   quickGrid: {
-    paddingHorizontal: SIDE,
-    gap: GUTTER,
-    marginBottom: 4,
-  },
-  quickRow: {
+    width: CARD_WIDTH,
+    alignSelf: 'center',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: GUTTER,
+    marginBottom: 12,
   },
   quickPressable: {
     alignItems: 'stretch',

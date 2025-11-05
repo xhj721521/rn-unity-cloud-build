@@ -35,7 +35,9 @@ export const CommandCenter = ({
 
   const handleLayout = React.useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
-    setCardSize((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
+    setCardSize((prev) =>
+      prev.width === width && prev.height === height ? prev : { width, height },
+    );
   }, []);
 
   const showGrid = cardSize.width > 0 && cardSize.height > 0;
@@ -43,7 +45,9 @@ export const CommandCenter = ({
   return (
     <SurfaceCard style={styles.surface}>
       <View style={styles.surfaceContent} onLayout={handleLayout}>
-        {showGrid ? <PerforatedGrid width={cardSize.width} height={cardSize.height} align="tr" /> : null}
+        {showGrid ? (
+          <PerforatedGrid width={cardSize.width} height={cardSize.height} align="tr" />
+        ) : null}
         <View style={styles.body}>
           <View style={styles.headerRow}>
             <View style={styles.identityColumn}>

@@ -15,7 +15,14 @@ type FeatureCardProps = {
   height?: number;
 };
 
-export const FeatureCard = ({ title, subtitle, accent, onPress, icon, height = 120 }: FeatureCardProps) => {
+export const FeatureCard = ({
+  title,
+  subtitle,
+  accent,
+  onPress,
+  icon,
+  height = 120,
+}: FeatureCardProps) => {
   const scale = useRef(new Animated.Value(1)).current;
   const [cardSize, setCardSize] = useState({ width: 0, height: 0 });
 
@@ -43,13 +50,22 @@ export const FeatureCard = ({ title, subtitle, accent, onPress, icon, height = 1
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const { width, height: measuredHeight } = event.nativeEvent.layout;
-    setCardSize((prev) => (prev.width === width && prev.height === measuredHeight ? prev : { width, height: measuredHeight }));
+    setCardSize((prev) =>
+      prev.width === width && prev.height === measuredHeight
+        ? prev
+        : { width, height: measuredHeight },
+    );
   };
 
   const showGrid = cardSize.width > 0 && cardSize.height > 0;
 
   return (
-    <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} style={styles.pressable}>
+    <Pressable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={styles.pressable}
+    >
       <Animated.View style={[styles.cardWrapper, { height, transform: [{ scale }] }]}>
         <View style={styles.cardSurface} onLayout={handleLayout}>
           <FeatureFrame colors={gradientColors} style={styles.frameContent}>

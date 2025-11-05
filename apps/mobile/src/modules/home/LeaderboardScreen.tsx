@@ -194,7 +194,10 @@ const ChampionShowcase = ({ entries, accountName }: ChampionShowcaseProps) => {
               >
                 <Text style={styles.podiumAvatarLabel}>{getInitial(entry.playerName)}</Text>
               </LinearGradient>
-              <Text style={[styles.podiumName, isMine && styles.podiumNameHighlight]} numberOfLines={1}>
+              <Text
+                style={[styles.podiumName, isMine && styles.podiumNameHighlight]}
+                numberOfLines={1}
+              >
                 {entry.playerName}
               </Text>
               <Text style={styles.podiumScore}>{formatScore(entry.score)}</Text>
@@ -217,7 +220,12 @@ const RewardCard = ({
   description: string;
   gradient: string[];
 }) => (
-  <LinearGradient colors={gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.rewardCard}>
+  <LinearGradient
+    colors={gradient}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
+    style={styles.rewardCard}
+  >
     <View style={styles.rewardIconWrap}>
       <Text style={styles.rewardIcon}>{icon}</Text>
     </View>
@@ -252,10 +260,17 @@ const LeaderboardRow = ({ item, isMine }: { item: LeaderboardEntry; isMine: bool
       end={{ x: 1, y: 1 }}
       style={[styles.rowCard, isMine && styles.rowCardActive]}
     >
-      <View style={[styles.rowRankBadge, { borderColor: tone.accent, backgroundColor: tone.stroke }]}>
+      <View
+        style={[styles.rowRankBadge, { borderColor: tone.accent, backgroundColor: tone.stroke }]}
+      >
         <Text style={[styles.rowRankLabel, { color: tone.accent }]}>{item.rank}</Text>
       </View>
-      <LinearGradient colors={tone.avatar} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.rowAvatar}>
+      <LinearGradient
+        colors={tone.avatar}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.rowAvatar}
+      >
         <Text style={styles.rowAvatarLabel}>{getInitial(item.playerName)}</Text>
       </LinearGradient>
       <View style={styles.rowInfo}>
@@ -366,10 +381,7 @@ export const LeaderboardScreen = () => {
     [board.entries],
   );
 
-  const listEntries = useMemo(
-    () => board.entries.filter((item) => item.rank > 3),
-    [board.entries],
-  );
+  const listEntries = useMemo(() => board.entries.filter((item) => item.rank > 3), [board.entries]);
 
   const renderItem = ({ item }: ListRenderItemInfo<LeaderboardEntry>) => (
     <LeaderboardRow
@@ -423,7 +435,9 @@ export const LeaderboardScreen = () => {
             <View style={styles.headerRow}>
               <View style={styles.titleWrap}>
                 <Text style={styles.title}>排行榜</Text>
-                <Text style={styles.subtitle}>邀请达人、团队排行、财富榜三大榜单，实时刷新你的冲刺进度。</Text>
+                <Text style={styles.subtitle}>
+                  邀请达人、团队排行、财富榜三大榜单，实时刷新你的冲刺进度。
+                </Text>
               </View>
               <Pressable
                 style={styles.jumpButton}
@@ -801,4 +815,3 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
-

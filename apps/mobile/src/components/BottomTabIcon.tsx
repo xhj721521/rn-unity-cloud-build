@@ -17,7 +17,9 @@ export const BottomTabIcon = ({ label, type, focused }: BottomTabIconProps) => {
       <View style={[styles.glyphWrap, focused && styles.glyphWrapFocused]}>
         {renderGlyph(type, focused ? '#FF75FF' : '#6A6E92')}
       </View>
-      <Text style={[styles.label, focused ? styles.labelActive : styles.labelInactive]}>{label}</Text>
+      <Text style={[styles.label, focused ? styles.labelActive : styles.labelInactive]}>
+        {label}
+      </Text>
     </View>
   );
 };

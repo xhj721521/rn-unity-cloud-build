@@ -11,7 +11,13 @@ const TABS: { key: string; label: string; icon: any }[] = [
   { key: 'me', label: '我的', icon: require('../assets/icons/me.png') },
 ];
 
-export default function BottomNav({ active, onChange }: { active: string; onChange: (k: string) => void }) {
+export default function BottomNav({
+  active,
+  onChange,
+}: {
+  active: string;
+  onChange: (k: string) => void;
+}) {
   return (
     <View style={styles.bar}>
       {TABS.map((t) => {

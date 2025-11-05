@@ -1,11 +1,11 @@
-﻿import { Dimensions } from 'react-native';
+import { Dimensions } from 'react-native';
 const W = Dimensions.get('window').width;
 export const SIDE = 12;
 export const GUTTER = 10;
 export const CARD_WIDTH = W - SIDE * 2;
-export const H_ASSET = 112;
-export const H_SMALL = 88;
-export const H_BOX = 150;
+export const H_ASSET = 176;
+export const H_SMALL = 118;
+export const H_BOX = 224;
 export const TILT_ASSET = -12;
 export const TILT_SMALL = -10;
 export const TILT_BOX = -14;
