@@ -3,7 +3,7 @@ import { Animated, Dimensions, Easing, Image, StyleSheet, View } from 'react-nat
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {
   Defs,
-  LinearGradient,
+  LinearGradient as SvgLinearGradient,
   Line,
   Path,
   Pattern,
@@ -182,14 +182,14 @@ export default function HomeBackground({
         <View pointerEvents="none" style={StyleSheet.absoluteFill}>
           <Svg width="100%" height="100%">
             <Defs>
-              <LinearGradient id="vapor-sun" x1="0%" y1="0%" x2="0%" y2="100%">
+              <SvgLinearGradient id="vapor-sun" x1="0%" y1="0%" x2="0%" y2="100%">
                 <Stop offset="0%" stopColor="rgba(255,141,255,0.35)" />
                 <Stop offset="100%" stopColor="rgba(255,141,255,0)" />
-              </LinearGradient>
-              <LinearGradient id="vapor-grid" x1="0%" y1="0%" x2="100%" y2="0%">
+              </SvgLinearGradient>
+              <SvgLinearGradient id="vapor-grid" x1="0%" y1="0%" x2="100%" y2="0%">
                 <Stop offset="0%" stopColor="rgba(74, 255, 245, 0.16)" />
                 <Stop offset="100%" stopColor="rgba(116, 161, 255, 0.14)" />
-              </LinearGradient>
+              </SvgLinearGradient>
             </Defs>
             <Rect
               x="20%"
