@@ -10,6 +10,7 @@ type ParallelogramPanelProps = PropsWithChildren<{
   fillColors?: [string, string];
   padding?: number;
   animated?: boolean;
+  innerStrokeColors?: [string, string];
 }>;
 
 const degToRad = (deg: number) => (deg * Math.PI) / 180;
@@ -23,6 +24,7 @@ export const ParallelogramPanel = ({
   fillColors = ['rgba(18, 8, 32, 0.96)', 'rgba(10, 4, 22, 0.9)'],
   padding = 16,
   animated = true,
+  innerStrokeColors,
   children,
 }: ParallelogramPanelProps) => {
   const leanRight = tiltDeg >= 0;
@@ -47,6 +49,7 @@ export const ParallelogramPanel = ({
 
   const strokeId = useMemo(() => `stroke-${Math.random().toString(36).slice(2)}`, []);
   const fillId = useMemo(() => `fill-${Math.random().toString(36).slice(2)}`, []);
+  const innerStrokeId = useMemo(() => `inner-${Math.random().toString(36).slice(2)}`, []);
   const pulse = useRef(new Animated.Value(0)).current;
   const scan = useRef(new Animated.Value(0)).current;
 
@@ -118,6 +121,12 @@ export const ParallelogramPanel = ({
             <Stop offset="0%" stopColor={fillColors[0]} />
             <Stop offset="100%" stopColor={fillColors[1]} />
           </LinearGradient>
+          {innerStrokeColors ? (
+            <LinearGradient id={innerStrokeId} x1="0%" y1="0%" x2="100%" y2="100%">
+              <Stop offset="0%" stopColor={innerStrokeColors[0]} stopOpacity={0.8} />
+              <Stop offset="100%" stopColor={innerStrokeColors[1]} stopOpacity={0.8} />
+            </LinearGradient>
+          ) : null}
         </Defs>
         <Polygon
           points={polygonPoints}
@@ -125,6 +134,18 @@ export const ParallelogramPanel = ({
           fill={`url(#${fillId})`}
           strokeWidth={2.4}
         />
+        {innerStrokeColors ? (
+          <Polygon
+            points={polygonPoints}
+            stroke={`url(#${innerStrokeId})`}
+            fill="none"
+            strokeWidth={1.4}
+            opacity={0.65}
+            transform={`scale(0.948, 0.93) translate(${leanRight ? slant * 0.04 : slant * 0.06}, ${
+              height * 0.035
+            })`}
+          />
+        ) : null}
         {animated && (
           <>
             <AnimatedPolygon

@@ -1,7 +1,16 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Dimensions, Easing, Image, StyleSheet, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Svg, { Defs, Line, Pattern, RadialGradient, Rect, Stop } from 'react-native-svg';
+import Svg, {
+  Defs,
+  LinearGradient,
+  Line,
+  Path,
+  Pattern,
+  RadialGradient,
+  Rect,
+  Stop,
+} from 'react-native-svg';
 
 export type PerfTier = 'low' | 'mid' | 'high';
 
@@ -9,6 +18,7 @@ export interface HomeBackgroundProps {
   tier?: PerfTier;
   showNoise?: boolean;
   showScanlines?: boolean;
+  showVaporLayers?: boolean;
 }
 
 const noiseTexture = require('../assets/noise-2px.png');
@@ -31,6 +41,7 @@ export default function HomeBackground({
   tier = autoTier(),
   showNoise = true,
   showScanlines,
+  showVaporLayers = true,
 }: HomeBackgroundProps) {
   const shouldRenderFog = tier !== 'low';
   const enableScanlines = (showScanlines ?? tier === 'high') && tier === 'high';
@@ -165,6 +176,39 @@ export default function HomeBackground({
             <Rect x="0" y="0" width="100%" height="100%" fill="url(#home-fog-b)" />
           </Svg>
         </AnimatedView>
+      ) : null}
+
+      {showVaporLayers ? (
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <Svg width="100%" height="100%">
+            <Defs>
+              <LinearGradient id="vapor-sun" x1="0%" y1="0%" x2="0%" y2="100%">
+                <Stop offset="0%" stopColor="rgba(255,141,255,0.35)" />
+                <Stop offset="100%" stopColor="rgba(255,141,255,0)" />
+              </LinearGradient>
+              <LinearGradient id="vapor-grid" x1="0%" y1="0%" x2="100%" y2="0%">
+                <Stop offset="0%" stopColor="rgba(74, 255, 245, 0.16)" />
+                <Stop offset="100%" stopColor="rgba(116, 161, 255, 0.14)" />
+              </LinearGradient>
+            </Defs>
+            <Rect
+              x="20%"
+              y="10%"
+              width="60%"
+              height="20%"
+              rx="120"
+              fill="url(#vapor-sun)"
+              opacity={0.45}
+            />
+            <Path
+              d={`M0 ${height * 0.72} L${width} ${
+                height * 0.58
+              } L${width} ${height} L0 ${height} Z`}
+              fill="url(#vapor-grid)"
+              opacity={0.12}
+            />
+          </Svg>
+        </View>
       ) : null}
 
       {showNoise ? (

@@ -101,7 +101,7 @@ export const HomeScreen = () => {
   const arcAmount = useMemo(() => formatAssetAmount(data?.tokens, ARC_TOKEN_ID), [data?.tokens]);
   const oreAmount = useMemo(() => formatAssetAmount(data?.tokens, ORE_TOKEN_ID), [data?.tokens]);
   const frameWidth = useMemo(
-    () => Math.min(CARD_WIDTH, windowWidth - spacing.pageHorizontal * 2),
+    () => Math.max(320, Math.min(CARD_WIDTH, windowWidth - spacing.pageHorizontal * 2)),
     [windowWidth],
   );
 
@@ -150,16 +150,19 @@ export const HomeScreen = () => {
             tiltDeg={TILT_ASSET}
             strokeColors={['#FF5AE0', '#7DD3FC']}
             fillColors={['rgba(18, 8, 32, 0.94)', 'rgba(12, 6, 24, 0.86)']}
+            padding={20}
           >
             <View style={styles.assetHeader}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarLabel}>{displayName.charAt(0).toUpperCase()}</Text>
-              </View>
-              <View style={styles.assetText}>
-                <Text style={styles.assetTitle}>指挥中心</Text>
-                <Text style={styles.assetSubtitle} numberOfLines={1}>
-                  {displayName}
-                </Text>
+              <View style={styles.identityBlock}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarLabel}>{displayName.charAt(0).toUpperCase()}</Text>
+                </View>
+                <View style={styles.assetText}>
+                  <Text style={styles.assetTitle}>指挥中心</Text>
+                  <Text style={styles.assetSubtitle} numberOfLines={1}>
+                    {displayName}
+                  </Text>
+                </View>
               </View>
               <View style={styles.statusPill}>
                 <Text style={styles.statusText}>连接稳定</Text>
@@ -203,39 +206,41 @@ export const HomeScreen = () => {
                 pressed && styles.pressed,
               ]}
             >
-              <ParallelogramPanel
-                width={quickCardWidth}
-                height={H_SMALL}
-                tiltDeg={TILT_SMALL}
-                strokeColors={[card.borderColor, '#7DD3FC']}
-                fillColors={['rgba(10, 5, 18, 0.95)', 'rgba(16, 10, 26, 0.86)']}
-                padding={18}
-              >
-                <View style={styles.quickCardContent}>
-                  <LinearGradient
-                    colors={[hexToRgba(card.borderColor, 0.2), 'rgba(6, 8, 18, 0.9)']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.quickCardBackground}
-                  />
-                  <View style={styles.quickGlow} />
-                  <View style={styles.quickCardBody}>
-                    <QuickGlyph
-                      id={card.glyph}
-                      size={26}
-                      colors={[card.borderColor, lightenHex(card.borderColor, 0.25)]}
+              <View style={styles.quickCardSurface}>
+                <ParallelogramPanel
+                  width={quickCardWidth}
+                  height={H_SMALL}
+                  tiltDeg={TILT_SMALL}
+                  strokeColors={[card.borderColor, '#7DD3FC']}
+                  fillColors={['rgba(6, 6, 20, 0.72)', 'rgba(4, 4, 12, 0.62)']}
+                  padding={18}
+                >
+                  <View style={styles.quickCardContent}>
+                    <LinearGradient
+                      colors={[hexToRgba(card.borderColor, 0.16), 'rgba(6, 8, 18, 0.78)']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.quickCardBackground}
                     />
-                    <View style={styles.quickText}>
-                      <Text style={styles.quickTitle} numberOfLines={1}>
-                        {card.title}
-                      </Text>
-                      <Text numberOfLines={1} style={styles.quickSubtitle}>
-                        {card.subtitle}
-                      </Text>
+                    <View style={[styles.quickGlow, { shadowColor: card.borderColor }]} />
+                    <View style={styles.quickCardBody}>
+                      <QuickGlyph
+                        id={card.glyph}
+                        size={26}
+                        colors={[card.borderColor, lightenHex(card.borderColor, 0.25)]}
+                      />
+                      <View style={styles.quickText}>
+                        <Text style={styles.quickTitle} numberOfLines={1}>
+                          {card.title}
+                        </Text>
+                        <Text numberOfLines={1} style={styles.quickSubtitle}>
+                          {card.subtitle}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
-              </ParallelogramPanel>
+                </ParallelogramPanel>
+              </View>
             </Pressable>
           );
         })}
@@ -345,12 +350,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 18,
+    marginBottom: 16,
+  },
+  identityBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
+    gap: 12,
   },
   avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 28,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
@@ -359,7 +371,7 @@ const styles = StyleSheet.create({
   },
   avatarLabel: {
     color: palette.text,
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
   },
   assetText: {
@@ -397,15 +409,15 @@ const styles = StyleSheet.create({
   },
   resourceChip: {
     flex: 1,
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     backgroundColor: 'rgba(8, 10, 24, 0.92)',
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
+    shadowOpacity: 0.16,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
   },
   resourceChipHeader: {
     flexDirection: 'row',
@@ -425,8 +437,9 @@ const styles = StyleSheet.create({
   },
   resourceValue: {
     color: palette.text,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
+    flexShrink: 1,
   },
   resourceUnit: {
     fontSize: 13,
@@ -449,7 +462,11 @@ const styles = StyleSheet.create({
   },
   quickCardContent: {
     flex: 1,
+    height: '100%',
     justifyContent: 'center',
+    borderRadius: 18,
+    overflow: 'hidden',
+    position: 'relative',
   },
   quickCardBackground: {
     ...StyleSheet.absoluteFillObject,
@@ -467,9 +484,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    flex: 1,
   },
   quickText: {
     flex: 1,
+    minWidth: 0,
   },
   quickTitle: {
     color: '#F2F5FF',
@@ -491,12 +510,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     gap: 12,
+    overflow: 'hidden',
   },
   blindBoxLabel: {
     color: 'rgba(189, 200, 255, 0.7)',
     fontSize: 12,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
+    flexShrink: 1,
   },
   blindBoxTitle: {
     color: '#F4F6FF',
@@ -504,12 +525,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 4,
     letterSpacing: 0.5,
+    flexShrink: 1,
   },
   blindBoxDesc: {
     color: 'rgba(200, 208, 255, 0.78)',
     fontSize: 13,
     marginTop: 6,
     lineHeight: 20,
+    flexShrink: 1,
   },
   blindBoxFooter: {
     flexDirection: 'row',
