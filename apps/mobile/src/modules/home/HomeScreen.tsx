@@ -9,7 +9,7 @@ import { ErrorState } from '@components/ErrorState';
 import ParallelogramPanel from '@components/ParallelogramPanel';
 import NeonButton from '@components/NeonButton';
 import QuickGlyph, { QuickGlyphId } from '@components/QuickGlyph';
-import { CyberCavernBackdrop } from '../../ui/CyberCavernBackdrop';
+import HomeBackground from '../../ui/HomeBackground';
 import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
 import { useAppDispatch } from '@state/hooks';
@@ -114,7 +114,7 @@ export const HomeScreen = () => {
     [navigation],
   );
   const quickCardWidth = useMemo(() => Math.max(150, (frameWidth - GUTTER) / 2), [frameWidth]);
-  const cavernBackdrop = useMemo(() => <CyberCavernBackdrop />, []);
+  const cavernBackdrop = useMemo(() => <HomeBackground showVaporLayers />, []);
 
   if (loading) {
     return (
@@ -150,6 +150,7 @@ export const HomeScreen = () => {
             tiltDeg={TILT_ASSET}
             strokeColors={['#FF5AE0', '#7DD3FC']}
             fillColors={['rgba(18, 8, 32, 0.94)', 'rgba(12, 6, 24, 0.86)']}
+            innerStrokeColors={['rgba(255,255,255,0.25)', 'rgba(122, 210, 255, 0.32)']}
             padding={20}
           >
             <View style={styles.assetHeader}>
@@ -212,12 +213,13 @@ export const HomeScreen = () => {
                   height={H_SMALL}
                   tiltDeg={TILT_SMALL}
                   strokeColors={[card.borderColor, '#7DD3FC']}
-                  fillColors={['rgba(6, 6, 20, 0.72)', 'rgba(4, 4, 12, 0.62)']}
+                  innerStrokeColors={['rgba(255,255,255,0.25)', 'rgba(120,210,255,0.28)']}
+                  fillColors={['rgba(6, 6, 20, 0.4)', 'rgba(4, 4, 12, 0.36)']}
                   padding={18}
                 >
                   <View style={styles.quickCardContent}>
                     <LinearGradient
-                      colors={[hexToRgba(card.borderColor, 0.16), 'rgba(6, 8, 18, 0.78)']}
+                      colors={[hexToRgba(card.borderColor, 0.12), 'rgba(8, 10, 22, 0.64)']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                       style={styles.quickCardBackground}
@@ -253,7 +255,9 @@ export const HomeScreen = () => {
             height={H_BOX}
             tiltDeg={TILT_BOX}
             strokeColors={['#FF5AE0', '#7DD3FC']}
-            fillColors={['rgba(15, 4, 24, 0.94)', 'rgba(9, 7, 20, 0.88)']}
+            innerStrokeColors={['rgba(255,255,255,0.22)', 'rgba(126, 208, 255, 0.28)']}
+            fillColors={['rgba(12, 6, 20, 0.6)', 'rgba(8, 4, 16, 0.5)']}
+            padding={20}
           >
             <View style={styles.blindBoxContent}>
               <View>
@@ -455,6 +459,10 @@ const styles = StyleSheet.create({
   },
   quickPressable: {
     alignItems: 'stretch',
+  },
+  quickCardSurface: {
+    width: '100%',
+    height: '100%',
   },
   pressed: {
     transform: [{ scale: PRESS_SCALE }],
