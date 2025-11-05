@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer } from '@components/ScreenContainer';
@@ -7,6 +8,7 @@ import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 import { ErrorState } from '@components/ErrorState';
 import ParallelogramPanel from '@components/ParallelogramPanel';
 import NeonButton from '@components/NeonButton';
+import QuickGlyph, { QuickGlyphId } from '@components/QuickGlyph';
 import { CyberCavernBackdrop } from '../../ui/CyberCavernBackdrop';
 import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
@@ -14,6 +16,7 @@ import { useAppDispatch } from '@state/hooks';
 import { loadAccountSummary } from '@state/account/accountSlice';
 import { HomeStackParamList } from '@app/navigation/types';
 import { palette } from '@theme/colors';
+import { spacing } from '@theme/tokens';
 import {
   CARD_WIDTH,
   GUTTER,
@@ -35,7 +38,7 @@ type QuickLink = {
   subtitle: string;
   route: keyof HomeStackParamList;
   borderColor: string;
-  icon: any;
+  glyph: QuickGlyphId;
 };
 
 const ARC_TOKEN_ID = 'tok-energy';
@@ -48,7 +51,7 @@ const QUICK_LINKS: QuickLink[] = [
     subtitle: '与全服指挥官实时比拼',
     route: 'Leaderboard',
     borderColor: palette.magenta,
-    icon: require('../../assets/icons/trophy.png'),
+    glyph: 'leaderboard',
   },
   {
     key: 'Forge',
@@ -56,7 +59,7 @@ const QUICK_LINKS: QuickLink[] = [
     subtitle: '凝铸装备与模块',
     route: 'Forge',
     borderColor: palette.cyan,
-    icon: require('../../assets/icons/forge.png'),
+    glyph: 'forge',
   },
   {
     key: 'Marketplace',
@@ -64,7 +67,7 @@ const QUICK_LINKS: QuickLink[] = [
     subtitle: '交易 NFT 与蓝图',
     route: 'Marketplace',
     borderColor: palette.magenta,
-    icon: require('../../assets/icons/market.png'),
+    glyph: 'market',
   },
   {
     key: 'EventShop',
@@ -72,7 +75,7 @@ const QUICK_LINKS: QuickLink[] = [
     subtitle: '兑换限时补给',
     route: 'EventShop',
     borderColor: palette.violet,
-    icon: require('../../assets/icons/gift.png'),
+    glyph: 'event',
   },
 ];
 
@@ -92,10 +95,15 @@ export const HomeScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<HomeNavigation>();
   const { data, loading, error } = useAccountSummary();
+  const { width: windowWidth } = useWindowDimensions();
 
   const displayName = data?.displayName ?? '指挥官';
   const arcAmount = useMemo(() => formatAssetAmount(data?.tokens, ARC_TOKEN_ID), [data?.tokens]);
   const oreAmount = useMemo(() => formatAssetAmount(data?.tokens, ORE_TOKEN_ID), [data?.tokens]);
+  const frameWidth = useMemo(
+    () => Math.min(CARD_WIDTH, windowWidth - spacing.pageHorizontal * 2),
+    [windowWidth],
+  );
 
   const quickCards = useMemo(
     () =>
@@ -105,7 +113,7 @@ export const HomeScreen = () => {
       })),
     [navigation],
   );
-  const quickCardWidth = useMemo(() => (CARD_WIDTH - GUTTER) / 2, []);
+  const quickCardWidth = useMemo(() => Math.max(150, (frameWidth - GUTTER) / 2), [frameWidth]);
   const cavernBackdrop = useMemo(() => <CyberCavernBackdrop />, []);
 
   if (loading) {
@@ -135,33 +143,49 @@ export const HomeScreen = () => {
   return (
     <ScreenContainer scrollable variant="plain" edgeVignette background={cavernBackdrop}>
       <View style={styles.section}>
-        <ParallelogramPanel
-          width={CARD_WIDTH}
-          height={H_ASSET}
-          tiltDeg={TILT_ASSET}
-          strokeColors={['#FF5AE0', '#7DD3FC']}
-          fillColors={['rgba(18, 8, 32, 0.94)', 'rgba(12, 6, 24, 0.86)']}
-        >
-          <View style={styles.assetHeader}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarLabel}>{displayName.charAt(0).toUpperCase()}</Text>
+        <View style={[styles.sectionInner, { width: frameWidth }]}>
+          <ParallelogramPanel
+            width={frameWidth}
+            height={H_ASSET}
+            tiltDeg={TILT_ASSET}
+            strokeColors={['#FF5AE0', '#7DD3FC']}
+            fillColors={['rgba(18, 8, 32, 0.94)', 'rgba(12, 6, 24, 0.86)']}
+          >
+            <View style={styles.assetHeader}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarLabel}>{displayName.charAt(0).toUpperCase()}</Text>
+              </View>
+              <View style={styles.assetText}>
+                <Text style={styles.assetTitle}>指挥中心</Text>
+                <Text style={styles.assetSubtitle} numberOfLines={1}>
+                  {displayName}
+                </Text>
+              </View>
+              <View style={styles.statusPill}>
+                <Text style={styles.statusText}>连接稳定</Text>
+              </View>
             </View>
-            <View style={styles.assetText}>
-              <Text style={styles.assetTitle}>指挥中心</Text>
-              <Text style={styles.assetSubtitle}>{displayName}</Text>
+            <View style={styles.resourceRow}>
+              <ResourceChip
+                label="Arc"
+                glyph="arc"
+                value={arcAmount}
+                unit="枚"
+                accent={palette.magenta}
+              />
+              <ResourceChip
+                label="矿石"
+                glyph="ore"
+                value={oreAmount}
+                unit="颗"
+                accent={palette.cyan}
+              />
             </View>
-            <View style={styles.statusPill}>
-              <Text style={styles.statusText}>连接稳定</Text>
-            </View>
-          </View>
-          <View style={styles.resourceRow}>
-            <ResourceChip label="Arc" value={arcAmount} unit="枚" accent={palette.magenta} />
-            <ResourceChip label="矿石" value={oreAmount} unit="颗" accent={palette.cyan} />
-          </View>
-        </ParallelogramPanel>
+          </ParallelogramPanel>
+        </View>
       </View>
 
-      <View style={styles.quickGrid}>
+      <View style={[styles.quickGrid, { width: frameWidth }]}>
         {quickCards.map((card, index) => {
           const isRightColumn = index % 2 === 1;
           return (
@@ -187,15 +211,28 @@ export const HomeScreen = () => {
                 fillColors={['rgba(10, 5, 18, 0.95)', 'rgba(16, 10, 26, 0.86)']}
                 padding={18}
               >
-                <View style={styles.quickCardBody}>
-                  <Image source={card.icon} style={styles.quickIcon} />
-                  <View style={styles.quickText}>
-                    <Text style={styles.quickTitle} numberOfLines={1}>
-                      {card.title}
-                    </Text>
-                    <Text numberOfLines={1} style={styles.quickSubtitle}>
-                      {card.subtitle}
-                    </Text>
+                <View style={styles.quickCardContent}>
+                  <LinearGradient
+                    colors={[hexToRgba(card.borderColor, 0.2), 'rgba(6, 8, 18, 0.9)']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.quickCardBackground}
+                  />
+                  <View style={styles.quickGlow} />
+                  <View style={styles.quickCardBody}>
+                    <QuickGlyph
+                      id={card.glyph}
+                      size={26}
+                      colors={[card.borderColor, lightenHex(card.borderColor, 0.25)]}
+                    />
+                    <View style={styles.quickText}>
+                      <Text style={styles.quickTitle} numberOfLines={1}>
+                        {card.title}
+                      </Text>
+                      <Text numberOfLines={1} style={styles.quickSubtitle}>
+                        {card.subtitle}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </ParallelogramPanel>
@@ -205,30 +242,39 @@ export const HomeScreen = () => {
       </View>
 
       <View style={styles.section}>
-        <ParallelogramPanel
-          width={CARD_WIDTH}
-          height={H_BOX}
-          tiltDeg={TILT_BOX}
-          strokeColors={['#FF5AE0', '#7DD3FC']}
-          fillColors={['rgba(15, 4, 24, 0.94)', 'rgba(9, 7, 20, 0.88)']}
-        >
-          <View style={styles.blindBoxContent}>
-            <View>
-              <Text style={styles.blindBoxLabel}>盲盒展示</Text>
-              <Text style={styles.blindBoxTitle}>觉醒方阵 · 今日加赠 2 次掉落</Text>
-              <Text style={styles.blindBoxDesc}>
-                进入 Unity 空间唤醒盲盒，奖励将自动结算进资产仓。
-              </Text>
+        <View style={[styles.sectionInner, { width: frameWidth }]}>
+          <ParallelogramPanel
+            width={frameWidth}
+            height={H_BOX}
+            tiltDeg={TILT_BOX}
+            strokeColors={['#FF5AE0', '#7DD3FC']}
+            fillColors={['rgba(15, 4, 24, 0.94)', 'rgba(9, 7, 20, 0.88)']}
+          >
+            <View style={styles.blindBoxContent}>
+              <View>
+                <Text style={styles.blindBoxLabel}>盲盒展示</Text>
+                <Text style={styles.blindBoxTitle} numberOfLines={1}>
+                  觉醒方阵 · 今日加赠 2 次掉落
+                </Text>
+                <Text style={styles.blindBoxDesc} numberOfLines={2}>
+                  进入 Unity 空间唤醒盲盒，奖励将自动结算进资产仓。
+                </Text>
+              </View>
+              <View style={styles.blindBoxFooter}>
+                <QuickGlyph
+                  id="blindbox"
+                  size={48}
+                  strokeWidth={2.3}
+                  colors={[palette.violet, palette.cyan]}
+                />
+                <NeonButton
+                  title="唤醒盲盒 · 200 Arc"
+                  onPress={() => navigation.navigate('BlindBox')}
+                />
+              </View>
             </View>
-            <View style={styles.blindBoxFooter}>
-              <Image source={require('../../assets/icons/cube.png')} style={styles.blindBoxIcon} />
-              <NeonButton
-                title="唤醒盲盒 · 200 Arc"
-                onPress={() => navigation.navigate('BlindBox')}
-              />
-            </View>
-          </View>
-        </ParallelogramPanel>
+          </ParallelogramPanel>
+        </View>
       </View>
     </ScreenContainer>
   );
@@ -236,26 +282,46 @@ export const HomeScreen = () => {
 
 const ResourceChip = ({
   label,
+  glyph,
   value,
   unit,
   accent,
 }: {
   label: string;
+  glyph: QuickGlyphId;
   value: string;
   unit: string;
   accent: string;
-}) => (
-  <View style={[styles.resourceChip, { borderColor: accent, shadowColor: accent }]}>
-    <View style={styles.resourceChipHeader}>
-      <View style={[styles.resourceDot, { backgroundColor: accent }]} />
-      <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
+}) => {
+  const secondary = lightenHex(accent, 0.3);
+  return (
+    <View style={[styles.resourceChip, { borderColor: accent, shadowColor: accent }]}>
+      <View style={styles.resourceChipHeader}>
+        <QuickGlyph id={glyph} size={18} strokeWidth={1.7} colors={[accent, secondary]} />
+        <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
+      </View>
+      <View style={styles.resourceValueRow}>
+        <Text style={styles.resourceValue}>{value}</Text>
+        <Text style={styles.resourceUnit}>{unit}</Text>
+      </View>
     </View>
-    <View style={styles.resourceValueRow}>
-      <Text style={styles.resourceValue}>{value}</Text>
-      <Text style={styles.resourceUnit}>{unit}</Text>
-    </View>
-  </View>
-);
+  );
+};
+
+const hexToRgba = (hex: string, alpha: number) => {
+  const normalized = hex.replace('#', '');
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+const lightenHex = (hex: string, amount = 0.2) => {
+  const normalized = hex.replace('#', '');
+  const rgb = [0, 1, 2].map((index) => parseInt(normalized.slice(index * 2, index * 2 + 2), 16));
+  const lightened = rgb.map((channel) => Math.min(255, Math.round(channel * (1 + amount))));
+  return `#${lightened.map((val) => val.toString(16).padStart(2, '0')).join('')}`;
+};
 
 const styles = StyleSheet.create({
   centerBox: {
@@ -266,6 +332,10 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: SIDE,
     marginBottom: 16,
+    alignItems: 'center',
+  },
+  sectionInner: {
+    alignSelf: 'center',
   },
   assetFrame: {
     width: CARD_WIDTH,
@@ -343,11 +413,6 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 4,
   },
-  resourceDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 999,
-  },
   resourceValueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
@@ -369,7 +434,6 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   quickGrid: {
-    width: CARD_WIDTH,
     alignSelf: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -383,31 +447,41 @@ const styles = StyleSheet.create({
     transform: [{ scale: PRESS_SCALE }],
     opacity: 0.9,
   },
-  quickCard: {
-    width: '100%',
+  quickCardContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  quickCardBackground: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 18,
+    pointerEvents: 'none',
+  },
+  quickGlow: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 20,
+    opacity: 0.15,
+    backgroundColor: '#9AFBFF',
+    pointerEvents: 'none',
   },
   quickCardBody: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  quickIcon: {
-    width: 28,
-    height: 28,
-    tintColor: '#BDE1FF',
+    gap: 12,
   },
   quickText: {
-    marginLeft: 10,
     flex: 1,
   },
   quickTitle: {
-    color: palette.text,
+    color: '#F2F5FF',
     fontWeight: '700',
     fontSize: 15,
+    letterSpacing: 0.5,
   },
   quickSubtitle: {
-    color: palette.sub,
+    color: 'rgba(190, 210, 255, 0.75)',
     fontSize: 12,
-    marginTop: 4,
+    marginTop: 2,
+    letterSpacing: 0.3,
   },
   blindBoxFrame: {
     width: CARD_WIDTH,
@@ -419,18 +493,20 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   blindBoxLabel: {
-    color: palette.sub,
+    color: 'rgba(189, 200, 255, 0.7)',
     fontSize: 12,
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
   blindBoxTitle: {
-    color: palette.text,
+    color: '#F4F6FF',
     fontSize: 18,
     fontWeight: '700',
     marginTop: 4,
+    letterSpacing: 0.5,
   },
   blindBoxDesc: {
-    color: palette.sub,
+    color: 'rgba(200, 208, 255, 0.78)',
     fontSize: 13,
     marginTop: 6,
     lineHeight: 20,
@@ -440,10 +516,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 16,
-  },
-  blindBoxIcon: {
-    width: 50,
-    height: 50,
-    tintColor: palette.cyan,
   },
 });

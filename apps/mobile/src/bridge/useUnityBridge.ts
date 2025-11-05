@@ -103,17 +103,7 @@ export const useUnityBridge = (options: UseUnityBridgeOptions = {}) => {
       resumeUnity,
       setUnityEffectsQuality,
     }),
-    [
-      status,
-      lastMessage,
-      bootstrapUnity,
-      requestScene,
-      sendUnityMessage,
-      postUnityMessage,
-      pauseUnity,
-      resumeUnity,
-      setUnityEffectsQuality,
-    ],
+    [status, lastMessage, bootstrapUnity, requestScene],
   );
 
   return value;

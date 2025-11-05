@@ -31,7 +31,7 @@ const buildDrop = (payload: Record<string, unknown> | undefined): GachaDrop => {
 export const BlindBoxScreen = () => {
   const dispatch = useAppDispatch();
   const { height: windowHeight } = useWindowDimensions();
-  const { data, loading, error } = useAccountSummary();
+  const { loading, error } = useAccountSummary();
 
   const [recentDrops, setRecentDrops] = useState<GachaDrop[]>([]);
   const [currentResult, setCurrentResult] = useState<GachaDrop | null>(null);

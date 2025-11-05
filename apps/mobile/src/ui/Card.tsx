@@ -5,10 +5,9 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 const withAlpha = (hex: string, alpha: number) => {
   const normalized = hex.replace('#', '');
-  const bigint = parseInt(normalized, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
@@ -26,16 +25,7 @@ const microFrame = (radius: number) => ({
 const TopHighlight = ({ r }: { r: number }) => (
   <View
     pointerEvents="none"
-    style={{
-      position: 'absolute',
-      left: 1,
-      right: 1,
-      top: 1,
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: 'rgba(255,255,255,0.12)',
-      borderTopLeftRadius: r - 1,
-      borderTopRightRadius: r - 1,
-    }}
+    style={[styles.highlightBase, { borderTopLeftRadius: r - 1, borderTopRightRadius: r - 1 }]}
   />
 );
 
@@ -139,5 +129,13 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(0,0,0,0.18)',
+  },
+  highlightBase: {
+    position: 'absolute',
+    left: 1,
+    right: 1,
+    top: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
 });

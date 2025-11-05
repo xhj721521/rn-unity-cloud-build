@@ -18,39 +18,30 @@ export default function TiltFrame({
   children,
 }: Props) {
   const tiltY = tiltDeg * 0.25;
+  const inverseTransform = [{ skewX: `${-tiltDeg}deg` }, { skewY: `${-tiltY}deg` }];
+  const skewTransform = [{ skewX: `${tiltDeg}deg` }, { skewY: `${tiltY}deg` }];
   return (
-    <View style={[style, { overflow: 'visible' }]}>
+    <View style={[styles.container, style]}>
       <Image
         source={require('../assets/glow_card.png')}
         style={StyleSheet.absoluteFill}
         resizeMode="stretch"
       />
       <View
-        style={[
-          styles.skew,
-          {
-            transform: [{ skewX: `${tiltDeg}deg` }, { skewY: `${tiltY}deg` }],
-            borderColor,
-            shadowColor: borderColor,
-          },
-        ]}
+        style={[styles.skew, { transform: skewTransform, borderColor, shadowColor: borderColor }]}
       >
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: glass[1] }]} />
-        <View style={[StyleSheet.absoluteFill, { opacity: 0.5, backgroundColor: glass[0] }]} />
-        <View
-          style={{
-            transform: [{ skewX: `${-tiltDeg}deg` }, { skewY: `${-tiltY}deg` }],
-            padding: 14,
-          }}
-        >
-          {children}
-        </View>
+        <View style={[styles.glassOverlay, { backgroundColor: glass[1] }]} />
+        <View style={[styles.glassShade, { backgroundColor: glass[0] }]} />
+        <View style={[styles.innerContent, { transform: inverseTransform }]}>{children}</View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    overflow: 'visible',
+  },
   skew: {
     borderRadius: RADIUS,
     borderWidth: 1,
@@ -59,5 +50,15 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 0 },
     elevation: 6,
+  },
+  glassOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  glassShade: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.5,
+  },
+  innerContent: {
+    padding: 14,
   },
 });

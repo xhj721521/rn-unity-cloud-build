@@ -3,6 +3,7 @@ import { Animated, LayoutChangeEvent, Pressable, StyleSheet, Text, View } from '
 import { spacing, typeScale } from '@theme/tokens';
 import { FeatureCard as FeatureFrame } from '../ui/Card';
 import PerforatedGrid from '../ui/decor/PerforatedGrid';
+import QuickGlyph, { QuickGlyphId } from './QuickGlyph';
 
 export type FeatureCardType = 'leaderboard' | 'forge' | 'market' | 'events';
 
@@ -70,7 +71,7 @@ export const FeatureCard = ({
         <View style={styles.cardSurface} onLayout={handleLayout}>
           <FeatureFrame colors={gradientColors} style={styles.frameContent}>
             <View style={styles.iconRow}>
-              <FeatureIcon tint={accent} type={icon} />
+              <QuickGlyph id={featureGlyphMap[icon]} size={26} colors={[accent, '#78F7FF']} />
             </View>
             <View style={styles.textBlock}>
               <Text style={styles.title}>{title}</Text>
@@ -88,39 +89,11 @@ export const FeatureCard = ({
   );
 };
 
-const FeatureIcon = ({ tint, type }: { tint: string; type: FeatureCardType }) => {
-  switch (type) {
-    case 'leaderboard':
-      return (
-        <View style={styles.iconBase}>
-          <View style={[styles.trophyCup, { borderColor: tint }]} />
-          <View style={[styles.trophyStem, { backgroundColor: tint }]} />
-        </View>
-      );
-    case 'forge':
-      return (
-        <View style={styles.iconBase}>
-          <View style={[styles.hammerHead, { backgroundColor: tint }]} />
-          <View style={[styles.hammerHandle, { backgroundColor: tint }]} />
-        </View>
-      );
-    case 'market':
-      return (
-        <View style={styles.iconBase}>
-          <View style={[styles.tagShape, { borderColor: tint }]} />
-          <View style={[styles.tagDot, { borderColor: tint }]} />
-        </View>
-      );
-    case 'events':
-    default:
-      return (
-        <View style={styles.iconBase}>
-          <View style={[styles.giftLid, { borderColor: tint }]} />
-          <View style={[styles.giftBox, { borderColor: tint }]} />
-          <View style={[styles.giftRibbon, { backgroundColor: tint }]} />
-        </View>
-      );
-  }
+const featureGlyphMap: Record<FeatureCardType, QuickGlyphId> = {
+  leaderboard: 'leaderboard',
+  forge: 'forge',
+  market: 'market',
+  events: 'event',
 };
 
 const styles = StyleSheet.create({
@@ -149,87 +122,24 @@ const styles = StyleSheet.create({
   title: {
     color: '#EAEAFB',
     ...typeScale.title,
+    letterSpacing: 0.6,
+    textShadowColor: 'rgba(255, 255, 255, 0.28)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 6,
   },
   subtitle: {
-    color: 'rgba(234,234,251,0.78)',
+    color: 'rgba(190, 210, 255, 0.78)',
     fontSize: 13,
     lineHeight: 18,
     fontWeight: '500',
-  },
-  iconBase: {
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  trophyCup: {
-    width: 20,
-    height: 14,
-    borderWidth: 2,
-    borderRadius: 6,
-    borderTopWidth: 2,
-  },
-  trophyStem: {
-    marginTop: 2,
-    width: 6,
-    height: 8,
-    borderRadius: 2,
-  },
-  hammerHead: {
-    width: 20,
-    height: 8,
-    borderRadius: 4,
-  },
-  hammerHandle: {
-    width: 4,
-    height: 16,
-    borderRadius: 2,
-    marginTop: 2,
-  },
-  tagShape: {
-    width: 20,
-    height: 14,
-    borderWidth: 2,
-    borderRadius: 6,
-    transform: [{ rotate: '-12deg' }],
-  },
-  tagDot: {
-    position: 'absolute',
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    borderWidth: 2,
-    top: 6,
-    right: 6,
-  },
-  giftLid: {
-    width: 20,
-    height: 6,
-    borderWidth: 2,
-    borderRadius: 3,
-  },
-  giftBox: {
-    marginTop: 2,
-    width: 20,
-    height: 12,
-    borderWidth: 2,
-    borderRadius: 6,
-  },
-  giftRibbon: {
-    position: 'absolute',
-    width: 2,
-    height: 18,
-    borderRadius: 1,
-    left: 11,
-    top: 3,
+    letterSpacing: 0.4,
   },
 });
 
 const hexToRgba = (hex: string, alpha: number) => {
   const normalized = hex.replace('#', '');
-  const bigint = parseInt(normalized, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };

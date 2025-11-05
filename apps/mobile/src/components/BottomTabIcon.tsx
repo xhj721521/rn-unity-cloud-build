@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { shape, spacing } from '@theme/tokens';
 import { neonPalette } from '@theme/neonPalette';
+import QuickGlyph, { QuickGlyphId } from './QuickGlyph';
 
 export type BottomTabGlyph = 'home' | 'trials' | 'explore' | 'onchain' | 'profile';
 
@@ -12,10 +13,17 @@ type BottomTabIconProps = {
 };
 
 export const BottomTabIcon = ({ label, type, focused }: BottomTabIconProps) => {
+  const glyphId = tabGlyphMap[type];
+  const colors = focused ? ['#FF75FF', '#7AD8FF'] : ['#7A7F9F', '#5A6B9A'];
   return (
     <View style={[styles.container, focused ? styles.containerFocused : styles.containerInactive]}>
       <View style={[styles.glyphWrap, focused && styles.glyphWrapFocused]}>
-        {renderGlyph(type, focused ? '#FF75FF' : '#6A6E92')}
+        <QuickGlyph
+          id={glyphId}
+          size={22}
+          strokeWidth={focused ? 2.1 : 1.8}
+          colors={colors as [string, string]}
+        />
       </View>
       <Text style={[styles.label, focused ? styles.labelActive : styles.labelInactive]}>
         {label}
@@ -24,43 +32,12 @@ export const BottomTabIcon = ({ label, type, focused }: BottomTabIconProps) => {
   );
 };
 
-const renderGlyph = (type: BottomTabGlyph, tint: string) => {
-  switch (type) {
-    case 'home':
-      return (
-        <View style={styles.homeGlyph}>
-          <View style={[styles.homeRoof, { borderColor: tint }]} />
-          <View style={[styles.homeBody, { borderColor: tint }]} />
-        </View>
-      );
-    case 'trials':
-      return (
-        <View style={[styles.shield, { borderColor: tint }]}>
-          <View style={[styles.sword, { backgroundColor: tint }]} />
-        </View>
-      );
-    case 'explore':
-      return (
-        <View style={[styles.compass, { borderColor: tint }]}>
-          <View style={[styles.compassNeedle, { backgroundColor: tint }]} />
-        </View>
-      );
-    case 'onchain':
-      return (
-        <View style={styles.chainRow}>
-          <View style={[styles.chainLink, { borderColor: tint }]} />
-          <View style={[styles.chainLink, styles.chainLinkOffset, { borderColor: tint }]} />
-        </View>
-      );
-    case 'profile':
-    default:
-      return (
-        <View style={styles.profileGlyph}>
-          <View style={[styles.profileHead, { borderColor: tint }]} />
-          <View style={[styles.profileBody, { borderColor: tint }]} />
-        </View>
-      );
-  }
+const tabGlyphMap: Record<BottomTabGlyph, QuickGlyphId> = {
+  home: 'home',
+  trials: 'trial',
+  explore: 'explore',
+  onchain: 'chain',
+  profile: 'blindbox',
 };
 
 const styles = StyleSheet.create({
@@ -109,80 +86,5 @@ const styles = StyleSheet.create({
   labelInactive: {
     color: neonPalette.textMuted,
     opacity: 0.72,
-  },
-  homeGlyph: {
-    alignItems: 'center',
-  },
-  homeRoof: {
-    width: 18,
-    height: 10,
-    borderTopWidth: 2,
-    borderLeftWidth: 2,
-    borderRightWidth: 2,
-    borderRadius: 2,
-  },
-  homeBody: {
-    marginTop: 2,
-    width: 18,
-    height: 9,
-    borderWidth: 2,
-    borderRadius: 2,
-  },
-  shield: {
-    width: 20,
-    height: 22,
-    borderWidth: 2,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sword: {
-    width: 3,
-    height: 12,
-    borderRadius: 2,
-  },
-  compass: {
-    width: 20,
-    height: 20,
-    borderWidth: 2,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  compassNeedle: {
-    width: 3,
-    height: 12,
-    borderRadius: 1,
-    transform: [{ rotate: '45deg' }],
-  },
-  chainRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.grid / 2,
-  },
-  chainLink: {
-    width: 16,
-    height: 10,
-    borderWidth: 2,
-    borderRadius: 6,
-  },
-  chainLinkOffset: {
-    marginLeft: -6,
-  },
-  profileGlyph: {
-    alignItems: 'center',
-    gap: 3,
-  },
-  profileHead: {
-    width: 12,
-    height: 12,
-    borderWidth: 2,
-    borderRadius: 6,
-  },
-  profileBody: {
-    width: 18,
-    height: 10,
-    borderWidth: 2,
-    borderRadius: 5,
   },
 });

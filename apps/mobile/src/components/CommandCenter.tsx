@@ -1,6 +1,5 @@
 import React from 'react';
 import { LayoutChangeEvent, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { neonPalette } from '@theme/neonPalette';
 import { shape, spacing, typeScale } from '@theme/tokens';
 import { SurfaceCard, CapsuleCard } from '../ui/Card';
 import PerforatedGrid from '../ui/decor/PerforatedGrid';
@@ -94,7 +93,8 @@ const ResourceCapsuleView = ({ resource }: { resource: ResourceCapsule }) => {
           <View
             style={[
               styles.resourceDot,
-              { backgroundColor: accentColor, opacity: isOnline === false ? 0.4 : 1 },
+              { backgroundColor: accentColor },
+              isOnline === false && styles.resourceDotInactive,
             ]}
           />
           <Text style={styles.resourceLabel}>{label}</Text>
@@ -205,6 +205,9 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
+  },
+  resourceDotInactive: {
+    opacity: 0.4,
   },
   resourceLabel: {
     ...typeScale.caption,

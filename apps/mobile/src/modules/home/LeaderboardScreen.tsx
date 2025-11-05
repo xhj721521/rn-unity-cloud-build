@@ -134,24 +134,23 @@ const ChampionShowcase = ({ entries, accountName }: ChampionShowcaseProps) => {
         const tone = RANK_TONES[getRankTone(entry.rank)];
         const glowScale = entry.rank === 1 ? 1.18 : 1.06;
         const isMine = entry.userId === 'pilot-zero' || entry.playerName === accountName;
+        const cardAnimatedStyle = getPodiumCardAnimatedStyle({
+          pulse,
+          glowScale,
+          accent: tone.accent,
+          isChampion: entry.rank === 1,
+        });
+        const glowAnimatedStyle = getPodiumGlowStyle({
+          pulse,
+          accent: tone.accent,
+        });
         return (
           <Animated.View
             key={entry.userId}
             style={[
               styles.podiumCard,
               entry.rank === 1 && styles.podiumCardChampion,
-              {
-                shadowColor: tone.accent,
-                shadowOpacity: entry.rank === 1 ? 0.45 : 0.28,
-                transform: [
-                  {
-                    scale: pulse.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.98, glowScale],
-                    }),
-                  },
-                ],
-              },
+              cardAnimatedStyle,
             ]}
           >
             <LinearGradient
@@ -160,24 +159,7 @@ const ChampionShowcase = ({ entries, accountName }: ChampionShowcaseProps) => {
               end={{ x: 1, y: 1 }}
               style={styles.podiumGradient}
             >
-              <Animated.View
-                pointerEvents="none"
-                style={[
-                  styles.podiumGlow,
-                  {
-                    backgroundColor: tone.accent,
-                    opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.14, 0.32] }),
-                    transform: [
-                      {
-                        scale: pulse.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.95, 1.05],
-                        }),
-                      },
-                    ],
-                  },
-                ]}
-              />
+              <Animated.View pointerEvents="none" style={[styles.podiumGlow, glowAnimatedStyle]} />
               <View style={styles.podiumHeader}>
                 <MedalBadge rank={entry.rank} />
                 <View style={[styles.rankPill, { borderColor: tone.accent }]}>
@@ -358,6 +340,71 @@ const TabBar = <T extends string>({
   </View>
 );
 
+type LeaderboardHeaderProps = {
+  category: LeaderboardCategory;
+  period: LeaderboardPeriod;
+  onSelectCategory: (key: LeaderboardCategory) => void;
+  onSelectPeriod: (key: LeaderboardPeriod) => void;
+  onScrollToMine: () => void;
+  mySummary: string;
+  championEntries: LeaderboardEntry[];
+  accountName?: string;
+};
+
+const LeaderboardHeader = ({
+  category,
+  period,
+  onSelectCategory,
+  onSelectPeriod,
+  onScrollToMine,
+  mySummary,
+  championEntries,
+  accountName,
+}: LeaderboardHeaderProps) => (
+  <View style={styles.headerBlock}>
+    <View style={styles.headerRow}>
+      <View style={styles.titleWrap}>
+        <Text style={styles.title}>排行榜</Text>
+        <Text style={styles.subtitle}>
+          邀请达人、团队排行、财富榜三大榜单，实时刷新你的冲刺进度。
+        </Text>
+      </View>
+      <Pressable
+        style={styles.jumpButton}
+        android_ripple={{ color: 'rgba(255, 255, 255, 0.2)' }}
+        onPress={onScrollToMine}
+      >
+        <LinearGradient
+          colors={['rgba(66, 225, 255, 0.8)', 'rgba(143, 92, 255, 0.85)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.jumpGradient}
+        >
+          <Text style={styles.jumpLabel}>回到我的排名</Text>
+        </LinearGradient>
+      </Pressable>
+    </View>
+    <TabBar tabs={CATEGORY_TABS} active={category} onChange={onSelectCategory} />
+    <TabBar tabs={PERIOD_TABS} active={period} onChange={onSelectPeriod} />
+    <MyRankCard summary={mySummary} />
+    <ChampionShowcase entries={championEntries} accountName={accountName} />
+    <View style={styles.listHeadingRow}>
+      <Text style={styles.listTitle}>榜单明细</Text>
+    </View>
+  </View>
+);
+
+const RewardSection = ({
+  rewards,
+}: {
+  rewards: { top1To3: string; top4To10: string; top11To20: string };
+}) => (
+  <View style={styles.rewardSection}>
+    <Text style={styles.sectionTitle}>赛季奖励</Text>
+    <RewardShowcase rewards={rewards} />
+  </View>
+);
+
 export const LeaderboardScreen = () => {
   const [category, setCategory] = useState<LeaderboardCategory>('inviter');
   const [period, setPeriod] = useState<LeaderboardPeriod>('daily');
@@ -429,46 +476,20 @@ export const LeaderboardScreen = () => {
         data={listEntries}
         keyExtractor={(item) => item.userId}
         renderItem={renderItem}
-        ItemSeparatorComponent={() => <View style={styles.rowSeparator} />}
+        ItemSeparatorComponent={ListSeparator}
         ListHeaderComponent={
-          <View style={styles.headerBlock}>
-            <View style={styles.headerRow}>
-              <View style={styles.titleWrap}>
-                <Text style={styles.title}>排行榜</Text>
-                <Text style={styles.subtitle}>
-                  邀请达人、团队排行、财富榜三大榜单，实时刷新你的冲刺进度。
-                </Text>
-              </View>
-              <Pressable
-                style={styles.jumpButton}
-                android_ripple={{ color: 'rgba(255, 255, 255, 0.2)' }}
-                onPress={handleScrollToMine}
-              >
-                <LinearGradient
-                  colors={['rgba(66, 225, 255, 0.8)', 'rgba(143, 92, 255, 0.85)']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.jumpGradient}
-                >
-                  <Text style={styles.jumpLabel}>回到我的排名</Text>
-                </LinearGradient>
-              </Pressable>
-            </View>
-            <TabBar tabs={CATEGORY_TABS} active={category} onChange={handleSelectCategory} />
-            <TabBar tabs={PERIOD_TABS} active={period} onChange={handleSelectPeriod} />
-            <MyRankCard summary={mySummary} />
-            <ChampionShowcase entries={championEntries} accountName={account?.displayName} />
-            <View style={styles.listHeadingRow}>
-              <Text style={styles.listTitle}>榜单明细</Text>
-            </View>
-          </View>
+          <LeaderboardHeader
+            category={category}
+            period={period}
+            onSelectCategory={handleSelectCategory}
+            onSelectPeriod={handleSelectPeriod}
+            onScrollToMine={handleScrollToMine}
+            mySummary={mySummary}
+            championEntries={championEntries}
+            accountName={account?.displayName}
+          />
         }
-        ListFooterComponent={
-          <View style={styles.rewardSection}>
-            <Text style={styles.sectionTitle}>赛季奖励</Text>
-            <RewardShowcase rewards={rewards} />
-          </View>
-        }
+        ListFooterComponent={<RewardSection rewards={rewards} />}
         contentContainerStyle={styles.listWrapper}
         showsVerticalScrollIndicator={false}
         onScrollToIndexFailed={(info) => {
@@ -480,6 +501,48 @@ export const LeaderboardScreen = () => {
     </ScreenContainer>
   );
 };
+
+type PodiumCardAnimatedInput = {
+  pulse: Animated.Value;
+  glowScale: number;
+  accent: string;
+  isChampion: boolean;
+};
+
+const getPodiumCardAnimatedStyle = ({
+  pulse,
+  glowScale,
+  accent,
+  isChampion,
+}: PodiumCardAnimatedInput) => ({
+  shadowColor: accent,
+  shadowOpacity: isChampion ? 0.45 : 0.28,
+  transform: [
+    {
+      scale: pulse.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0.98, glowScale],
+      }),
+    },
+  ],
+});
+
+const getPodiumGlowStyle = ({ pulse, accent }: { pulse: Animated.Value; accent: string }) => ({
+  backgroundColor: accent,
+  opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.14, 0.32] }),
+  transform: [
+    {
+      scale: pulse.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0.95, 1.05],
+      }),
+    },
+  ],
+});
+
+function ListSeparator() {
+  return <View style={styles.rowSeparator} />;
+}
 
 const styles = StyleSheet.create({
   listWrapper: {

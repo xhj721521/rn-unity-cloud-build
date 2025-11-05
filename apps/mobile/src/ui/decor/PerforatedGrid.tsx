@@ -4,7 +4,6 @@ import Svg, { Circle, G } from 'react-native-svg';
 
 let Reanimated: typeof import('react-native-reanimated') | null = null;
 try {
-  // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
   Reanimated = require('react-native-reanimated');
 } catch (error) {
   Reanimated = null;
@@ -43,24 +42,59 @@ export default function PerforatedGrid({
     return nodes;
   }, [areaHeight, areaWidth, gap, r]);
 
-  if (!Reanimated || disabled || !('useSharedValue' in Reanimated)) {
-    return (
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
-          <G opacity={0.06} transform={`translate(${offsetX}, ${offsetY})`}>
-            {dots}
-          </G>
-        </Svg>
-      </View>
-    );
+  if (disabled) {
+    return <StaticGrid dots={dots} offsetX={offsetX} offsetY={offsetY} opacity={0.06} />;
   }
 
-  const { useSharedValue, withRepeat, withTiming, Easing, useAnimatedStyle } = Reanimated;
-  const AnimatedContainer = (Reanimated as any).default?.View ?? (Reanimated as any).View;
-  const cancelAnimation = (Reanimated as any).cancelAnimation as
-    | ((value: unknown) => void)
-    | undefined;
+  const canAnimate = Reanimated && typeof Reanimated.useSharedValue === 'function';
 
+  if (!canAnimate) {
+    return <StaticGrid dots={dots} offsetX={offsetX} offsetY={offsetY} opacity={0.06} />;
+  }
+
+  return (
+    <AnimatedGrid
+      reanimated={Reanimated as typeof import('react-native-reanimated')}
+      dots={dots}
+      offsetX={offsetX}
+      offsetY={offsetY}
+    />
+  );
+}
+
+type GridLayerProps = {
+  dots: React.ReactNode[];
+  offsetX: number;
+  offsetY: number;
+  opacity?: number;
+};
+
+const StaticGrid = ({ dots, offsetX, offsetY, opacity = 0.06 }: GridLayerProps) => (
+  <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+    <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <G opacity={opacity} transform={`translate(${offsetX}, ${offsetY})`}>
+        {dots}
+      </G>
+    </Svg>
+  </View>
+);
+
+type AnimatedGridProps = GridLayerProps & {
+  reanimated: typeof import('react-native-reanimated');
+};
+
+const AnimatedGrid = ({ reanimated, dots, offsetX, offsetY }: AnimatedGridProps) => {
+  const {
+    useSharedValue,
+    withRepeat,
+    withTiming,
+    Easing,
+    useAnimatedStyle,
+    createAnimatedComponent,
+  } = reanimated;
+  const AnimatedView = useMemo(() => createAnimatedComponent(View), [createAnimatedComponent]);
+  const cancelAnimation: ((value: unknown) => void) | undefined =
+    typeof reanimated.cancelAnimation === 'function' ? reanimated.cancelAnimation : undefined;
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -77,7 +111,7 @@ export default function PerforatedGrid({
         progress.value = 0;
       }
     };
-  }, [cancelAnimation, progress, withRepeat, withTiming]);
+  }, [Easing, cancelAnimation, progress, withRepeat, withTiming]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const phase = Math.sin(progress.value * Math.PI * 2);
@@ -85,27 +119,19 @@ export default function PerforatedGrid({
       opacity: 0.06 + (phase + 1) * 0.02,
       transform: [{ translateX: phase * 8 }],
     };
-  });
+  }, [progress]);
 
-  if (!AnimatedContainer) {
-    return (
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
-          <G opacity={0.08} transform={`translate(${offsetX}, ${offsetY})`}>
-            {dots}
-          </G>
-        </Svg>
-      </View>
-    );
+  if (!AnimatedView) {
+    return <StaticGrid dots={dots} offsetX={offsetX} offsetY={offsetY} opacity={0.08} />;
   }
 
   return (
-    <AnimatedContainer pointerEvents="none" style={[StyleSheet.absoluteFill, animatedStyle]}>
+    <AnimatedView pointerEvents="none" style={[StyleSheet.absoluteFill, animatedStyle]}>
       <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
         <G opacity={0.06} transform={`translate(${offsetX}, ${offsetY})`}>
           {dots}
         </G>
       </Svg>
-    </AnimatedContainer>
+    </AnimatedView>
   );
-}
+};

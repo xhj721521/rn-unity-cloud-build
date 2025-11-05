@@ -1,14 +1,20 @@
 ﻿import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { NAV_H } from '@theme/metrics';
-import { palette } from '@theme/colors';
+import QuickGlyph, { QuickGlyphId } from './QuickGlyph';
 
-const TABS: { key: string; label: string; icon: any }[] = [
-  { key: 'home', label: '首页', icon: require('../assets/icons/home.png') },
-  { key: 'trial', label: '试炼', icon: require('../assets/icons/trial.png') },
-  { key: 'explore', label: '探索', icon: require('../assets/icons/explore.png') },
-  { key: 'chain', label: '链鉴', icon: require('../assets/icons/chain.png') },
-  { key: 'me', label: '我的', icon: require('../assets/icons/me.png') },
+type TabItem = {
+  key: string;
+  label: string;
+  glyph: QuickGlyphId;
+};
+
+const TABS: TabItem[] = [
+  { key: 'home', label: '首页', glyph: 'home' },
+  { key: 'trial', label: '试炼', glyph: 'trial' },
+  { key: 'explore', label: '探索', glyph: 'explore' },
+  { key: 'chain', label: '链鉴', glyph: 'chain' },
+  { key: 'me', label: '我的', glyph: 'blindbox' },
 ];
 
 export default function BottomNav({
@@ -22,9 +28,15 @@ export default function BottomNav({
     <View style={styles.bar}>
       {TABS.map((t) => {
         const selected = t.key === active;
+        const colors = selected ? ['#FF77FB', '#6CF2FF'] : ['#7A80A5', '#4F5877'];
         return (
           <Pressable key={t.key} onPress={() => onChange(t.key)} style={styles.item}>
-            <Image source={t.icon} style={[styles.icon, selected && styles.iconActive]} />
+            <QuickGlyph
+              id={t.glyph}
+              size={23}
+              strokeWidth={selected ? 2.1 : 1.6}
+              colors={colors as [string, string]}
+            />
             <Text style={[styles.label, selected && styles.labelActive]}>{t.label}</Text>
           </Pressable>
         );
@@ -49,15 +61,6 @@ const styles = StyleSheet.create({
   item: {
     width: '20%',
     alignItems: 'center',
-  },
-  icon: {
-    width: 22,
-    height: 22,
-    tintColor: 'rgba(180, 190, 255, 0.8)',
-    marginBottom: 4,
-  },
-  iconActive: {
-    tintColor: palette.cyan,
   },
   label: {
     color: 'rgba(226, 231, 255, 0.66)',
