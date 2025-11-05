@@ -48,23 +48,23 @@ const QUICK_LINKS: QuickLink[] = [
   {
     key: 'Leaderboard',
     title: '排行榜',
-    subtitle: '与全服指挥官实时比拼',
+    subtitle: '实时查看全球指挥官排名',
     route: 'Leaderboard',
     borderColor: palette.magenta,
     glyph: 'leaderboard',
   },
   {
     key: 'Forge',
-    title: '铸造',
-    subtitle: '凝铸装备与模块',
+    title: '铸造坊',
+    subtitle: '打造战备与模块',
     route: 'Forge',
     borderColor: palette.cyan,
     glyph: 'forge',
   },
   {
     key: 'Marketplace',
-    title: '集市',
-    subtitle: '交易 NFT 与蓝图',
+    title: '集市坊',
+    subtitle: '交易 NFT 与素材',
     route: 'Marketplace',
     borderColor: palette.magenta,
     glyph: 'market',
@@ -72,12 +72,18 @@ const QUICK_LINKS: QuickLink[] = [
   {
     key: 'EventShop',
     title: '活动商城',
-    subtitle: '兑换限时补给',
+    subtitle: '限时兑换稀有补给',
     route: 'EventShop',
     borderColor: palette.violet,
     glyph: 'event',
   },
 ];
+
+const BLIND_BOX_COPY = {
+  label: '盲盒展示',
+  title: '唤醒机甲 · 今日掉率提升 2 倍',
+  desc: '进入 Unity 空间唤醒盲盒，奖励会自动结算，请保持指挥网络稳定。',
+};
 
 const formatAssetAmount = (assets: ChainAsset[] | undefined, id: string): string => {
   const raw = assets?.find((asset) => asset.id === id)?.amount;
@@ -113,7 +119,10 @@ export const HomeScreen = () => {
       })),
     [navigation],
   );
-  const quickCardWidth = useMemo(() => Math.max(150, (frameWidth - GUTTER) / 2), [frameWidth]);
+  const quickCardWidth = useMemo(
+    () => Math.max(150, Math.floor((frameWidth - GUTTER) / 2)),
+    [frameWidth],
+  );
   const cavernBackdrop = useMemo(() => <HomeBackground showVaporLayers />, []);
 
   if (loading) {
@@ -149,9 +158,10 @@ export const HomeScreen = () => {
             height={H_ASSET}
             tiltDeg={TILT_ASSET}
             strokeColors={['#FF5AE0', '#7DD3FC']}
-            fillColors={['rgba(18, 8, 32, 0.94)', 'rgba(12, 6, 24, 0.86)']}
-            innerStrokeColors={['rgba(255,255,255,0.25)', 'rgba(122, 210, 255, 0.32)']}
-            padding={20}
+            fillColors={['rgba(8,6,26,0.78)', 'rgba(3,3,16,0.7)']}
+            innerStrokeColors={['rgba(255,255,255,0.24)', 'rgba(115,210,255,0.32)']}
+            padding={18}
+            innerGap={10}
           >
             <View style={styles.assetHeader}>
               <View style={styles.identityBlock}>
@@ -166,7 +176,7 @@ export const HomeScreen = () => {
                 </View>
               </View>
               <View style={styles.statusPill}>
-                <Text style={styles.statusText}>连接稳定</Text>
+                <Text style={styles.statusText}>指挥网络稳定</Text>
               </View>
             </View>
             <View style={styles.resourceRow}>
@@ -190,62 +200,54 @@ export const HomeScreen = () => {
       </View>
 
       <View style={[styles.quickGrid, { width: frameWidth }]}>
-        {quickCards.map((card, index) => {
-          const isRightColumn = index % 2 === 1;
-          return (
-            <Pressable
-              key={card.key}
-              onPress={card.onPress}
-              style={({ pressed }) => [
-                styles.quickPressable,
-                {
-                  width: quickCardWidth,
-                  height: H_SMALL,
-                  marginRight: isRightColumn ? 0 : GUTTER,
-                  marginBottom: GUTTER,
-                },
-                pressed && styles.pressed,
-              ]}
+        {quickCards.map((card) => (
+          <Pressable
+            key={card.key}
+            onPress={card.onPress}
+            style={({ pressed }) => [
+              styles.quickPressable,
+              { width: quickCardWidth, height: H_SMALL },
+              pressed && styles.pressed,
+            ]}
+          >
+            <ParallelogramPanel
+              width={quickCardWidth}
+              height={H_SMALL}
+              tiltDeg={TILT_SMALL}
+              strokeColors={[card.borderColor, '#7DD3FC']}
+              innerStrokeColors={['rgba(255,255,255,0.22)', 'rgba(118,210,255,0.28)']}
+              fillColors={['rgba(4,5,18,0.45)', 'rgba(2,3,12,0.38)']}
+              padding={16}
+              innerGap={8}
             >
-              <View style={styles.quickCardSurface}>
-                <ParallelogramPanel
-                  width={quickCardWidth}
-                  height={H_SMALL}
-                  tiltDeg={TILT_SMALL}
-                  strokeColors={[card.borderColor, '#7DD3FC']}
-                  innerStrokeColors={['rgba(255,255,255,0.25)', 'rgba(120,210,255,0.28)']}
-                  fillColors={['rgba(6, 6, 20, 0.4)', 'rgba(4, 4, 12, 0.36)']}
-                  padding={18}
-                >
-                  <View style={styles.quickCardContent}>
-                    <LinearGradient
-                      colors={[hexToRgba(card.borderColor, 0.12), 'rgba(8, 10, 22, 0.64)']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.quickCardBackground}
-                    />
-                    <View style={[styles.quickGlow, { shadowColor: card.borderColor }]} />
-                    <View style={styles.quickCardBody}>
-                      <QuickGlyph
-                        id={card.glyph}
-                        size={26}
-                        colors={[card.borderColor, lightenHex(card.borderColor, 0.25)]}
-                      />
-                      <View style={styles.quickText}>
-                        <Text style={styles.quickTitle} numberOfLines={1}>
-                          {card.title}
-                        </Text>
-                        <Text numberOfLines={1} style={styles.quickSubtitle}>
-                          {card.subtitle}
-                        </Text>
-                      </View>
-                    </View>
+              <View style={styles.quickCardContent}>
+                <LinearGradient
+                  colors={[hexToRgba(card.borderColor, 0.18), 'transparent']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.quickCardBackground}
+                />
+                <View style={styles.quickCardBody}>
+                  <QuickGlyph
+                    id={card.glyph}
+                    size={26}
+                    strokeWidth={2}
+                    colors={[card.borderColor, lightenHex(card.borderColor, 0.25)]}
+                  />
+                  <View style={styles.quickText}>
+                    <Text style={styles.quickTitle} numberOfLines={1}>
+                      {card.title}
+                    </Text>
+                    <Text style={styles.quickSubtitle} numberOfLines={2}>
+                      {card.subtitle}
+                    </Text>
                   </View>
-                </ParallelogramPanel>
+                  <Text style={styles.quickChevron}>›</Text>
+                </View>
               </View>
-            </Pressable>
-          );
-        })}
+            </ParallelogramPanel>
+          </Pressable>
+        ))}
       </View>
 
       <View style={styles.section}>
@@ -256,23 +258,24 @@ export const HomeScreen = () => {
             tiltDeg={TILT_BOX}
             strokeColors={['#FF5AE0', '#7DD3FC']}
             innerStrokeColors={['rgba(255,255,255,0.22)', 'rgba(126, 208, 255, 0.28)']}
-            fillColors={['rgba(12, 6, 20, 0.6)', 'rgba(8, 4, 16, 0.5)']}
-            padding={20}
+            fillColors={['rgba(12, 6, 20, 0.52)', 'rgba(6, 4, 16, 0.46)']}
+            padding={22}
+            innerGap={12}
           >
             <View style={styles.blindBoxContent}>
-              <View>
-                <Text style={styles.blindBoxLabel}>盲盒展示</Text>
+              <View style={styles.blindBoxCopy}>
+                <Text style={styles.blindBoxLabel}>{BLIND_BOX_COPY.label}</Text>
                 <Text style={styles.blindBoxTitle} numberOfLines={1}>
-                  觉醒方阵 · 今日加赠 2 次掉落
+                  {BLIND_BOX_COPY.title}
                 </Text>
                 <Text style={styles.blindBoxDesc} numberOfLines={2}>
-                  进入 Unity 空间唤醒盲盒，奖励将自动结算进资产仓。
+                  {BLIND_BOX_COPY.desc}
                 </Text>
               </View>
               <View style={styles.blindBoxFooter}>
                 <QuickGlyph
                   id="blindbox"
-                  size={48}
+                  size={54}
                   strokeWidth={2.3}
                   colors={[palette.violet, palette.cyan]}
                 />
@@ -305,12 +308,17 @@ const ResourceChip = ({
   const secondary = lightenHex(accent, 0.3);
   return (
     <View style={[styles.resourceChip, { borderColor: accent, shadowColor: accent }]}>
-      <View style={styles.resourceChipHeader}>
-        <QuickGlyph id={glyph} size={18} strokeWidth={1.7} colors={[accent, secondary]} />
-        <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
+      <View style={styles.resourceInfo}>
+        <QuickGlyph id={glyph} size={18} strokeWidth={1.8} colors={[accent, secondary]} />
+        <View>
+          <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
+          <Text style={styles.resourceMeta}>实时入账</Text>
+        </View>
       </View>
       <View style={styles.resourceValueRow}>
-        <Text style={styles.resourceValue}>{value}</Text>
+        <Text style={styles.resourceValue} numberOfLines={1}>
+          {value}
+        </Text>
         <Text style={styles.resourceUnit}>{unit}</Text>
       </View>
     </View>
@@ -346,10 +354,6 @@ const styles = StyleSheet.create({
   sectionInner: {
     alignSelf: 'center',
   },
-  assetFrame: {
-    width: CARD_WIDTH,
-    minHeight: H_ASSET,
-  },
   assetHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -364,11 +368,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.35)',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -380,7 +384,6 @@ const styles = StyleSheet.create({
   },
   assetText: {
     flex: 1,
-    marginLeft: 14,
   },
   assetTitle: {
     color: palette.sub,
@@ -394,7 +397,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   statusPill: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
@@ -409,90 +412,83 @@ const styles = StyleSheet.create({
   resourceRow: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 8,
+    marginTop: 6,
   },
   resourceChip: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 32,
     borderWidth: 1,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(8, 10, 24, 0.92)',
-    shadowOpacity: 0.16,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 4,
-  },
-  resourceChipHeader: {
+    backgroundColor: 'rgba(8, 10, 24, 0.55)',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
+    justifyContent: 'space-between',
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
-  resourceValueRow: {
+  resourceInfo: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
+    alignItems: 'center',
+    gap: 8,
   },
   resourceLabel: {
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.3,
   },
+  resourceMeta: {
+    color: 'rgba(198, 214, 255, 0.65)',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  resourceValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+  },
   resourceValue: {
     color: palette.text,
     fontSize: 20,
     fontWeight: '700',
-    flexShrink: 1,
+    maxWidth: 110,
+    textAlign: 'right',
   },
   resourceUnit: {
-    fontSize: 13,
+    fontSize: 12,
     color: palette.sub,
-    fontWeight: '400',
+    fontWeight: '500',
   },
   quickGrid: {
     alignSelf: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    columnGap: GUTTER,
+    rowGap: GUTTER,
     marginBottom: 12,
+    justifyContent: 'center',
   },
   quickPressable: {
     alignItems: 'stretch',
   },
-  quickCardSurface: {
-    width: '100%',
-    height: '100%',
-  },
   pressed: {
     transform: [{ scale: PRESS_SCALE }],
-    opacity: 0.9,
+    opacity: 0.92,
   },
   quickCardContent: {
     flex: 1,
-    height: '100%',
     justifyContent: 'center',
-    borderRadius: 18,
-    overflow: 'hidden',
-    position: 'relative',
   },
   quickCardBackground: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: 18,
-    pointerEvents: 'none',
-  },
-  quickGlow: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 20,
-    opacity: 0.15,
-    backgroundColor: '#9AFBFF',
-    pointerEvents: 'none',
   },
   quickCardBody: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    flex: 1,
   },
   quickText: {
     flex: 1,
@@ -505,47 +501,48 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   quickSubtitle: {
-    color: 'rgba(190, 210, 255, 0.75)',
+    color: 'rgba(190, 210, 255, 0.78)',
     fontSize: 12,
     marginTop: 2,
     letterSpacing: 0.3,
   },
-  blindBoxFrame: {
-    width: CARD_WIDTH,
-    minHeight: H_BOX,
+  quickChevron: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 20,
+    fontWeight: '600',
   },
   blindBoxContent: {
     flex: 1,
     justifyContent: 'space-between',
-    gap: 12,
-    overflow: 'hidden',
+    gap: 16,
+  },
+  blindBoxCopy: {
+    maxWidth: '70%',
   },
   blindBoxLabel: {
     color: 'rgba(189, 200, 255, 0.7)',
     fontSize: 12,
     letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    flexShrink: 1,
   },
   blindBoxTitle: {
     color: '#F4F6FF',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
-    marginTop: 4,
+    marginTop: 6,
     letterSpacing: 0.5,
-    flexShrink: 1,
   },
   blindBoxDesc: {
     color: 'rgba(200, 208, 255, 0.78)',
     fontSize: 13,
     marginTop: 6,
     lineHeight: 20,
-    flexShrink: 1,
   },
   blindBoxFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: 16,
+    justifyContent: 'flex-end',
   },
 });
+
+export default HomeScreen;

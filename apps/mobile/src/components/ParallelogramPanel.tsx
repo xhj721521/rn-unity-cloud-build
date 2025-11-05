@@ -11,10 +11,97 @@ type ParallelogramPanelProps = PropsWithChildren<{
   padding?: number;
   animated?: boolean;
   innerStrokeColors?: [string, string];
+  innerGap?: number;
 }>;
 
 const degToRad = (deg: number) => (deg * Math.PI) / 180;
 const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
+type Point = { x: number; y: number };
+
+const pointsToString = (pts: Point[]) => pts.map((pt) => `${pt.x},${pt.y}`).join(' ');
+
+const polygonArea = (pts: Point[]) => {
+  if (pts.length < 3) {
+    return 0;
+  }
+  let sum = 0;
+  for (let i = 0; i < pts.length; i += 1) {
+    const curr = pts[i];
+    const next = pts[(i + 1) % pts.length];
+    sum += curr.x * next.y - next.x * curr.y;
+  }
+  return sum / 2;
+};
+
+const normalize = (vec: Point): Point => {
+  const len = Math.hypot(vec.x, vec.y);
+  if (!len) {
+    return { x: 0, y: 0 };
+  }
+  return { x: vec.x / len, y: vec.y / len };
+};
+
+const intersectLines = (p1: Point, d1: Point, p2: Point, d2: Point): Point | null => {
+  const cross = d1.x * d2.y - d1.y * d2.x;
+  if (Math.abs(cross) < 1e-6) {
+    return null;
+  }
+  const diff = { x: p2.x - p1.x, y: p2.y - p1.y };
+  const t = (diff.x * d2.y - diff.y * d2.x) / cross;
+  return { x: p1.x + d1.x * t, y: p1.y + d1.y * t };
+};
+
+const insetPolygon = (pts: Point[], gap: number): Point[] => {
+  if (pts.length < 3 || gap <= 0) {
+    return pts.slice();
+  }
+  const orientation = polygonArea(pts) >= 0 ? 1 : -1;
+  const edges = pts.map((point, idx) => {
+    const next = pts[(idx + 1) % pts.length];
+    const dir = normalize({ x: next.x - point.x, y: next.y - point.y });
+    const outward = normalize({
+      x: dir.y * orientation,
+      y: -dir.x * orientation,
+    });
+    const inward = { x: -outward.x, y: -outward.y };
+    return {
+      point: {
+        x: point.x + inward.x * gap,
+        y: point.y + inward.y * gap,
+      },
+      dir,
+    };
+  });
+
+  return pts.map((_, idx) => {
+    const prev = edges[(idx - 1 + edges.length) % edges.length];
+    const curr = edges[idx];
+    return (
+      intersectLines(prev.point, prev.dir, curr.point, curr.dir) ?? {
+        x: (prev.point.x + curr.point.x) / 2,
+        y: (prev.point.y + curr.point.y) / 2,
+      }
+    );
+  });
+};
+
+const buildShape = (
+  shapeWidth: number,
+  shapeHeight: number,
+  leanRight: boolean,
+  absTilt: number,
+) => {
+  const safeWidth = Math.max(shapeWidth, 2);
+  const safeHeight = Math.max(shapeHeight, 2);
+  const slant = Math.min(Math.tan(degToRad(absTilt)) * safeHeight, safeWidth * 0.2);
+  const points: Point[] = [
+    { x: leanRight ? 0 : slant, y: 0 },
+    { x: leanRight ? safeWidth - slant : safeWidth, y: 0 },
+    { x: leanRight ? safeWidth : safeWidth - slant, y: safeHeight },
+    { x: leanRight ? slant : 0, y: safeHeight },
+  ];
+  return { points, slant };
+};
 
 export const ParallelogramPanel = ({
   width,
@@ -25,27 +112,43 @@ export const ParallelogramPanel = ({
   padding = 16,
   animated = true,
   innerStrokeColors,
+  innerGap = 8,
   children,
 }: ParallelogramPanelProps) => {
   const leanRight = tiltDeg >= 0;
   const absTilt = Math.abs(tiltDeg);
-  const slant = Math.min(Math.tan(degToRad(absTilt)) * height, width * 0.2);
+  const outerShape = useMemo(
+    () => buildShape(width, height, leanRight, absTilt),
+    [absTilt, height, leanRight, width],
+  );
+  const polygonPoints = useMemo(() => pointsToString(outerShape.points), [outerShape.points]);
 
-  const polygonPoints = useMemo(() => {
-    const p1X = leanRight ? 0 : slant;
-    const p2X = leanRight ? width - slant : width;
-    const p3X = leanRight ? width : width - slant;
-    const p4X = leanRight ? slant : 0;
-    return `${p1X},0 ${p2X},0 ${p3X},${height} ${p4X},${height}`;
-  }, [height, leanRight, slant, width]);
+  const effectiveInnerGap = useMemo(
+    () => (innerStrokeColors ? Math.min(innerGap, Math.min(width, height) * 0.25) : 0),
+    [height, innerGap, innerStrokeColors, width],
+  );
 
-  const insetLeft = leanRight ? slant * 0.25 : padding;
-  const insetRight = leanRight ? padding : slant * 0.25;
+  const innerPoints = useMemo(() => {
+    if (!innerStrokeColors || !effectiveInnerGap) {
+      return null;
+    }
+    return insetPolygon(outerShape.points, effectiveInnerGap);
+  }, [effectiveInnerGap, innerStrokeColors, outerShape.points]);
+
+  const innerPointsString = useMemo(
+    () => (innerPoints ? pointsToString(innerPoints) : undefined),
+    [innerPoints],
+  );
+
+  const insetLeft =
+    (leanRight ? outerShape.slant * 0.25 : padding) + (innerStrokeColors ? effectiveInnerGap : 0);
+  const insetRight =
+    (leanRight ? padding : outerShape.slant * 0.25) + (innerStrokeColors ? effectiveInnerGap : 0);
   const perimeter = useMemo(() => {
-    const topEdge = width - slant;
-    const sideEdge = Math.sqrt(height * height + slant * slant);
+    const topEdge = width - outerShape.slant;
+    const sideEdge = Math.sqrt(height * height + outerShape.slant * outerShape.slant);
     return topEdge * 2 + sideEdge * 2;
-  }, [height, slant, width]);
+  }, [height, outerShape.slant, width]);
 
   const strokeId = useMemo(() => `stroke-${Math.random().toString(36).slice(2)}`, []);
   const fillId = useMemo(() => `fill-${Math.random().toString(36).slice(2)}`, []);
@@ -134,16 +237,13 @@ export const ParallelogramPanel = ({
           fill={`url(#${fillId})`}
           strokeWidth={2.4}
         />
-        {innerStrokeColors ? (
+        {innerStrokeColors && innerPointsString ? (
           <Polygon
-            points={polygonPoints}
+            points={innerPointsString}
             stroke={`url(#${innerStrokeId})`}
             fill="none"
-            strokeWidth={1.4}
+            strokeWidth={1.2}
             opacity={0.65}
-            transform={`scale(0.948, 0.93) translate(${leanRight ? slant * 0.04 : slant * 0.06}, ${
-              height * 0.035
-            })`}
           />
         ) : null}
         {animated && (
@@ -170,7 +270,12 @@ export const ParallelogramPanel = ({
       <View
         style={[
           styles.inner,
-          { left: insetLeft, right: insetRight, top: padding, bottom: padding },
+          {
+            left: insetLeft,
+            right: insetRight,
+            top: padding + effectiveInnerGap,
+            bottom: padding + effectiveInnerGap,
+          },
         ]}
       >
         {children}

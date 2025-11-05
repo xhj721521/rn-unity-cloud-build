@@ -22,6 +22,7 @@ export interface HomeBackgroundProps {
 }
 
 const noiseTexture = require('../assets/noise-2px.png');
+const cavernTexture = require('../assets/backgrounds/cyber_cavern.png');
 
 function autoTier(): PerfTier {
   const { width, height, scale } = Dimensions.get('window');
@@ -127,6 +128,28 @@ export default function HomeBackground({
     };
   }, [fogY, shouldRenderFog, verticalRange]);
 
+  const wavePaths = useMemo(() => {
+    const first = [
+      `M0 ${height * 0.78}`,
+      `C${width * 0.2} ${height * 0.72}, ${width * 0.4} ${height * 0.82}, ${width * 0.6} ${
+        height * 0.76
+      }`,
+      `S${width * 0.95} ${height * 0.86}, ${width} ${height * 0.78}`,
+      `L${width} ${height}`,
+      `L0 ${height} Z`,
+    ].join(' ');
+    const second = [
+      `M0 ${height * 0.86}`,
+      `C${width * 0.18} ${height * 0.82}, ${width * 0.38} ${height * 0.9}, ${width * 0.58} ${
+        height * 0.84
+      }`,
+      `S${width * 0.92} ${height * 0.94}, ${width} ${height * 0.88}`,
+      `L${width} ${height}`,
+      `L0 ${height} Z`,
+    ].join(' ');
+    return { first, second };
+  }, [height, width]);
+
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <LinearGradient
@@ -134,6 +157,11 @@ export default function HomeBackground({
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
+      />
+      <Image
+        source={cavernTexture}
+        resizeMode="cover"
+        style={[StyleSheet.absoluteFill, styles.cavernLayer]}
       />
 
       {shouldRenderFog ? (
@@ -190,6 +218,14 @@ export default function HomeBackground({
                 <Stop offset="0%" stopColor="rgba(74, 255, 245, 0.16)" />
                 <Stop offset="100%" stopColor="rgba(116, 161, 255, 0.14)" />
               </SvgLinearGradient>
+              <SvgLinearGradient id="vapor-wave" x1="0%" y1="0%" x2="100%" y2="0%">
+                <Stop offset="0%" stopColor="rgba(114, 239, 255, 0.18)" />
+                <Stop offset="100%" stopColor="rgba(255, 135, 255, 0.18)" />
+              </SvgLinearGradient>
+              <SvgLinearGradient id="vapor-wave-2" x1="0%" y1="0%" x2="100%" y2="0%">
+                <Stop offset="0%" stopColor="rgba(93, 195, 255, 0.18)" />
+                <Stop offset="100%" stopColor="rgba(255, 99, 214, 0.18)" />
+              </SvgLinearGradient>
             </Defs>
             <Rect
               x="20%"
@@ -207,6 +243,8 @@ export default function HomeBackground({
               fill="url(#vapor-grid)"
               opacity={0.12}
             />
+            <Path d={wavePaths.first} fill="url(#vapor-wave)" opacity={0.2} />
+            <Path d={wavePaths.second} fill="url(#vapor-wave-2)" opacity={0.18} />
           </Svg>
         </View>
       ) : null}
@@ -235,6 +273,9 @@ export default function HomeBackground({
 }
 
 const styles = StyleSheet.create({
+  cavernLayer: {
+    opacity: 0.45,
+  },
   noiseLayer: {
     opacity: 0.04,
   },
