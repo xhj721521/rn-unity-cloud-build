@@ -111,7 +111,14 @@ export const HomeScreen = () => {
       })),
     [navigation],
   );
-  const quickCardWidth = useMemo(() => (CARD_WIDTH - GUTTER) / 2, []);
+  const quickCardWidth = useMemo(() => (CARD_WIDTH - GUTTER) / 2 - 6, []);
+  const quickRows = useMemo(() => {
+    const rows: typeof quickCards[][] = [];
+    for (let i = 0; i < quickCards.length; i += 2) {
+      rows.push(quickCards.slice(i, i + 2));
+    }
+    return rows;
+  }, [quickCards]);
   const cavernBackdrop = useMemo(() => <CyberCavernBackdrop />, []);
 
   if (loading) {
@@ -164,35 +171,42 @@ export const HomeScreen = () => {
       </View>
 
       <View style={styles.quickGrid}>
-        {quickCards.map((card) => (
-          <Pressable
-            key={card.key}
-            onPress={card.onPress}
-            style={({ pressed }) => [
-              styles.quickPressable,
-              { width: quickCardWidth, height: H_SMALL },
-              pressed && styles.pressed,
-            ]}
-          >
-            <ParallelogramPanel
-              width={quickCardWidth}
-              height={H_SMALL}
-              tiltDeg={TILT_SMALL}
-              strokeColors={[card.borderColor, '#7DD3FC']}
-              fillColors={['rgba(10, 5, 18, 0.95)', 'rgba(16, 10, 26, 0.86)']}
-              padding={12}
-            >
-              <View style={styles.quickCardBody}>
-                <Image source={card.icon} style={styles.quickIcon} />
-                <View style={styles.quickText}>
-                  <Text style={styles.quickTitle}>{card.title}</Text>
-                  <Text numberOfLines={1} style={styles.quickSubtitle}>
-                    {card.subtitle}
-                  </Text>
-                </View>
-              </View>
-            </ParallelogramPanel>
-          </Pressable>
+        {quickRows.map((row, index) => (
+          <View key={row[0].key + index} style={styles.quickRow}>
+            {row.map((card) => (
+              <Pressable
+                key={card.key}
+                onPress={card.onPress}
+                style={({ pressed }) => [
+                  styles.quickPressable,
+                  { width: quickCardWidth, height: H_SMALL },
+                  pressed && styles.pressed,
+                ]}
+              >
+                <ParallelogramPanel
+                  width={quickCardWidth}
+                  height={H_SMALL}
+                  tiltDeg={TILT_SMALL}
+                  strokeColors={[card.borderColor, '#7DD3FC']}
+                  fillColors={['rgba(10, 5, 18, 0.95)', 'rgba(16, 10, 26, 0.86)']}
+                  padding={12}
+                >
+                  <View style={styles.quickCardBody}>
+                    <Image source={card.icon} style={styles.quickIcon} />
+                    <View style={styles.quickText}>
+                      <Text style={styles.quickTitle} numberOfLines={1}>
+                        {card.title}
+                      </Text>
+                      <Text numberOfLines={1} style={styles.quickSubtitle}>
+                        {card.subtitle}
+                      </Text>
+                    </View>
+                  </View>
+                </ParallelogramPanel>
+              </Pressable>
+            ))}
+            {row.length < 2 ? <View style={{ width: quickCardWidth }} /> : null}
+          </View>
         ))}
       </View>
 
@@ -333,12 +347,14 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   quickGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: GUTTER,
     paddingHorizontal: SIDE,
+    gap: GUTTER,
     marginBottom: 4,
+  },
+  quickRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: GUTTER,
   },
   quickPressable: {
     alignItems: 'stretch',
