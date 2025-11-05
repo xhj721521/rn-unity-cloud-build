@@ -6,7 +6,6 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 import { ErrorState } from '@components/ErrorState';
-import ParallelogramPanel from '@components/ParallelogramPanel';
 import NeonButton from '@components/NeonButton';
 import QuickGlyph, { QuickGlyphId } from '@components/QuickGlyph';
 import HomeBackground from '../../ui/HomeBackground';
@@ -17,18 +16,7 @@ import { loadAccountSummary } from '@state/account/accountSlice';
 import { HomeStackParamList } from '@app/navigation/types';
 import { palette } from '@theme/colors';
 import { spacing } from '@theme/tokens';
-import {
-  CARD_WIDTH,
-  GUTTER,
-  H_ASSET,
-  H_BOX,
-  H_SMALL,
-  PRESS_SCALE,
-  SIDE,
-  TILT_ASSET,
-  TILT_BOX,
-  TILT_SMALL,
-} from '@theme/metrics';
+import { CARD_WIDTH, GUTTER, H_ASSET, H_BOX, H_SMALL, PRESS_SCALE, SIDE } from '@theme/metrics';
 
 type HomeNavigation = NativeStackNavigationProp<HomeStackParamList, 'HomeMain'>;
 
@@ -153,16 +141,13 @@ export const HomeScreen = () => {
     <ScreenContainer scrollable variant="plain" edgeVignette background={cavernBackdrop}>
       <View style={styles.section}>
         <View style={[styles.sectionInner, { width: frameWidth }]}>
-          <ParallelogramPanel
-            width={frameWidth}
-            height={H_ASSET}
-            tiltDeg={TILT_ASSET}
-            strokeColors={['#FF5AE0', '#7DD3FC']}
-            fillColors={['rgba(8,6,26,0.78)', 'rgba(3,3,16,0.7)']}
-            innerStrokeColors={['rgba(255,255,255,0.24)', 'rgba(115,210,255,0.32)']}
-            padding={18}
-            innerGap={10}
+          <LinearGradient
+            colors={['rgba(10, 8, 26, 0.92)', 'rgba(6, 4, 18, 0.88)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.cardBase, styles.assetCard, { width: frameWidth, minHeight: H_ASSET }]}
           >
+            <View style={styles.cardEdge} />
             <View style={styles.assetHeader}>
               <View style={styles.identityBlock}>
                 <View style={styles.avatar}>
@@ -195,7 +180,7 @@ export const HomeScreen = () => {
                 accent={palette.cyan}
               />
             </View>
-          </ParallelogramPanel>
+          </LinearGradient>
         </View>
       </View>
 
@@ -210,58 +195,48 @@ export const HomeScreen = () => {
               pressed && styles.pressed,
             ]}
           >
-            <ParallelogramPanel
-              width={quickCardWidth}
-              height={H_SMALL}
-              tiltDeg={TILT_SMALL}
-              strokeColors={[card.borderColor, '#7DD3FC']}
-              innerStrokeColors={['rgba(255,255,255,0.22)', 'rgba(118,210,255,0.28)']}
-              fillColors={['rgba(4,5,18,0.45)', 'rgba(2,3,12,0.38)']}
-              padding={16}
-              innerGap={8}
+            <LinearGradient
+              colors={[hexToRgba(card.borderColor, 0.22), 'rgba(8, 8, 22, 0.85)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[
+                styles.cardBase,
+                styles.quickCardBox,
+                { width: quickCardWidth, height: H_SMALL },
+              ]}
             >
-              <View style={styles.quickCardContent}>
-                <LinearGradient
-                  colors={[hexToRgba(card.borderColor, 0.18), 'transparent']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.quickCardBackground}
+              <View style={[styles.cardEdge, { borderColor: hexToRgba(card.borderColor, 0.5) }]} />
+              <View style={styles.quickCardBody}>
+                <QuickGlyph
+                  id={card.glyph}
+                  size={26}
+                  strokeWidth={2}
+                  colors={[card.borderColor, lightenHex(card.borderColor, 0.25)]}
                 />
-                <View style={styles.quickCardBody}>
-                  <QuickGlyph
-                    id={card.glyph}
-                    size={26}
-                    strokeWidth={2}
-                    colors={[card.borderColor, lightenHex(card.borderColor, 0.25)]}
-                  />
-                  <View style={styles.quickText}>
-                    <Text style={styles.quickTitle} numberOfLines={1}>
-                      {card.title}
-                    </Text>
-                    <Text style={styles.quickSubtitle} numberOfLines={2}>
-                      {card.subtitle}
-                    </Text>
-                  </View>
-                  <Text style={styles.quickChevron}>›</Text>
+                <View style={styles.quickText}>
+                  <Text style={styles.quickTitle} numberOfLines={1}>
+                    {card.title}
+                  </Text>
+                  <Text style={styles.quickSubtitle} numberOfLines={2}>
+                    {card.subtitle}
+                  </Text>
                 </View>
+                <Text style={styles.quickChevron}>›</Text>
               </View>
-            </ParallelogramPanel>
+            </LinearGradient>
           </Pressable>
         ))}
       </View>
 
       <View style={styles.section}>
         <View style={[styles.sectionInner, { width: frameWidth }]}>
-          <ParallelogramPanel
-            width={frameWidth}
-            height={H_BOX}
-            tiltDeg={TILT_BOX}
-            strokeColors={['#FF5AE0', '#7DD3FC']}
-            innerStrokeColors={['rgba(255,255,255,0.22)', 'rgba(126, 208, 255, 0.28)']}
-            fillColors={['rgba(12, 6, 20, 0.52)', 'rgba(6, 4, 16, 0.46)']}
-            padding={22}
-            innerGap={12}
+          <LinearGradient
+            colors={['rgba(14, 6, 22, 0.88)', 'rgba(4, 3, 12, 0.82)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.cardBase, styles.blindBoxCard, { width: frameWidth, minHeight: H_BOX }]}
           >
+            <View style={[styles.cardEdge, styles.blindBoxEdge]} />
             <View style={styles.blindBoxContent}>
               <View style={styles.blindBoxCopy}>
                 <Text style={styles.blindBoxLabel}>{BLIND_BOX_COPY.label}</Text>
@@ -285,7 +260,7 @@ export const HomeScreen = () => {
                 />
               </View>
             </View>
-          </ParallelogramPanel>
+          </LinearGradient>
         </View>
       </View>
     </ScreenContainer>
@@ -353,6 +328,33 @@ const styles = StyleSheet.create({
   },
   sectionInner: {
     alignSelf: 'center',
+  },
+  cardBase: {
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    overflow: 'hidden',
+  },
+  cardEdge: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(120, 210, 255, 0.35)',
+    opacity: 0.7,
+  },
+  assetCard: {
+    paddingVertical: 20,
+  },
+  quickCardBox: {
+    padding: 16,
+    borderRadius: 20,
+  },
+  blindBoxCard: {
+    padding: 24,
+  },
+  blindBoxEdge: {
+    borderColor: 'rgba(255, 134, 255, 0.32)',
   },
   assetHeader: {
     flexDirection: 'row',
@@ -476,14 +478,6 @@ const styles = StyleSheet.create({
   pressed: {
     transform: [{ scale: PRESS_SCALE }],
     opacity: 0.92,
-  },
-  quickCardContent: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  quickCardBackground: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 18,
   },
   quickCardBody: {
     flexDirection: 'row',
