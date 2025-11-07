@@ -10,7 +10,7 @@ export interface HomeBackgroundProps {
   showVaporLayers?: boolean;
 }
 
-const skylineTexture = require('../assets/backgrounds/neon_skyline.jpg');
+const skylineTexture = require('../assets/backgrounds/neon_skyline.png');
 
 export default function HomeBackground(_: HomeBackgroundProps) {
   return (

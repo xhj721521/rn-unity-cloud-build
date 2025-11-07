@@ -1,6 +1,12 @@
 import React, { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import {
+  ImageSourcePropType,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer } from '@components/ScreenContainer';
@@ -8,6 +14,7 @@ import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 import { ErrorState } from '@components/ErrorState';
 import NeonButton from '@components/NeonButton';
 import QuickGlyph, { QuickGlyphId } from '@components/QuickGlyph';
+import NeonCard from '@components/NeonCard';
 import HomeBackground from '../../ui/HomeBackground';
 import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
@@ -27,6 +34,7 @@ type QuickLink = {
   route: keyof HomeStackParamList;
   borderColor: string;
   glyph: QuickGlyphId;
+  background?: ImageSourcePropType;
 };
 
 const ARC_TOKEN_ID = 'tok-energy';
@@ -40,6 +48,7 @@ const QUICK_LINKS: QuickLink[] = [
     route: 'Leaderboard',
     borderColor: palette.magenta,
     glyph: 'leaderboard',
+    background: require('../../assets/cards/card_leaderboard.png'),
   },
   {
     key: 'Forge',
@@ -72,6 +81,10 @@ const BLIND_BOX_COPY = {
   title: '唤醒机甲 · 今日掉率提升 2 倍',
   desc: '进入 Unity 空间唤醒盲盒，奖励会自动结算，请保持指挥网络稳定。',
 };
+
+const glowTexture = require('../../assets/glow_card.png');
+const glowTextureAlt = require('../../assets/glow_btn.png');
+const cardCommandCenter = require('../../assets/cards/card_command_center.png');
 
 const formatAssetAmount = (assets: ChainAsset[] | undefined, id: string): string => {
   const raw = assets?.find((asset) => asset.id === id)?.amount;
@@ -141,11 +154,13 @@ export const HomeScreen = () => {
     <ScreenContainer scrollable variant="plain" edgeVignette background={cavernBackdrop}>
       <View style={styles.section}>
         <View style={[styles.sectionInner, { width: frameWidth }]}>
-          <LinearGradient
-            colors={['rgba(10, 8, 26, 0.92)', 'rgba(6, 4, 18, 0.88)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.cardBase, styles.assetCard, { width: frameWidth, minHeight: H_ASSET }]}
+          <NeonCard
+            backgroundSource={cardCommandCenter}
+            overlayColor="rgba(5, 6, 18, 0.78)"
+            borderColors={['#FF5AE0', '#7DD3FC']}
+            glowColor="#7DD3FC"
+            contentPadding={20}
+            style={{ width: frameWidth, minHeight: H_ASSET }}
           >
             <View style={styles.assetHeader}>
               <View style={styles.identityBlock}>
@@ -179,7 +194,7 @@ export const HomeScreen = () => {
                 accent={palette.cyan}
               />
             </View>
-          </LinearGradient>
+          </NeonCard>
         </View>
       </View>
 
@@ -194,15 +209,13 @@ export const HomeScreen = () => {
               pressed && styles.pressed,
             ]}
           >
-            <LinearGradient
-              colors={[hexToRgba(card.borderColor, 0.22), 'rgba(8, 8, 22, 0.85)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[
-                styles.cardBase,
-                styles.quickCardBox,
-                { width: quickCardWidth, height: H_SMALL },
-              ]}
+            <NeonCard
+              backgroundSource={card.background ?? glowTextureAlt}
+              overlayColor="rgba(3, 4, 14, 0.8)"
+              borderColors={[card.borderColor, lightenHex(card.borderColor, 0.35)]}
+              glowColor={card.borderColor}
+              contentPadding={16}
+              style={[styles.quickCardBox, { width: quickCardWidth, height: H_SMALL }]}
             >
               <View style={styles.quickCardBody}>
                 <QuickGlyph
@@ -220,18 +233,20 @@ export const HomeScreen = () => {
                   </Text>
                 </View>
               </View>
-            </LinearGradient>
+            </NeonCard>
           </Pressable>
         ))}
       </View>
 
       <View style={styles.section}>
         <View style={[styles.sectionInner, { width: frameWidth }]}>
-          <LinearGradient
-            colors={['rgba(14, 6, 22, 0.88)', 'rgba(4, 3, 12, 0.82)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.cardBase, styles.blindBoxCard, { width: frameWidth, minHeight: H_BOX }]}
+          <NeonCard
+            backgroundSource={glowTexture}
+            overlayColor="rgba(6, 5, 20, 0.82)"
+            borderColors={['#FF5AE0', '#7DD3FC']}
+            glowColor="#FF5AE0"
+            contentPadding={24}
+            style={{ width: frameWidth, minHeight: H_BOX }}
           >
             <View style={styles.blindBoxContent}>
               <View style={styles.blindBoxCopy}>
@@ -256,7 +271,7 @@ export const HomeScreen = () => {
                 />
               </View>
             </View>
-          </LinearGradient>
+          </NeonCard>
         </View>
       </View>
     </ScreenContainer>
@@ -296,14 +311,6 @@ const ResourceChip = ({
   );
 };
 
-const hexToRgba = (hex: string, alpha: number) => {
-  const normalized = hex.replace('#', '');
-  const r = parseInt(normalized.slice(0, 2), 16);
-  const g = parseInt(normalized.slice(2, 4), 16);
-  const b = parseInt(normalized.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
 const lightenHex = (hex: string, amount = 0.2) => {
   const normalized = hex.replace('#', '');
   const rgb = [0, 1, 2].map((index) => parseInt(normalized.slice(index * 2, index * 2 + 2), 16));
@@ -325,22 +332,8 @@ const styles = StyleSheet.create({
   sectionInner: {
     alignSelf: 'center',
   },
-  cardBase: {
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    overflow: 'hidden',
-  },
-  assetCard: {
-    paddingVertical: 20,
-  },
   quickCardBox: {
-    padding: 16,
     borderRadius: 20,
-  },
-  blindBoxCard: {
-    padding: 24,
   },
   assetHeader: {
     flexDirection: 'row',
