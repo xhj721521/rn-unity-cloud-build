@@ -1,5 +1,12 @@
 import React, { forwardRef } from 'react';
-import { Image, ImageSourcePropType, StyleSheet, View, ViewProps } from 'react-native';
+import {
+  Image,
+  ImageResizeMode,
+  ImageSourcePropType,
+  StyleSheet,
+  View,
+  ViewProps,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 type NeonCardProps = ViewProps & {
@@ -9,6 +16,7 @@ type NeonCardProps = ViewProps & {
   borderRadius?: number;
   contentPadding?: number;
   glowColor?: string;
+  backgroundResizeMode?: ImageResizeMode;
 };
 
 export const NeonCard = forwardRef<View, NeonCardProps>(
@@ -22,6 +30,7 @@ export const NeonCard = forwardRef<View, NeonCardProps>(
       borderRadius = 24,
       contentPadding = 18,
       glowColor = '#7DD3FC',
+      backgroundResizeMode = 'cover',
       ...rest
     },
     ref,
@@ -48,7 +57,7 @@ export const NeonCard = forwardRef<View, NeonCardProps>(
           {backgroundSource ? (
             <Image
               source={backgroundSource}
-              resizeMode="cover"
+              resizeMode={backgroundResizeMode}
               style={[StyleSheet.absoluteFillObject, { borderRadius: innerRadius }]}
             />
           ) : null}

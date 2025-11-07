@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 
 export type PerfTier = 'low' | 'mid' | 'high';
 
@@ -14,18 +14,21 @@ const skylineTexture = require('../assets/backgrounds/neon_skyline.png');
 
 export default function HomeBackground(_: HomeBackgroundProps) {
   return (
-    <Image
-      pointerEvents="none"
-      source={skylineTexture}
-      resizeMode="cover"
-      style={[StyleSheet.absoluteFill, styles.skylineLayer]}
-    />
+    <View pointerEvents="none" style={styles.container}>
+      <Image source={skylineTexture} resizeMode="contain" style={styles.skylineLayer} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#050612',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   skylineLayer: {
-    opacity: 1,
-    transform: [{ scale: 1.02 }],
+    width: '100%',
+    height: '100%',
   },
 });
