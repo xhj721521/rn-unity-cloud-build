@@ -156,8 +156,9 @@ export const HomeScreen = () => {
         <View style={[styles.sectionInner, { width: frameWidth }]}>
           <NeonCard
             backgroundSource={cardCommandCenter}
-            backgroundResizeMode="contain"
-            overlayColor="rgba(5, 6, 18, 0.55)"
+            backgroundResizeMode="cover"
+            backgroundStyle={styles.commandCenterBg}
+            overlayColor="rgba(8, 12, 30, 0.42)"
             borderColors={['#FF5AE0', '#7DD3FC']}
             glowColor="#7DD3FC"
             contentPadding={20}
@@ -212,8 +213,9 @@ export const HomeScreen = () => {
           >
             <NeonCard
               backgroundSource={card.background ?? glowTextureAlt}
-              backgroundResizeMode={card.background ? 'contain' : 'cover'}
-              overlayColor={card.background ? 'rgba(6, 8, 22, 0.35)' : 'rgba(3, 4, 14, 0.82)'}
+              backgroundResizeMode="cover"
+              backgroundStyle={card.background ? styles.quickBg : undefined}
+              overlayColor={card.background ? 'rgba(6, 10, 26, 0.3)' : 'rgba(3, 4, 14, 0.82)'}
               borderColors={[card.borderColor, lightenHex(card.borderColor, 0.35)]}
               glowColor={card.borderColor}
               contentPadding={16}
@@ -336,6 +338,13 @@ const styles = StyleSheet.create({
   },
   quickCardBox: {
     borderRadius: 20,
+  },
+  commandCenterBg: {
+    transform: [{ translateY: -10 }, { scale: 1.1 }],
+  },
+  quickBg: {
+    transform: [{ scale: 1.15 }],
+    opacity: 0.9,
   },
   assetHeader: {
     flexDirection: 'row',

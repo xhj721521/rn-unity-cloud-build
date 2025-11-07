@@ -17,6 +17,7 @@ type NeonCardProps = ViewProps & {
   contentPadding?: number;
   glowColor?: string;
   backgroundResizeMode?: ImageResizeMode;
+  backgroundStyle?: object;
 };
 
 export const NeonCard = forwardRef<View, NeonCardProps>(
@@ -31,6 +32,7 @@ export const NeonCard = forwardRef<View, NeonCardProps>(
       contentPadding = 18,
       glowColor = '#7DD3FC',
       backgroundResizeMode = 'cover',
+      backgroundStyle,
       ...rest
     },
     ref,
@@ -66,7 +68,7 @@ export const NeonCard = forwardRef<View, NeonCardProps>(
               <Image
                 source={backgroundSource}
                 resizeMode={backgroundResizeMode}
-                style={[styles.backgroundImage, { borderRadius: innerRadius }]}
+                style={[styles.backgroundImage, { borderRadius: innerRadius }, backgroundStyle]}
               />
             </View>
           ) : null}
