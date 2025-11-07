@@ -55,11 +55,20 @@ export const NeonCard = forwardRef<View, NeonCardProps>(
           ]}
         >
           {backgroundSource ? (
-            <Image
-              source={backgroundSource}
-              resizeMode={backgroundResizeMode}
-              style={[StyleSheet.absoluteFillObject, { borderRadius: innerRadius }]}
-            />
+            <View
+              pointerEvents="none"
+              style={[
+                StyleSheet.absoluteFillObject,
+                styles.backgroundContainer,
+                { borderRadius: innerRadius },
+              ]}
+            >
+              <Image
+                source={backgroundSource}
+                resizeMode={backgroundResizeMode}
+                style={[styles.backgroundImage, { borderRadius: innerRadius }]}
+              />
+            </View>
           ) : null}
           <View
             pointerEvents="none"
@@ -86,6 +95,14 @@ const styles = StyleSheet.create({
   inner: {
     flex: 1,
     overflow: 'hidden',
+  },
+  backgroundContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
   },
   body: {
     flex: 1,

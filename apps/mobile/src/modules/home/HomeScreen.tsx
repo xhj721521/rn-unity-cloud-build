@@ -157,7 +157,7 @@ export const HomeScreen = () => {
           <NeonCard
             backgroundSource={cardCommandCenter}
             backgroundResizeMode="contain"
-            overlayColor="rgba(5, 6, 18, 0.78)"
+            overlayColor="rgba(5, 6, 18, 0.55)"
             borderColors={['#FF5AE0', '#7DD3FC']}
             glowColor="#7DD3FC"
             contentPadding={20}
@@ -213,7 +213,7 @@ export const HomeScreen = () => {
             <NeonCard
               backgroundSource={card.background ?? glowTextureAlt}
               backgroundResizeMode={card.background ? 'contain' : 'cover'}
-              overlayColor="rgba(3, 4, 14, 0.8)"
+              overlayColor={card.background ? 'rgba(6, 8, 22, 0.35)' : 'rgba(3, 4, 14, 0.82)'}
               borderColors={[card.borderColor, lightenHex(card.borderColor, 0.35)]}
               glowColor={card.borderColor}
               contentPadding={16}
