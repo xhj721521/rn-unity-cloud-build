@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Dimensions, Easing, Image, StyleSheet, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import Svg, {
   Defs,
   LinearGradient as SvgLinearGradient,
@@ -152,12 +151,6 @@ export default function HomeBackground({
 
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <LinearGradient
-        colors={['#050612', '#0D1327', '#161F35']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
       <Image
         source={skylineTexture}
         resizeMode="cover"
@@ -175,8 +168,8 @@ export default function HomeBackground({
                 r="36%"
                 gradientUnits="userSpaceOnUse"
               >
-                <Stop offset="0%" stopColor="rgba(138, 99, 246, 0.12)" />
-                <Stop offset="70%" stopColor="rgba(138, 99, 246, 0.2)" />
+                <Stop offset="0%" stopColor="rgba(138, 99, 246, 0.08)" />
+                <Stop offset="70%" stopColor="rgba(138, 99, 246, 0.14)" />
                 <Stop offset="100%" stopColor="rgba(138, 99, 246, 0)" />
               </RadialGradient>
             </Defs>
@@ -196,8 +189,8 @@ export default function HomeBackground({
                 r="32%"
                 gradientUnits="userSpaceOnUse"
               >
-                <Stop offset="0%" stopColor="rgba(45, 210, 255, 0.1)" />
-                <Stop offset="70%" stopColor="rgba(45, 210, 255, 0.18)" />
+                <Stop offset="0%" stopColor="rgba(45, 210, 255, 0.06)" />
+                <Stop offset="70%" stopColor="rgba(45, 210, 255, 0.12)" />
                 <Stop offset="100%" stopColor="rgba(45, 210, 255, 0)" />
               </RadialGradient>
             </Defs>
@@ -211,20 +204,20 @@ export default function HomeBackground({
           <Svg width="100%" height="100%">
             <Defs>
               <SvgLinearGradient id="vapor-sun" x1="0%" y1="0%" x2="0%" y2="100%">
-                <Stop offset="0%" stopColor="rgba(255,141,255,0.35)" />
+                <Stop offset="0%" stopColor="rgba(255,141,255,0.2)" />
                 <Stop offset="100%" stopColor="rgba(255,141,255,0)" />
               </SvgLinearGradient>
               <SvgLinearGradient id="vapor-grid" x1="0%" y1="0%" x2="100%" y2="0%">
-                <Stop offset="0%" stopColor="rgba(74, 255, 245, 0.16)" />
-                <Stop offset="100%" stopColor="rgba(116, 161, 255, 0.14)" />
+                <Stop offset="0%" stopColor="rgba(74, 255, 245, 0.08)" />
+                <Stop offset="100%" stopColor="rgba(116, 161, 255, 0.08)" />
               </SvgLinearGradient>
               <SvgLinearGradient id="vapor-wave" x1="0%" y1="0%" x2="100%" y2="0%">
-                <Stop offset="0%" stopColor="rgba(114, 239, 255, 0.18)" />
-                <Stop offset="100%" stopColor="rgba(255, 135, 255, 0.18)" />
+                <Stop offset="0%" stopColor="rgba(114, 239, 255, 0.12)" />
+                <Stop offset="100%" stopColor="rgba(255, 135, 255, 0.12)" />
               </SvgLinearGradient>
               <SvgLinearGradient id="vapor-wave-2" x1="0%" y1="0%" x2="100%" y2="0%">
-                <Stop offset="0%" stopColor="rgba(93, 195, 255, 0.18)" />
-                <Stop offset="100%" stopColor="rgba(255, 99, 214, 0.18)" />
+                <Stop offset="0%" stopColor="rgba(93, 195, 255, 0.12)" />
+                <Stop offset="100%" stopColor="rgba(255, 99, 214, 0.12)" />
               </SvgLinearGradient>
             </Defs>
             <Rect
@@ -234,17 +227,17 @@ export default function HomeBackground({
               height="20%"
               rx="120"
               fill="url(#vapor-sun)"
-              opacity={0.45}
+              opacity={0.2}
             />
             <Path
               d={`M0 ${height * 0.72} L${width} ${
                 height * 0.58
               } L${width} ${height} L0 ${height} Z`}
               fill="url(#vapor-grid)"
-              opacity={0.12}
+              opacity={0.08}
             />
-            <Path d={wavePaths.first} fill="url(#vapor-wave)" opacity={0.2} />
-            <Path d={wavePaths.second} fill="url(#vapor-wave-2)" opacity={0.18} />
+            <Path d={wavePaths.first} fill="url(#vapor-wave)" opacity={0.12} />
+            <Path d={wavePaths.second} fill="url(#vapor-wave-2)" opacity={0.12} />
           </Svg>
         </View>
       ) : null}
@@ -274,11 +267,11 @@ export default function HomeBackground({
 
 const styles = StyleSheet.create({
   skylineLayer: {
-    opacity: 0.82,
+    opacity: 1,
     transform: [{ scale: 1.02 }],
   },
   noiseLayer: {
-    opacity: 0.04,
+    opacity: 0.02,
   },
   scanLayer: {
     position: 'absolute',
@@ -286,6 +279,6 @@ const styles = StyleSheet.create({
   },
   vignetteOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(2, 3, 10, 0.42)',
+    backgroundColor: 'rgba(2, 3, 10, 0.2)',
   },
 });
