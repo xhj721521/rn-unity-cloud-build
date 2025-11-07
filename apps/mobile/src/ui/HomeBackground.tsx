@@ -22,7 +22,7 @@ export interface HomeBackgroundProps {
 }
 
 const noiseTexture = require('../assets/noise-2px.png');
-const cavernTexture = require('../assets/backgrounds/cyber_cavern.png');
+const skylineTexture = require('../assets/backgrounds/neon_skyline.jpg');
 
 function autoTier(): PerfTier {
   const { width, height, scale } = Dimensions.get('window');
@@ -159,9 +159,9 @@ export default function HomeBackground({
         style={StyleSheet.absoluteFill}
       />
       <Image
-        source={cavernTexture}
+        source={skylineTexture}
         resizeMode="cover"
-        style={[StyleSheet.absoluteFill, styles.cavernLayer]}
+        style={[StyleSheet.absoluteFill, styles.skylineLayer]}
       />
 
       {shouldRenderFog ? (
@@ -273,8 +273,9 @@ export default function HomeBackground({
 }
 
 const styles = StyleSheet.create({
-  cavernLayer: {
-    opacity: 0.45,
+  skylineLayer: {
+    opacity: 0.82,
+    transform: [{ scale: 1.02 }],
   },
   noiseLayer: {
     opacity: 0.04,

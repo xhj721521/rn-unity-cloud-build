@@ -147,7 +147,6 @@ export const HomeScreen = () => {
             end={{ x: 1, y: 1 }}
             style={[styles.cardBase, styles.assetCard, { width: frameWidth, minHeight: H_ASSET }]}
           >
-            <View style={styles.cardEdge} />
             <View style={styles.assetHeader}>
               <View style={styles.identityBlock}>
                 <View style={styles.avatar}>
@@ -205,7 +204,6 @@ export const HomeScreen = () => {
                 { width: quickCardWidth, height: H_SMALL },
               ]}
             >
-              <View style={[styles.cardEdge, { borderColor: hexToRgba(card.borderColor, 0.5) }]} />
               <View style={styles.quickCardBody}>
                 <QuickGlyph
                   id={card.glyph}
@@ -221,7 +219,6 @@ export const HomeScreen = () => {
                     {card.subtitle}
                   </Text>
                 </View>
-                <Text style={styles.quickChevron}>›</Text>
               </View>
             </LinearGradient>
           </Pressable>
@@ -236,7 +233,6 @@ export const HomeScreen = () => {
             end={{ x: 1, y: 1 }}
             style={[styles.cardBase, styles.blindBoxCard, { width: frameWidth, minHeight: H_BOX }]}
           >
-            <View style={[styles.cardEdge, styles.blindBoxEdge]} />
             <View style={styles.blindBoxContent}>
               <View style={styles.blindBoxCopy}>
                 <Text style={styles.blindBoxLabel}>{BLIND_BOX_COPY.label}</Text>
@@ -336,13 +332,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.08)',
     overflow: 'hidden',
   },
-  cardEdge: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(120, 210, 255, 0.35)',
-    opacity: 0.7,
-  },
   assetCard: {
     paddingVertical: 20,
   },
@@ -352,9 +341,6 @@ const styles = StyleSheet.create({
   },
   blindBoxCard: {
     padding: 24,
-  },
-  blindBoxEdge: {
-    borderColor: 'rgba(255, 134, 255, 0.32)',
   },
   assetHeader: {
     flexDirection: 'row',
@@ -499,11 +485,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
     letterSpacing: 0.3,
-  },
-  quickChevron: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 20,
-    fontWeight: '600',
   },
   blindBoxContent: {
     flex: 1,
