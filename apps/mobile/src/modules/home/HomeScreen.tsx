@@ -43,8 +43,8 @@ const ORE_TOKEN_ID = 'tok-neon';
 const QUICK_LINKS: QuickLink[] = [
   {
     key: 'Leaderboard',
-    title: '鎺掕姒庘€?',
-    subtitle: '瀹炴椂鏌ョ湅鍏ㄧ悆鎸囨尌瀹樻帓鍚?',
+    title: '排行榜',
+    subtitle: '实时查看全球指挥官排名',
     route: 'Leaderboard',
     borderColor: palette.magenta,
     glyph: 'leaderboard',
@@ -52,30 +52,30 @@ const QUICK_LINKS: QuickLink[] = [
   },
   {
     key: 'Forge',
-    title: '閾搁€犲潑',
-    subtitle: '鎵撻€犳垬澶囦笌妯″潡',
+    title: '铸造坊',
+    subtitle: '打造战备与模块',
     route: 'Forge',
     borderColor: palette.cyan,
     glyph: 'forge',
-    background: cardLeaderboard,
+    background: cardForge,
   },
   {
     key: 'Marketplace',
-    title: '闆嗗競鍧?',
-    subtitle: '浜ゆ槗 NFT 涓庣礌鏉?',
+    title: '集市坊',
+    subtitle: '交易 NFT 与素材',
     route: 'Marketplace',
     borderColor: palette.magenta,
     glyph: 'market',
-    background: cardLeaderboard,
+    background: cardMarket,
   },
   {
     key: 'EventShop',
-    title: '娲诲姩鍟嗗煄',
-    subtitle: '闄愭椂鍏戞崲绋€鏈夎ˉ缁?',
+    title: '活动商城',
+    subtitle: '限时兑换稀有补给',
     route: 'EventShop',
     borderColor: palette.violet,
     glyph: 'event',
-    background: cardLeaderboard,
+    background: cardEvent,
   },
 ];
 const BLIND_BOX_COPY = {
@@ -85,8 +85,12 @@ const BLIND_BOX_COPY = {
 };
 
 const glowTextureAlt = require('../../assets/glow_btn.png');
-const cardCommandCenter = require('../../assets/cards/card_command_center.png');
-const cardLeaderboard = require('../../assets/cards/card_leaderboard.png');
+const cardCommandCenter = require('../../assets/cards/card_command_center.webp');
+const cardLeaderboard = require('../../assets/cards/card_leaderboard.webp');
+const cardForge = require('../../assets/cards/card_forge.webp');
+const cardMarket = require('../../assets/cards/card_market.webp');
+const cardEvent = require('../../assets/cards/card_event.webp');
+const cardBlindbox = require('../../assets/cards/card_blindbox.webp');
 
 const formatAssetAmount = (assets: ChainAsset[] | undefined, id: string): string => {
   const raw = assets?.find((asset) => asset.id === id)?.amount;
@@ -157,7 +161,7 @@ export const HomeScreen = () => {
       <View style={styles.section}>
         <View style={[styles.sectionInner, { width: frameWidth }]}>
           <NeonCard
-            backgroundSource={cardCommandCenter}
+            backgroundSource={cardBlindbox}
             backgroundResizeMode="cover"
             backgroundStyle={styles.commandCenterBg}
             overlayColor="rgba(8, 12, 30, 0.42)"
