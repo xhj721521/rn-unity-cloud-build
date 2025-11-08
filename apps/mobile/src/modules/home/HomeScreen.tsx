@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import {
   ImageSourcePropType,
   Pressable,
@@ -43,48 +43,50 @@ const ORE_TOKEN_ID = 'tok-neon';
 const QUICK_LINKS: QuickLink[] = [
   {
     key: 'Leaderboard',
-    title: '排行榜',
-    subtitle: '实时查看全球指挥官排名',
+    title: '鎺掕姒庘€?',
+    subtitle: '瀹炴椂鏌ョ湅鍏ㄧ悆鎸囨尌瀹樻帓鍚?',
     route: 'Leaderboard',
     borderColor: palette.magenta,
     glyph: 'leaderboard',
-    background: require('../../assets/cards/card_leaderboard.png'),
+    background: cardLeaderboard,
   },
   {
     key: 'Forge',
-    title: '铸造坊',
-    subtitle: '打造战备与模块',
+    title: '閾搁€犲潑',
+    subtitle: '鎵撻€犳垬澶囦笌妯″潡',
     route: 'Forge',
     borderColor: palette.cyan,
     glyph: 'forge',
+    background: cardLeaderboard,
   },
   {
     key: 'Marketplace',
-    title: '集市坊',
-    subtitle: '交易 NFT 与素材',
+    title: '闆嗗競鍧?',
+    subtitle: '浜ゆ槗 NFT 涓庣礌鏉?',
     route: 'Marketplace',
     borderColor: palette.magenta,
     glyph: 'market',
+    background: cardLeaderboard,
   },
   {
     key: 'EventShop',
-    title: '活动商城',
-    subtitle: '限时兑换稀有补给',
+    title: '娲诲姩鍟嗗煄',
+    subtitle: '闄愭椂鍏戞崲绋€鏈夎ˉ缁?',
     route: 'EventShop',
     borderColor: palette.violet,
     glyph: 'event',
+    background: cardLeaderboard,
   },
 ];
-
 const BLIND_BOX_COPY = {
   label: '盲盒展示',
   title: '唤醒机甲 · 今日掉率提升 2 倍',
   desc: '进入 Unity 空间唤醒盲盒，奖励会自动结算，请保持指挥网络稳定。',
 };
 
-const glowTexture = require('../../assets/glow_card.png');
 const glowTextureAlt = require('../../assets/glow_btn.png');
 const cardCommandCenter = require('../../assets/cards/card_command_center.png');
+const cardLeaderboard = require('../../assets/cards/card_leaderboard.png');
 
 const formatAssetAmount = (assets: ChainAsset[] | undefined, id: string): string => {
   const raw = assets?.find((asset) => asset.id === id)?.amount;
@@ -245,7 +247,7 @@ export const HomeScreen = () => {
       <View style={styles.section}>
         <View style={[styles.sectionInner, { width: frameWidth }]}>
           <NeonCard
-            backgroundSource={glowTexture}
+            backgroundSource={cardCommandCenter}
             overlayColor="rgba(6, 5, 20, 0.82)"
             borderColors={['#FF5AE0', '#7DD3FC']}
             glowColor="#FF5AE0"
