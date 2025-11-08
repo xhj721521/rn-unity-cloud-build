@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { shape, spacing } from '@theme/tokens';
 import { neonPalette } from '@theme/neonPalette';
+import { typography } from '@theme/typography';
 import QuickGlyph, { QuickGlyphId } from './QuickGlyph';
 
 export type BottomTabGlyph = 'home' | 'trials' | 'explore' | 'onchain' | 'profile';
@@ -14,7 +15,9 @@ type BottomTabIconProps = {
 
 export const BottomTabIcon = ({ label, type, focused }: BottomTabIconProps) => {
   const glyphId = tabGlyphMap[type];
-  const colors = focused ? ['#FF75FF', '#7AD8FF'] : ['#7A7F9F', '#5A6B9A'];
+  const colors = focused
+    ? ['#8AF0FF', '#C68BFF']
+    : ['rgba(134,148,188,0.9)', 'rgba(118,130,168,0.8)'];
   return (
     <View style={[styles.container, focused ? styles.containerFocused : styles.containerInactive]}>
       <View style={[styles.glyphWrap, focused && styles.glyphWrapFocused]}>
@@ -25,7 +28,13 @@ export const BottomTabIcon = ({ label, type, focused }: BottomTabIconProps) => {
           colors={colors as [string, string]}
         />
       </View>
-      <Text style={[styles.label, focused ? styles.labelActive : styles.labelInactive]}>
+      <Text
+        style={[
+          typography.micro,
+          styles.label,
+          focused ? styles.labelActive : styles.labelInactive,
+        ]}
+      >
         {label}
       </Text>
     </View>
@@ -61,27 +70,28 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: shape.buttonRadius,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(90, 98, 140, 0.32)',
-    backgroundColor: 'rgba(12, 14, 30, 0.92)',
+    borderColor: 'rgba(120, 146, 210, 0.32)',
+    backgroundColor: 'rgba(12, 16, 32, 0.6)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   glyphWrapFocused: {
-    borderColor: 'rgba(255, 117, 255, 0.55)',
-    backgroundColor: 'rgba(30, 20, 52, 0.96)',
-    shadowColor: '#FF75FF',
-    shadowOpacity: 0.28,
-    shadowRadius: 7,
+    borderColor: 'rgba(138, 240, 255, 0.65)',
+    backgroundColor: 'rgba(18, 24, 48, 0.85)',
+    shadowColor: '#8AF0FF',
+    shadowOpacity: 0.32,
+    shadowRadius: 9,
     shadowOffset: { width: 0, height: 0 },
     elevation: 0,
   },
   label: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.4,
+    textTransform: 'none',
   },
   labelActive: {
     color: neonPalette.textPrimary,
+    textShadowColor: 'rgba(138, 240, 255, 0.6)',
+    textShadowRadius: 8,
+    textShadowOffset: { width: 0, height: 0 },
   },
   labelInactive: {
     color: neonPalette.textMuted,

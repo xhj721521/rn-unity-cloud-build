@@ -23,6 +23,7 @@ import { loadAccountSummary } from '@state/account/accountSlice';
 import { HomeStackParamList } from '@app/navigation/types';
 import { palette } from '@theme/colors';
 import { spacing } from '@theme/tokens';
+import { typography } from '@theme/typography';
 import { CARD_WIDTH, GUTTER, H_ASSET, H_BOX, H_SMALL, PRESS_SCALE, SIDE } from '@theme/metrics';
 
 type HomeNavigation = NativeStackNavigationProp<HomeStackParamList, 'HomeMain'>;
@@ -161,7 +162,7 @@ export const HomeScreen = () => {
       <View style={styles.section}>
         <View style={[styles.sectionInner, { width: frameWidth }]}>
           <NeonCard
-            backgroundSource={cardBlindbox}
+            backgroundSource={cardCommandCenter}
             backgroundResizeMode="cover"
             backgroundStyle={styles.commandCenterBg}
             overlayColor="rgba(8, 12, 30, 0.42)"
@@ -251,8 +252,8 @@ export const HomeScreen = () => {
       <View style={styles.section}>
         <View style={[styles.sectionInner, { width: frameWidth }]}>
           <NeonCard
-            backgroundSource={cardCommandCenter}
-            overlayColor="rgba(6, 5, 20, 0.82)"
+            backgroundSource={cardBlindbox}
+            overlayColor="rgba(6, 8, 22, 0.35)"
             borderColors={['#FF5AE0', '#7DD3FC']}
             glowColor="#FF5AE0"
             contentPadding={24}
@@ -384,14 +385,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   assetTitle: {
-    color: palette.sub,
-    fontSize: 12,
-    letterSpacing: 0.4,
+    ...typography.captionCaps,
+    color: '#8CE7FF',
+    textTransform: 'uppercase',
   },
   assetSubtitle: {
+    ...typography.heading,
     color: palette.text,
-    fontSize: 20,
-    fontWeight: '700',
     marginTop: 4,
   },
   statusPill: {
@@ -403,9 +403,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(59, 222, 185, 0.12)',
   },
   statusText: {
+    ...typography.captionCaps,
     color: '#45E2B4',
-    fontSize: 12,
-    fontWeight: '600',
   },
   resourceRow: {
     flexDirection: 'row',
@@ -433,11 +432,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   resourceLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    ...typography.captionCaps,
+    letterSpacing: 0.4,
   },
   resourceMeta: {
+    ...typography.body,
     color: 'rgba(198, 214, 255, 0.65)',
     fontSize: 11,
     marginTop: 2,
@@ -448,16 +447,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   resourceValue: {
+    ...typography.numeric,
     color: palette.text,
-    fontSize: 20,
-    fontWeight: '700',
     maxWidth: 110,
     textAlign: 'right',
   },
   resourceUnit: {
-    fontSize: 12,
+    ...typography.captionCaps,
     color: palette.sub,
-    fontWeight: '500',
   },
   quickGrid: {
     alignSelf: 'center',
@@ -485,16 +482,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   quickTitle: {
+    ...typography.subtitle,
     color: '#F2F5FF',
-    fontWeight: '700',
-    fontSize: 15,
-    letterSpacing: 0.5,
   },
   quickSubtitle: {
+    ...typography.body,
     color: 'rgba(190, 210, 255, 0.78)',
-    fontSize: 12,
     marginTop: 2,
-    letterSpacing: 0.3,
   },
   blindBoxContent: {
     flex: 1,
@@ -505,20 +499,17 @@ const styles = StyleSheet.create({
     maxWidth: '70%',
   },
   blindBoxLabel: {
+    ...typography.captionCaps,
     color: 'rgba(189, 200, 255, 0.7)',
-    fontSize: 12,
-    letterSpacing: 0.6,
   },
   blindBoxTitle: {
+    ...typography.heading,
     color: '#F4F6FF',
-    fontSize: 20,
-    fontWeight: '700',
     marginTop: 6,
-    letterSpacing: 0.5,
   },
   blindBoxDesc: {
+    ...typography.body,
     color: 'rgba(200, 208, 255, 0.78)',
-    fontSize: 13,
     marginTop: 6,
     lineHeight: 20,
   },

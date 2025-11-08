@@ -1,5 +1,7 @@
-﻿import React from 'react';
+import React from 'react';
+import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import LinearGradient from 'react-native-linear-gradient';
 import { HomeNavigator } from './HomeNavigator';
 import { TrialsScreen } from '@modules/trials/TrialsScreen';
 import { ExploreScreen } from '@modules/explore/ExploreScreen';
@@ -18,27 +20,9 @@ type TabConfig = {
 };
 
 const TAB_ITEMS: TabConfig[] = [
-  {
-    name: 'Home',
-    component: HomeNavigator,
-    title: '首页',
-    label: '首页',
-    icon: 'home',
-  },
-  {
-    name: 'Trials',
-    component: TrialsScreen,
-    title: '试炼',
-    label: '试炼',
-    icon: 'trials',
-  },
-  {
-    name: 'Explore',
-    component: ExploreScreen,
-    title: '探索',
-    label: '探索',
-    icon: 'explore',
-  },
+  { name: 'Home', component: HomeNavigator, title: '首页', label: '首页', icon: 'home' },
+  { name: 'Trials', component: TrialsScreen, title: '试炼', label: '试炼', icon: 'trials' },
+  { name: 'Explore', component: ExploreScreen, title: '探索', label: '探索', icon: 'explore' },
   {
     name: 'OnChainData',
     component: OnChainDataScreen,
@@ -46,22 +30,24 @@ const TAB_ITEMS: TabConfig[] = [
     label: '链鉴',
     icon: 'onchain',
   },
-  {
-    name: 'Profile',
-    component: ProfileNavigator,
-    title: '我的',
-    label: '我的',
-    icon: 'profile',
-  },
+  { name: 'Profile', component: ProfileNavigator, title: '我的', label: '我的', icon: 'profile' },
 ];
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-const createTabIcon = (label: string, type: BottomTabGlyph) => {
-  const IconComponent = ({ focused }: { focused: boolean }) => (
-    <BottomTabIcon label={label} type={type} focused={focused} />
+const TabBarBackground = () => (
+  <LinearGradient
+    colors={['rgba(20, 26, 54, 0.92)', 'rgba(8, 12, 28, 0.72)']}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
+    style={StyleSheet.absoluteFill}
+  />
+);
+
+const tabIconFactory = (label: string, icon: BottomTabGlyph) => {
+  return ({ focused }: { focused: boolean }) => (
+    <BottomTabIcon label={label} type={icon} focused={focused} />
   );
-  return IconComponent;
 };
 
 export const RootNavigator = () => (
@@ -69,13 +55,9 @@ export const RootNavigator = () => (
     screenOptions={{
       headerShown: false,
       tabBarShowLabel: false,
-      tabBarStyle: {
-        backgroundColor: '#0A0A1F',
-        borderTopColor: 'rgba(60, 58, 120, 0.4)',
-        height: 68,
-        paddingBottom: 10,
-        paddingTop: 6,
-      },
+      tabBarBackground: TabBarBackground,
+      tabBarStyle: tabStyles.glass,
+      tabBarItemStyle: { paddingVertical: 6 },
     }}
   >
     {TAB_ITEMS.map((item) => (
@@ -85,9 +67,29 @@ export const RootNavigator = () => (
         component={item.component}
         options={{
           title: item.title,
-          tabBarIcon: createTabIcon(item.label, item.icon),
+          tabBarIcon: tabIconFactory(item.label, item.icon),
         }}
       />
     ))}
   </Tab.Navigator>
 );
+
+const tabStyles = StyleSheet.create({
+  glass: {
+    position: 'absolute',
+    left: 18,
+    right: 18,
+    bottom: 18,
+    borderTopWidth: 0,
+    borderRadius: 28,
+    height: 78,
+    paddingBottom: 12,
+    paddingTop: 8,
+    backgroundColor: 'transparent',
+    elevation: 20,
+    shadowColor: '#4DE0FF',
+    shadowOpacity: 0.25,
+    shadowRadius: 25,
+    shadowOffset: { width: 0, height: 10 },
+  },
+});
