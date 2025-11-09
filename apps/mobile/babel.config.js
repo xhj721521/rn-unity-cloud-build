@@ -13,6 +13,7 @@ module.exports = {
           '@services': './src/services',
           '@bridge': './src/bridge',
           '@state': './src/state',
+          '@store': './src/store',
           '@theme': './src/theme',
           '@locale': './src/locale',
         },

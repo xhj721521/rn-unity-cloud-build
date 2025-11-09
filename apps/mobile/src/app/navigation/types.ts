@@ -17,7 +17,8 @@ export type HomeStackParamList = {
 
 export type ProfileStackParamList = {
   ProfileMain: undefined;
-  MyTeam: undefined;
+  MyTeam: { initialTab?: 'members' | 'announcements' | 'chat' } | undefined;
+  TeamChat: { initialTab?: 'members' | 'announcements' | 'chat' } | undefined;
   MyInventory: undefined;
   MyInvites: undefined;
   Wallet: undefined;
