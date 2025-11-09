@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useMemo, useRef } from 'react';
-import {\r\n  Animated,\r\n  ImageSourcePropType,
-  Pressable,
+import {
+  Animated,
+  ImageSourcePropType,
   StyleSheet,
   Text,
   View,
@@ -13,6 +14,7 @@ import { ErrorState } from '@components/ErrorState';
 import NeonButton from '@components/NeonButton';
 import QuickGlyph, { QuickGlyphId } from '@components/QuickGlyph';
 import NeonCard from '@components/NeonCard';
+import RipplePressable from '@components/RipplePressable';
 import HomeBackground from '../../ui/HomeBackground';
 import HomeSkeleton from './HomeSkeleton';
 import { useAccountSummary } from '@services/web3/hooks';
@@ -71,9 +73,7 @@ const QUICK_LINKS: QuickLink[] = [
     borderColor: palette.accent,
     glyph: 'market',
     background: cardMarket,
-    locked: true,
-    lockLevel: 'Lv2 解锁',
-    progressText: '还差 200 EXP',
+    locked: false,
   },
   {
     key: 'EventShop',
@@ -83,9 +83,7 @@ const QUICK_LINKS: QuickLink[] = [
     borderColor: palette.primary,
     glyph: 'event',
     background: cardEvent,
-    locked: true,
-    lockLevel: 'Lv3 解锁',
-    progressText: '再赢 3 场即可',
+    locked: false,
   },
 ];
 const BLIND_BOX_COPY = {
@@ -253,10 +251,11 @@ export const HomeScreen = () => {
 
       <View style={[styles.quickGrid, { width: frameWidth }]}>
         {quickCards.map((card) => (
-          <Pressable
+          <RipplePressable
             key={card.key}
             onPress={card.onPress}
             disabled={card.locked}
+            rippleColor="rgba(255,255,255,0.18)"
             style={({ pressed }) => [
               styles.quickPressable,
               { width: quickCardWidth, height: H_SMALL },
@@ -295,11 +294,9 @@ export const HomeScreen = () => {
                   </Text>
                 </View>
               </View>
-              {card.locked ? (
-                <LockProgress text={card.progressText ?? '待完成任务'} />
-              ) : null}
+              {card.locked ? <LockProgress text={card.progressText ?? '待完成任务'} /> : null}
             </NeonCard>
-          </Pressable>
+          </RipplePressable>
         ))}
       </View>
 
@@ -683,4 +680,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
-
