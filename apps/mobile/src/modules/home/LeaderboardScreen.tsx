@@ -15,8 +15,8 @@ import { palette } from '@theme/colors';
 import { shape, spacing } from '@theme/tokens';
 import { typography } from '@theme/typography';
 
-const ambientBg = require('../../assets/backgrounds/rank_ambient_bg_9x16.jpg');
-const heroBg = require('../../assets/backgrounds/rank_hero_bg_9x16.jpg');
+const ambientBg = require('../../assets/backgrounds/neon_skyline.png');
+const heroBg = require('../../assets/backgrounds/cyber_cavern.png');
 
 const CATEGORY_TABS: Array<{ key: LeaderboardCategory; label: string }> = [
   { key: 'inviter', label: t('rank.category.invite', undefined, '邀请达人') },
