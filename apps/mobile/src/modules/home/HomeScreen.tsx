@@ -10,12 +10,12 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer } from '@components/ScreenContainer';
-import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 import { ErrorState } from '@components/ErrorState';
 import NeonButton from '@components/NeonButton';
 import QuickGlyph, { QuickGlyphId } from '@components/QuickGlyph';
 import NeonCard from '@components/NeonCard';
 import HomeBackground from '../../ui/HomeBackground';
+import HomeSkeleton from './HomeSkeleton';
 import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
 import { useAppDispatch } from '@state/hooks';
@@ -36,6 +36,9 @@ type QuickLink = {
   borderColor: string;
   glyph: QuickGlyphId;
   background?: ImageSourcePropType;
+  locked?: boolean;
+  progressText?: string;
+  lockLevel?: string;
 };
 
 const ARC_TOKEN_ID = 'tok-energy';
@@ -47,7 +50,7 @@ const QUICK_LINKS: QuickLink[] = [
     title: '排行榜',
     subtitle: '实时查看全球指挥官排名',
     route: 'Leaderboard',
-    borderColor: palette.magenta,
+    borderColor: palette.accent,
     glyph: 'leaderboard',
     background: cardLeaderboard,
   },
@@ -56,33 +59,40 @@ const QUICK_LINKS: QuickLink[] = [
     title: '铸造坊',
     subtitle: '打造战备与模块',
     route: 'Forge',
-    borderColor: palette.cyan,
+    borderColor: palette.primary,
     glyph: 'forge',
     background: cardForge,
+    locked: false,
   },
   {
     key: 'Marketplace',
     title: '集市坊',
     subtitle: '交易 NFT 与素材',
     route: 'Marketplace',
-    borderColor: palette.magenta,
+    borderColor: palette.accent,
     glyph: 'market',
     background: cardMarket,
+    locked: true,
+    lockLevel: 'Lv2 解锁',
+    progressText: '还差 200 EXP',
   },
   {
     key: 'EventShop',
     title: '活动商城',
     subtitle: '限时兑换稀有补给',
     route: 'EventShop',
-    borderColor: palette.violet,
+    borderColor: palette.primary,
     glyph: 'event',
     background: cardEvent,
+    locked: true,
+    lockLevel: 'Lv3 解锁',
+    progressText: '再赢 3 场即可',
   },
 ];
 const BLIND_BOX_COPY = {
-  label: '盲盒展示',
-  title: '唤醒机甲 · 今日掉率提升 2 倍',
-  desc: '进入 Unity 空间唤醒盲盒，奖励会自动结算，请保持指挥网络稳定。',
+  label: '盲盒唤醒',
+  title: '今日掉率提升',
+  desc: '进入 Unity 空间唤醒盲盒，奖励自动结算。',
 };
 
 const glowTextureAlt = require('../../assets/glow_btn.png');
@@ -111,7 +121,7 @@ export const HomeScreen = () => {
   const { data, loading, error } = useAccountSummary();
   const { width: windowWidth } = useWindowDimensions();
 
-  const displayName = data?.displayName ?? '指挥官';
+  const displayName = data?.displayName ?? 'Pilot Zero';
   const arcAmount = useMemo(() => formatAssetAmount(data?.tokens, ARC_TOKEN_ID), [data?.tokens]);
   const oreAmount = useMemo(() => formatAssetAmount(data?.tokens, ORE_TOKEN_ID), [data?.tokens]);
   const frameWidth = useMemo(
@@ -136,9 +146,7 @@ export const HomeScreen = () => {
   if (loading) {
     return (
       <ScreenContainer variant="plain" edgeVignette background={cavernBackdrop}>
-        <View style={styles.centerBox}>
-          <LoadingPlaceholder label="指挥中心正在唤醒…" />
-        </View>
+        <HomeSkeleton />
       </ScreenContainer>
     );
   }
@@ -171,6 +179,7 @@ export const HomeScreen = () => {
             contentPadding={20}
             style={{ width: frameWidth, minHeight: H_ASSET }}
           >
+            <View pointerEvents="none" style={styles.commandOverlay} />
             <View style={styles.assetHeader}>
               <View style={styles.identityBlock}>
                 <View style={styles.avatar}>
@@ -184,23 +193,26 @@ export const HomeScreen = () => {
                 </View>
               </View>
               <View style={styles.statusPill}>
-                <Text style={styles.statusText}>指挥网络稳定</Text>
+                <Text style={styles.statusText}>
+                  <Text style={styles.statusDot}>● </Text>
+                  网络：稳定
+                </Text>
               </View>
             </View>
             <View style={styles.resourceRow}>
               <ResourceChip
-                label="Arc"
+                label="ARC"
                 glyph="arc"
                 value={arcAmount}
                 unit="枚"
-                accent={palette.magenta}
+                accent={palette.primary}
               />
               <ResourceChip
                 label="矿石"
                 glyph="ore"
                 value={oreAmount}
                 unit="颗"
-                accent={palette.cyan}
+                accent={palette.accent}
               />
             </View>
           </NeonCard>
@@ -212,10 +224,12 @@ export const HomeScreen = () => {
           <Pressable
             key={card.key}
             onPress={card.onPress}
+            disabled={card.locked}
             style={({ pressed }) => [
               styles.quickPressable,
               { width: quickCardWidth, height: H_SMALL },
               pressed && styles.pressed,
+              card.locked && styles.lockedCard,
             ]}
           >
             <NeonCard
@@ -228,6 +242,11 @@ export const HomeScreen = () => {
               contentPadding={16}
               style={[styles.quickCardBox, { width: quickCardWidth, height: H_SMALL }]}
             >
+              {card.locked ? (
+                <View style={styles.lockBadge}>
+                  <Text style={styles.lockBadgeText}>{card.lockLevel ?? 'Lv2 解锁'}</Text>
+                </View>
+              ) : null}
               <View style={styles.quickCardBody}>
                 <QuickGlyph
                   id={card.glyph}
@@ -244,6 +263,14 @@ export const HomeScreen = () => {
                   </Text>
                 </View>
               </View>
+              {card.locked ? (
+                <View style={styles.lockProgressContainer}>
+                  <View style={styles.lockProgressTrack}>
+                    <View style={styles.lockProgressFill} />
+                  </View>
+                  <Text style={styles.lockProgressText}>{card.progressText ?? '待完成任务'}</Text>
+                </View>
+              ) : null}
             </NeonCard>
           </Pressable>
         ))}
@@ -274,12 +301,12 @@ export const HomeScreen = () => {
                   id="blindbox"
                   size={54}
                   strokeWidth={2.3}
-                  colors={[palette.violet, palette.cyan]}
+                  colors={[palette.accent, palette.primary]}
                 />
-                <NeonButton
-                  title="唤醒盲盒 · 200 Arc"
-                  onPress={() => navigation.navigate('BlindBox')}
-                />
+                <NeonButton title="立刻唤醒" onPress={() => navigation.navigate('BlindBox')} />
+                <View style={styles.priceBadge}>
+                  <Text style={styles.priceBadgeText}>200 ARC</Text>
+                </View>
               </View>
             </View>
           </NeonCard>
@@ -309,7 +336,6 @@ const ResourceChip = ({
         <QuickGlyph id={glyph} size={18} strokeWidth={1.8} colors={[accent, secondary]} />
         <View>
           <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
-          <Text style={styles.resourceMeta}>实时入账</Text>
         </View>
       </View>
       <View style={styles.resourceValueRow}>
@@ -348,6 +374,14 @@ const styles = StyleSheet.create({
   },
   commandCenterBg: {
     transform: [{ translateY: -10 }, { scale: 1.1 }],
+  },
+  commandOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: '45%',
+    backgroundColor: 'rgba(5, 8, 18, 0.68)',
   },
   quickBg: {
     transform: [{ scale: 1.15 }],
@@ -406,6 +440,9 @@ const styles = StyleSheet.create({
     ...typography.captionCaps,
     color: '#45E2B4',
   },
+  statusDot: {
+    color: '#2EE36F',
+  },
   resourceRow: {
     flexDirection: 'row',
     gap: 12,
@@ -435,12 +472,6 @@ const styles = StyleSheet.create({
     ...typography.captionCaps,
     letterSpacing: 0.4,
   },
-  resourceMeta: {
-    ...typography.body,
-    color: 'rgba(198, 214, 255, 0.65)',
-    fontSize: 11,
-    marginTop: 2,
-  },
   resourceValueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
@@ -468,9 +499,27 @@ const styles = StyleSheet.create({
   quickPressable: {
     alignItems: 'stretch',
   },
+  lockedCard: {
+    opacity: 0.78,
+  },
   pressed: {
     transform: [{ scale: PRESS_SCALE }],
     opacity: 0.92,
+  },
+  lockBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(17, 21, 36, 0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  lockBadgeText: {
+    ...typography.captionCaps,
+    color: '#8A5CFF',
   },
   quickCardBody: {
     flexDirection: 'row',
@@ -489,6 +538,24 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: 'rgba(190, 210, 255, 0.78)',
     marginTop: 2,
+  },
+  lockProgressContainer: {
+    marginTop: 10,
+  },
+  lockProgressTrack: {
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    overflow: 'hidden',
+  },
+  lockProgressFill: {
+    width: '35%',
+    backgroundColor: 'rgba(0, 209, 199, 0.6)',
+  },
+  lockProgressText: {
+    ...typography.captionCaps,
+    marginTop: 4,
+    color: 'rgba(255,255,255,0.65)',
   },
   blindBoxContent: {
     flex: 1,
@@ -518,6 +585,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
     justifyContent: 'flex-end',
+  },
+  priceBadge: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(8,12,24,0.6)',
+  },
+  priceBadgeText: {
+    ...typography.captionCaps,
+    color: '#8A5CFF',
   },
 });
 

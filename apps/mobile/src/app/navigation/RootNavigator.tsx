@@ -44,7 +44,7 @@ const TabBarBackground = () => (
   />
 );
 
-const tabIconFactory = (label: string, icon: BottomTabGlyph) => {
+const renderTabIcon = (label: string, icon: BottomTabGlyph) => {
   return ({ focused }: { focused: boolean }) => (
     <BottomTabIcon label={label} type={icon} focused={focused} />
   );
@@ -67,7 +67,7 @@ export const RootNavigator = () => (
         component={item.component}
         options={{
           title: item.title,
-          tabBarIcon: tabIconFactory(item.label, item.icon),
+          tabBarIcon: renderTabIcon(item.label, item.icon),
         }}
       />
     ))}
