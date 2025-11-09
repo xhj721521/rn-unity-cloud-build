@@ -33,7 +33,7 @@ import { typography } from '@theme/typography';
 import { useNeonPulse } from '@theme/animations';
 import { languageLabels, supportedLanguages, translate as t } from '@locale/strings';
 
-const heroBackground = require('../../assets/profile/ph_hero_bg.png');
+const cardCommandCenter = require('../../assets/cards/card_command_center.webp');
 const avatarPlaceholder = require('../../assets/profile/ph_avatar.png');
 const tileA = require('../../assets/profile/ph_tile_a.png');
 const tileB = require('../../assets/profile/ph_tile_b.png');
@@ -156,7 +156,6 @@ export const ProfileScreen = () => {
   const isVerified = kycStatus === 'verified';
 
   const statusPulse = useNeonPulse({ duration: 3200 });
-  const assetPulse = useNeonPulse({ duration: 6400 });
   const background = useMemo(() => <HomeBackground showVaporLayers />, []);
   const mapProgressAnimated = useRef(new Animated.Value(0)).current;
 
@@ -281,12 +280,17 @@ export const ProfileScreen = () => {
   return (
     <ScreenContainer scrollable variant="plain" edgeVignette background={background}>
       <NeonCard
-        backgroundSource={heroBackground}
+        backgroundSource={cardCommandCenter}
+        backgroundResizeMode="cover"
+        backgroundStyle={styles.commandCenterBg}
         borderRadius={shape.blockRadius + 4}
-        overlayColor="rgba(5,7,16,0.58)"
+        overlayColor="rgba(8, 12, 30, 0.42)"
+        borderColors={['#FF5AE0', '#7DD3FC']}
+        glowColor="#7DD3FC"
         contentPadding={20}
         style={styles.heroCard}
       >
+        <View pointerEvents="none" style={styles.commandOverlay} />
         <LinearGradient
           colors={['rgba(4,5,12,0.85)', 'transparent']}
           start={{ x: 0, y: 0 }}
@@ -312,21 +316,21 @@ export const ProfileScreen = () => {
             </RipplePressable>
           </View>
         </View>
-        <View style={styles.assetRow}>
-          <AssetChip
+        <View style={styles.resourceRow}>
+          <ResourceChip
             label={t('my.hero.asset.arc')}
-            amount={arcAmount}
+            glyph="arc"
+            value={arcAmount}
             unit="枚"
-            icon="arc"
-            pulse={assetPulse}
+            accent={palette.primary}
             onPress={() => navigation.navigate('Wallet')}
           />
-          <AssetChip
+          <ResourceChip
             label={t('my.hero.asset.ore')}
-            amount={oreAmount}
+            glyph="ore"
+            value={oreAmount}
             unit="颗"
-            icon="ore"
-            pulse={assetPulse}
+            accent={palette.accent}
             onPress={() => navigation.navigate('Wallet')}
           />
         </View>
@@ -447,24 +451,31 @@ export const ProfileScreen = () => {
         </RipplePressable>
       ) : null}
 
-      <SectionHeading title={t('my.settings.section')} />
-      <View style={styles.settingsBox}>
-        <SettingRow
+      <SectionHeading title={t('my.settings.section')} iconId="settings" />
+      <View style={styles.settingsGrid}>
+        <SettingChip
+          icon="globe"
+          label={t('my.settings.language')}
+          value={languageLabels[language]}
+          onPress={handleLanguage}
+        />
+        <SettingChip
+          icon="theme"
+          label={t('my.settings.theme')}
+          value={t('my.settings.soon')}
+          disabled
+        />
+        <SettingChip
+          icon="bell"
+          label={t('my.settings.notifications')}
+          value={t('my.settings.soon')}
+          disabled
+        />
+        <SettingChip
+          icon="lock"
           label={t('my.settings.kyc')}
           value={isVerified ? t('member.vip') : t('member.non')}
           onPress={() => navigation.navigate('KYC')}
-        />
-        <SettingRow
-          label={t('my.settings.language')}
-          value={t('my.settings.language.status', { lang: languageLabels[language] })}
-          onPress={handleLanguage}
-        />
-        <SettingRow label={t('my.settings.notifications')} value={t('my.settings.soon')} disabled />
-        <SettingRow label={t('my.settings.theme')} value={t('my.settings.soon')} disabled />
-        <SettingRow
-          label={t('my.settings.records')}
-          value=""
-          onPress={() => navigation.navigate('Wallet')}
         />
       </View>
     </ScreenContainer>
@@ -488,38 +499,77 @@ const StatusChip = ({ label, pulse }: { label: string; pulse: Animated.Value }) 
   );
 };
 
-const AssetChip = ({
+const ResourceChip = ({
   label,
-  amount,
+  glyph,
+  value,
   unit,
-  icon,
-  pulse,
+  accent,
   onPress,
 }: {
   label: string;
-  amount: string;
+  glyph: QuickGlyphId;
+  value: string;
   unit: string;
-  icon: QuickGlyphId;
-  pulse: Animated.Value;
-  onPress: () => void;
+  accent: string;
+  onPress?: () => void;
 }) => {
-  const animatedStyle = {
-    opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }),
+  const secondary = lightenHex(accent, 0.3);
+  const pulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 4000, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 4000, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  const valueAnimStyle = {
+    opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }),
+    transform: [
+      {
+        scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.02] }),
+      },
+    ],
   };
-  return (
-    <RipplePressable style={styles.assetChipPressable} onPress={onPress}>
-      <View style={styles.assetChip}>
-        <QuickGlyph id={icon} size={22} />
-        <View style={styles.assetTexts}>
-          <Text style={styles.assetLabel}>{label}</Text>
-          <AnimatedText style={[styles.assetValue, animatedStyle]}>
-            {amount}
-            <Text style={styles.assetUnit}> {unit}</Text>
-          </AnimatedText>
-        </View>
+
+  const content = (
+    <View style={[styles.resourceChip, { borderColor: accent, shadowColor: accent }]}>
+      <View style={styles.resourceInfo}>
+        <QuickGlyph id={glyph} size={18} strokeWidth={1.8} colors={[accent, secondary]} />
+        <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
       </View>
-    </RipplePressable>
+      <View style={styles.resourceValueRow}>
+        <Animated.View style={[styles.resourceValueWrapper, valueAnimStyle]}>
+          <Text style={styles.resourceValue} numberOfLines={1}>
+            {value}
+          </Text>
+        </Animated.View>
+        <Text style={styles.resourceUnit}>{unit}</Text>
+      </View>
+    </View>
   );
+
+  if (onPress) {
+    return (
+      <RipplePressable style={styles.resourceChipPressable} onPress={onPress}>
+        {content}
+      </RipplePressable>
+    );
+  }
+
+  return content;
+};
+
+const lightenHex = (hex: string, amount = 0.2) => {
+  const normalized = hex.replace('#', '');
+  const rgb = [0, 1, 2].map((index) => parseInt(normalized.slice(index * 2, index * 2 + 2), 16));
+  const lightened = rgb.map((channel) => Math.min(255, Math.round(channel * (1 + amount))));
+  return `#${lightened.map((val) => val.toString(16).padStart(2, '0')).join('')}`;
 };
 
 const MapProgress = ({ progressAnimated }: { progressAnimated: Animated.Value }) => {
@@ -558,13 +608,22 @@ const SectionHeading = ({
   title,
   actionLabel,
   onAction,
+  iconId,
 }: {
   title: string;
   actionLabel?: string;
   onAction?: () => void;
+  iconId?: QuickGlyphId;
 }) => (
   <View style={styles.sectionHeader}>
-    <Text style={styles.sectionTitle}>{title}</Text>
+    <View style={styles.sectionTitleRow}>
+      {iconId ? (
+        <View style={styles.sectionIcon}>
+          <QuickGlyph id={iconId} size={22} />
+        </View>
+      ) : null}
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
     {actionLabel && onAction ? (
       <RipplePressable style={styles.viewAllBtn} onPress={onAction}>
         <Text style={styles.viewAllText}>{actionLabel}</Text>
@@ -573,24 +632,31 @@ const SectionHeading = ({
   </View>
 );
 
-const SettingRow = ({
+const SettingChip = ({
+  icon,
   label,
   value,
   onPress,
   disabled,
 }: {
+  icon: QuickGlyphId;
   label: string;
   value: string;
   onPress?: () => void;
   disabled?: boolean;
 }) => (
   <RipplePressable
-    style={[styles.settingRow, disabled && styles.settingRowDisabled]}
+    style={[styles.settingChip, disabled && styles.settingChipDisabled]}
     onPress={onPress}
     disabled={disabled || !onPress}
   >
-    <Text style={styles.settingLabel}>{label}</Text>
-    <Text style={styles.settingValue}>{value}</Text>
+    <View style={styles.settingChipInner}>
+      <QuickGlyph id={icon} size={20} />
+      <View>
+        <Text style={styles.settingChipLabel}>{label}</Text>
+        <Text style={styles.settingChipValue}>{value}</Text>
+      </View>
+    </View>
   </RipplePressable>
 );
 
@@ -625,6 +691,17 @@ const styles = StyleSheet.create({
   heroCard: {
     minHeight: 220,
     marginBottom: spacing.section,
+  },
+  commandCenterBg: {
+    transform: [{ translateY: -10 }, { scale: 1.1 }],
+  },
+  commandOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: '45%',
+    backgroundColor: 'rgba(5, 8, 18, 0.68)',
   },
   heroHeader: {
     flexDirection: 'row',
@@ -701,36 +778,53 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  assetRow: {
+  resourceRow: {
     flexDirection: 'row',
     gap: spacing.cardGap,
+    marginTop: 6,
   },
-  assetChipPressable: {
+  resourceChipPressable: {
     flex: 1,
   },
-  assetChip: {
-    borderRadius: shape.capsuleRadius,
+  resourceChip: {
+    flex: 1,
+    borderRadius: 32,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
-    backgroundColor: 'rgba(7,10,22,0.8)',
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    paddingHorizontal: 14,
+    backgroundColor: 'rgba(8, 10, 24, 0.55)',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'space-between',
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
-  assetTexts: {
-    flex: 1,
+  resourceInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  assetLabel: {
+  resourceLabel: {
     ...typography.captionCaps,
-    color: palette.sub,
+    letterSpacing: 0.4,
   },
-  assetValue: {
+  resourceValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+  },
+  resourceValueWrapper: {
+    minWidth: 0,
+  },
+  resourceValue: {
     ...typography.numeric,
     color: palette.text,
+    maxWidth: 110,
+    textAlign: 'right',
   },
-  assetUnit: {
+  resourceUnit: {
     ...typography.captionCaps,
     color: palette.sub,
   },
@@ -846,6 +940,17 @@ const styles = StyleSheet.create({
     marginTop: spacing.section,
     marginBottom: spacing.cardGap / 2,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sectionIcon: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   sectionTitle: {
     ...typography.subtitle,
     color: palette.text,
@@ -915,32 +1020,37 @@ const styles = StyleSheet.create({
     ...typography.captionCaps,
     color: palette.primary,
   },
-  settingsBox: {
+  settingsGrid: {
     marginTop: spacing.cardGap,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: spacing.cardGap,
+    rowGap: spacing.cardGap,
+  },
+  settingChip: {
+    width: '48%',
     borderRadius: shape.cardRadius,
     borderWidth: 1,
     borderColor: palette.border,
-    backgroundColor: 'rgba(8,10,24,0.78)',
+    backgroundColor: 'rgba(8,10,24,0.7)',
+    padding: 14,
   },
-  settingRow: {
+  settingChipDisabled: {
+    opacity: 0.5,
+  },
+  settingChipInner: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    gap: 12,
   },
-  settingRowDisabled: {
-    opacity: 0.6,
-  },
-  settingLabel: {
-    ...typography.body,
-    color: palette.text,
-  },
-  settingValue: {
+  settingChipLabel: {
     ...typography.captionCaps,
     color: palette.sub,
+  },
+  settingChipValue: {
+    ...typography.subtitle,
+    color: palette.text,
+    marginTop: 2,
   },
 });
 
