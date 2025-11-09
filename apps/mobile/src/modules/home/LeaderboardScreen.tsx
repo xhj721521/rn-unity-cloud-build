@@ -1,880 +1,709 @@
-﻿import React, { useMemo, useRef, useState } from 'react';
-import {
-  Animated,
-  FlatList,
-  ListRenderItemInfo,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import React, { useMemo, useRef, useState } from 'react';
+import { Animated, FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
+import NeonCard from '@components/NeonCard';
+import RipplePressable from '@components/RipplePressable';
+import QuickGlyph from '@components/QuickGlyph';
 import { ScreenContainer } from '@components/ScreenContainer';
+import { translate as t } from '@locale/strings';
 import { useAppSelector } from '@state/hooks';
-import { useAccountSummary } from '@services/web3/hooks';
 import {
   LeaderboardCategory,
   LeaderboardEntry,
   LeaderboardPeriod,
 } from '@state/leaderboard/leaderboardSlice';
-import { useNeonPulse } from '@theme/animations';
-import { neonPalette } from '@theme/neonPalette';
-import { spacing } from '@theme/tokens';
+import { palette } from '@theme/colors';
+import { shape, spacing } from '@theme/tokens';
+import { typography } from '@theme/typography';
 
-const CATEGORY_TABS: { key: LeaderboardCategory; label: string }[] = [
-  { key: 'inviter', label: '邀请达人' },
-  { key: 'team', label: '团队排行' },
-  { key: 'wealth', label: '财富榜' },
+const ambientBg = require('../../assets/backgrounds/rank_ambient_bg_9x16.jpg');
+const heroBg = require('../../assets/backgrounds/rank_hero_bg_9x16.jpg');
+
+const CATEGORY_TABS: Array<{ key: LeaderboardCategory; label: string }> = [
+  { key: 'inviter', label: t('rank.category.invite', undefined, '邀请达人') },
+  { key: 'team', label: t('rank.category.team', undefined, '团队排行') },
+  { key: 'wealth', label: t('rank.category.wealth', undefined, '财富榜') },
 ];
 
-const PERIOD_TABS: { key: LeaderboardPeriod; label: string }[] = [
-  { key: 'daily', label: '日榜' },
-  { key: 'weekly', label: '周榜' },
-  { key: 'monthly', label: '月榜' },
+const PERIOD_TABS: Array<{ key: LeaderboardPeriod; label: string }> = [
+  { key: 'daily', label: t('rank.period.day', undefined, '日榜') },
+  { key: 'weekly', label: t('rank.period.week', undefined, '周榜') },
+  { key: 'monthly', label: t('rank.period.month', undefined, '月榜') },
 ];
 
-const PODIUM_ORDER = [2, 1, 3];
+type ListItem =
+  | { type: 'segments' }
+  | { type: 'podium' }
+  | { type: 'heading' }
+  | { type: 'rank'; entry: LeaderboardEntry };
 
-const PODIUM_GRADIENTS: Record<number, string[]> = {
-  1: ['#FFE29F', '#FFA99F', '#FF719A'],
-  2: ['#72E4FF', '#4A6DFF'],
-  3: ['#FF9DEA', '#FF6D6D'],
-};
-
-const RANK_TONES = {
-  top1: {
-    accent: '#FFC861',
-    stroke: 'rgba(255, 200, 97, 0.35)',
-    avatar: ['rgba(255, 200, 152, 0.65)', 'rgba(255, 128, 164, 0.25)'],
-  },
-  top2: {
-    accent: '#7DD3FC',
-    stroke: 'rgba(125, 211, 252, 0.28)',
-    avatar: ['rgba(194, 231, 255, 0.45)', 'rgba(120, 138, 255, 0.38)'],
-  },
-  top3: {
-    accent: '#FACC15',
-    stroke: 'rgba(250, 204, 21, 0.3)',
-    avatar: ['rgba(255, 209, 163, 0.42)', 'rgba(255, 145, 116, 0.34)'],
-  },
-  default: {
-    accent: '#9AA7FF',
-    stroke: 'rgba(111, 128, 255, 0.28)',
-    avatar: ['rgba(149, 136, 255, 0.32)', 'rgba(79, 53, 185, 0.34)'],
-  },
-};
-
-type RankToneKey = keyof typeof RANK_TONES;
-
-const getRankTone = (rank: number): RankToneKey => {
-  if (rank === 1) {
-    return 'top1';
-  }
-  if (rank === 2) {
-    return 'top2';
-  }
-  if (rank === 3) {
-    return 'top3';
-  }
-  return 'default';
-};
-
-const formatScore = (value: number) => `${value.toLocaleString()} 积分`;
-
-const getInitial = (name: string) => {
-  const trimmed = name?.trim();
-  if (!trimmed) {
-    return '指';
-  }
-  return trimmed.slice(0, 1).toUpperCase();
-};
-
-const MedalBadge = ({ rank }: { rank: number }) => {
-  const palette: Record<number, string> = {
-    1: '#FFC95C',
-    2: '#9DD9FF',
-    3: '#FFAA8A',
-  };
-  const label: Record<number, string> = {
-    1: '🥇',
-    2: '🥈',
-    3: '🥉',
-  };
-  return (
-    <View style={[styles.medalBadge, { borderColor: palette[rank] ?? '#9AA7FF' }]}>
-      <Text style={[styles.medalLabel, { color: palette[rank] ?? neonPalette.accentViolet }]}>
-        {label[rank] ?? '✦'}
-      </Text>
-    </View>
-  );
-};
-
-type ChampionShowcaseProps = {
-  entries: LeaderboardEntry[];
-  accountName?: string;
-};
-
-const ChampionShowcase = ({ entries, accountName }: ChampionShowcaseProps) => {
-  const pulse = useNeonPulse({ duration: 5200 });
-  const podiumEntries = useMemo(
-    () =>
-      PODIUM_ORDER.map((rank) => entries.find((item) => item.rank === rank)).filter(
-        (entry): entry is LeaderboardEntry => Boolean(entry),
-      ),
-    [entries],
-  );
-
-  if (podiumEntries.length === 0) {
-    return null;
-  }
-
-  return (
-    <View style={styles.podiumRow}>
-      {podiumEntries.map((entry) => {
-        const tone = RANK_TONES[getRankTone(entry.rank)];
-        const glowScale = entry.rank === 1 ? 1.18 : 1.06;
-        const isMine = entry.userId === 'pilot-zero' || entry.playerName === accountName;
-        const cardAnimatedStyle = getPodiumCardAnimatedStyle({
-          pulse,
-          glowScale,
-          accent: tone.accent,
-          isChampion: entry.rank === 1,
-        });
-        const glowAnimatedStyle = getPodiumGlowStyle({
-          pulse,
-          accent: tone.accent,
-        });
-        return (
-          <Animated.View
-            key={entry.userId}
-            style={[
-              styles.podiumCard,
-              entry.rank === 1 && styles.podiumCardChampion,
-              cardAnimatedStyle,
-            ]}
-          >
-            <LinearGradient
-              colors={PODIUM_GRADIENTS[entry.rank] ?? ['#261E55', '#0E162D']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.podiumGradient}
-            >
-              <Animated.View pointerEvents="none" style={[styles.podiumGlow, glowAnimatedStyle]} />
-              <View style={styles.podiumHeader}>
-                <MedalBadge rank={entry.rank} />
-                <View style={[styles.rankPill, { borderColor: tone.accent }]}>
-                  <Text style={[styles.rankPillText, { color: tone.accent }]}>{`NO.${String(
-                    entry.rank,
-                  ).padStart(2, '0')}`}</Text>
-                </View>
-              </View>
-              <LinearGradient
-                colors={tone.avatar}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={[styles.podiumAvatar, { borderColor: tone.accent }]}
-              >
-                <Text style={styles.podiumAvatarLabel}>{getInitial(entry.playerName)}</Text>
-              </LinearGradient>
-              <Text
-                style={[styles.podiumName, isMine && styles.podiumNameHighlight]}
-                numberOfLines={1}
-              >
-                {entry.playerName}
-              </Text>
-              <Text style={styles.podiumScore}>{formatScore(entry.score)}</Text>
-            </LinearGradient>
-          </Animated.View>
-        );
-      })}
-    </View>
-  );
-};
-
-const RewardCard = ({
-  icon,
-  title,
-  description,
-  gradient,
-}: {
-  icon: string;
-  title: string;
-  description: string;
-  gradient: string[];
-}) => (
-  <LinearGradient
-    colors={gradient}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 1 }}
-    style={styles.rewardCard}
-  >
-    <View style={styles.rewardIconWrap}>
-      <Text style={styles.rewardIcon}>{icon}</Text>
-    </View>
-    <View style={styles.rewardContent}>
-      <Text style={styles.rewardTitle}>{title}</Text>
-      <Text style={styles.rewardDescription}>{description}</Text>
-    </View>
-  </LinearGradient>
-);
-
-const MyRankCard = ({ summary }: { summary: string }) => (
-  <LinearGradient
-    colors={['rgba(25, 42, 88, 0.92)', 'rgba(14, 20, 44, 0.85)']}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 1 }}
-    style={styles.myRankCard}
-  >
-    <View style={styles.myRankBadge}>
-      <Text style={styles.myRankLabel}>我的排名</Text>
-    </View>
-    <Text style={styles.myRankSummary}>{summary}</Text>
-    <Text style={styles.myRankHint}>保持冲刺节奏，奖励宝藏正在等你领取。</Text>
-  </LinearGradient>
-);
-
-const LeaderboardRow = ({ item, isMine }: { item: LeaderboardEntry; isMine: boolean }) => {
-  const tone = RANK_TONES[getRankTone(item.rank)];
-  return (
-    <LinearGradient
-      colors={['rgba(16, 20, 48, 0.92)', 'rgba(12, 16, 36, 0.9)']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={[styles.rowCard, isMine && styles.rowCardActive]}
-    >
-      <View
-        style={[styles.rowRankBadge, { borderColor: tone.accent, backgroundColor: tone.stroke }]}
-      >
-        <Text style={[styles.rowRankLabel, { color: tone.accent }]}>{item.rank}</Text>
-      </View>
-      <LinearGradient
-        colors={tone.avatar}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.rowAvatar}
-      >
-        <Text style={styles.rowAvatarLabel}>{getInitial(item.playerName)}</Text>
-      </LinearGradient>
-      <View style={styles.rowInfo}>
-        <View style={styles.rowInfoHeader}>
-          <Text style={[styles.rowName, isMine && styles.rowNameHighlight]} numberOfLines={1}>
-            {item.playerName}
-          </Text>
-          {isMine && <Text style={styles.rowChip}>我的战绩</Text>}
-        </View>
-        <Text style={styles.rowScore}>{formatScore(item.score)}</Text>
-      </View>
-    </LinearGradient>
-  );
-};
-
-const RewardShowcase = ({
-  rewards,
-}: {
-  rewards: { top1To3: string; top4To10: string; top11To20: string };
-}) => {
-  const rewardItems = [
-    {
-      icon: '🗝️',
-      title: '巅峰荣耀',
-      description: rewards.top1To3,
-      gradient: ['rgba(255, 181, 116, 0.36)', 'rgba(255, 87, 146, 0.28)'],
-    },
-    {
-      icon: '💎',
-      title: '进阶嘉奖',
-      description: rewards.top4To10,
-      gradient: ['rgba(132, 210, 255, 0.34)', 'rgba(92, 120, 255, 0.32)'],
-    },
-    {
-      icon: '🎖️',
-      title: '持续激励',
-      description: rewards.top11To20,
-      gradient: ['rgba(255, 149, 255, 0.32)', 'rgba(255, 199, 132, 0.28)'],
-    },
-  ];
-
-  return (
-    <View style={styles.rewardGrid}>
-      {rewardItems.map((item) => (
-        <RewardCard key={item.title} {...item} />
-      ))}
-    </View>
-  );
-};
-
-const TabBar = <T extends string>({
-  tabs,
-  active,
-  onChange,
-}: {
-  tabs: { key: T; label: string }[];
-  active: T;
-  onChange: (key: T) => void;
-}) => (
-  <View style={styles.tabSegment}>
-    {tabs.map((tab) => {
-      const isActive = tab.key === active;
-      return (
-        <Pressable
-          key={tab.key}
-          style={[styles.tabItem, isActive && styles.tabItemActive]}
-          android_ripple={{ color: 'rgba(111, 204, 255, 0.16)' }}
-          onPress={() => onChange(tab.key)}
-        >
-          <LinearGradient
-            colors={
-              isActive
-                ? ['rgba(143, 92, 255, 0.85)', 'rgba(66, 225, 255, 0.76)']
-                : ['rgba(10, 16, 40, 0.76)', 'rgba(8, 12, 30, 0.7)']
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.tabGradient}
-          >
-            <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>{tab.label}</Text>
-          </LinearGradient>
-        </Pressable>
-      );
-    })}
-  </View>
-);
-
-type LeaderboardHeaderProps = {
-  category: LeaderboardCategory;
-  period: LeaderboardPeriod;
-  onSelectCategory: (key: LeaderboardCategory) => void;
-  onSelectPeriod: (key: LeaderboardPeriod) => void;
-  onScrollToMine: () => void;
-  mySummary: string;
-  championEntries: LeaderboardEntry[];
-  accountName?: string;
-};
-
-const LeaderboardHeader = ({
-  category,
-  period,
-  onSelectCategory,
-  onSelectPeriod,
-  onScrollToMine,
-  mySummary,
-  championEntries,
-  accountName,
-}: LeaderboardHeaderProps) => (
-  <View style={styles.headerBlock}>
-    <View style={styles.headerRow}>
-      <View style={styles.titleWrap}>
-        <Text style={styles.title}>排行榜</Text>
-        <Text style={styles.subtitle}>
-          邀请达人、团队排行、财富榜三大榜单，实时刷新你的冲刺进度。
-        </Text>
-      </View>
-      <Pressable
-        style={styles.jumpButton}
-        android_ripple={{ color: 'rgba(255, 255, 255, 0.2)' }}
-        onPress={onScrollToMine}
-      >
-        <LinearGradient
-          colors={['rgba(66, 225, 255, 0.8)', 'rgba(143, 92, 255, 0.85)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.jumpGradient}
-        >
-          <Text style={styles.jumpLabel}>回到我的排名</Text>
-        </LinearGradient>
-      </Pressable>
-    </View>
-    <TabBar tabs={CATEGORY_TABS} active={category} onChange={onSelectCategory} />
-    <TabBar tabs={PERIOD_TABS} active={period} onChange={onSelectPeriod} />
-    <MyRankCard summary={mySummary} />
-    <ChampionShowcase entries={championEntries} accountName={accountName} />
-    <View style={styles.listHeadingRow}>
-      <Text style={styles.listTitle}>榜单明细</Text>
-    </View>
-  </View>
-);
-
-const RewardSection = ({
-  rewards,
-}: {
-  rewards: { top1To3: string; top4To10: string; top11To20: string };
-}) => (
-  <View style={styles.rewardSection}>
-    <Text style={styles.sectionTitle}>赛季奖励</Text>
-    <RewardShowcase rewards={rewards} />
-  </View>
-);
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<ListItem>);
 
 export const LeaderboardScreen = () => {
   const [category, setCategory] = useState<LeaderboardCategory>('inviter');
   const [period, setPeriod] = useState<LeaderboardPeriod>('daily');
-  const listRef = useRef<FlatList<LeaderboardEntry>>(null);
-  const leaderboard = useAppSelector((state) => state.leaderboard);
-  const { data: account } = useAccountSummary();
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const listRef = useRef<FlatList<ListItem>>(null);
 
-  const board = leaderboard.data[category][period];
-  const rewards = leaderboard.rewards[category];
+  const leaderboard = useAppSelector((state) => state.leaderboard.data);
+  const rewards = useAppSelector((state) => state.leaderboard.rewards);
 
-  const mySummary = useMemo(() => {
-    if (!board.myRank) {
-      return '暂未上榜，继续冲刺挑战。';
+  const { entries, myRank } = leaderboard[category][period];
+
+  const podiumEntries = useMemo(() => entries.filter((item) => item.rank <= 3), [entries]);
+  const listEntries = useMemo(() => entries.filter((item) => item.rank > 3), [entries]);
+
+  const listData = useMemo<ListItem[]>(() => {
+    const base: ListItem[] = [{ type: 'segments' }];
+    if (podiumEntries.length > 0) {
+      base.push({ type: 'podium' });
     }
-    const rankLabel = board.myRank.rank <= 20 ? `当前第 ${board.myRank.rank} 名` : '暂列 20 名之外';
-    return `${rankLabel} ｜ ${formatScore(board.myRank.score)}`;
-  }, [board.myRank]);
-
-  const championEntries = useMemo(
-    () => board.entries.filter((item) => item.rank <= 3),
-    [board.entries],
-  );
-
-  const listEntries = useMemo(() => board.entries.filter((item) => item.rank > 3), [board.entries]);
-
-  const renderItem = ({ item }: ListRenderItemInfo<LeaderboardEntry>) => (
-    <LeaderboardRow
-      item={item}
-      isMine={item.userId === 'pilot-zero' || item.playerName === account?.displayName}
-    />
-  );
+    base.push({ type: 'heading' });
+    return [...base, ...listEntries.map((entry) => ({ type: 'rank', entry }))];
+  }, [listEntries, podiumEntries]);
 
   const handleScrollToMine = () => {
-    const mineIndex = listEntries.findIndex(
-      (entry) => entry.userId === 'pilot-zero' || entry.playerName === account?.displayName,
-    );
-    if (mineIndex >= 0) {
-      listRef.current?.scrollToIndex({ index: mineIndex, animated: true });
+    if (!myRank) {
       return;
     }
-    const mineInTop = championEntries.some(
-      (entry) => entry.userId === 'pilot-zero' || entry.playerName === account?.displayName,
+    if (myRank.rank <= 3) {
+      listRef.current?.scrollToOffset({ offset: 0, animated: true });
+      setHighlightedId(myRank.userId);
+      setTimeout(() => setHighlightedId(null), 1200);
+      return;
+    }
+    const targetIndex = listData.findIndex(
+      (item) => item.type === 'rank' && item.entry.userId === myRank.userId,
     );
-    if (mineInTop) {
+    if (targetIndex === -1) {
+      return;
+    }
+    try {
+      listRef.current?.scrollToIndex({
+        index: targetIndex,
+        animated: true,
+        viewPosition: 0.35,
+      });
+      setHighlightedId(myRank.userId);
+      setTimeout(() => setHighlightedId(null), 1200);
+    } catch (error) {
       listRef.current?.scrollToOffset({ offset: 0, animated: true });
     }
   };
 
-  const handleSelectCategory = (next: LeaderboardCategory) => {
-    if (next === category) {
-      return;
+  const renderItem = ({ item }: ListRenderItemInfo<ListItem>) => {
+    switch (item.type) {
+      case 'segments':
+        return (
+          <View style={styles.stickyWrapper}>
+            <SegmentsBlock
+              category={category}
+              period={period}
+              onCategoryChange={setCategory}
+              onPeriodChange={setPeriod}
+            />
+          </View>
+        );
+      case 'podium':
+        return <PodiumGrid entries={podiumEntries} />;
+      case 'heading':
+        return (
+          <>
+            <SectionHeading title={t('rank.list.title', undefined, '榜单明细')} />
+            {listEntries.length === 0 && (
+              <EmptyState message={t('rank.empty', undefined, '暂无上榜记录')} />
+            )}
+          </>
+        );
+      case 'rank':
+        return (
+          <RankRow
+            entry={item.entry}
+            highlight={item.entry.userId === highlightedId}
+            isMine={item.entry.userId === myRank?.userId}
+          />
+        );
+      default:
+        return null;
     }
-    setCategory(next);
-    requestAnimationFrame(() => listRef.current?.scrollToOffset({ offset: 0, animated: true }));
   };
 
-  const handleSelectPeriod = (next: LeaderboardPeriod) => {
-    if (next === period) {
-      return;
+  const keyExtractor = (item: ListItem, index: number) => {
+    if (item.type === 'segments') {
+      return 'segments';
     }
-    setPeriod(next);
-    requestAnimationFrame(() => listRef.current?.scrollToOffset({ offset: 0, animated: true }));
+    if (item.type === 'podium') {
+      return 'podium';
+    }
+    if (item.type === 'heading') {
+      return 'heading';
+    }
+    return item.entry.userId ?? `rank-${index}`;
   };
 
   return (
-    <ScreenContainer edgeVignette>
-      <FlatList
+    <ScreenContainer
+      variant="plain"
+      edgeVignette
+      scrollable={false}
+      background={<RankAmbientBackground scrollY={scrollY} />}
+    >
+      <AnimatedFlatList
         ref={listRef}
-        data={listEntries}
-        keyExtractor={(item) => item.userId}
+        data={listData}
+        keyExtractor={keyExtractor}
         renderItem={renderItem}
-        ItemSeparatorComponent={ListSeparator}
         ListHeaderComponent={
-          <LeaderboardHeader
-            category={category}
-            period={period}
-            onSelectCategory={handleSelectCategory}
-            onSelectPeriod={handleSelectPeriod}
+          <PosterHero
+            topEntry={podiumEntries[0]}
+            myRank={myRank}
             onScrollToMine={handleScrollToMine}
-            mySummary={mySummary}
-            championEntries={championEntries}
-            accountName={account?.displayName}
           />
         }
-        ListFooterComponent={<RewardSection rewards={rewards} />}
-        contentContainerStyle={styles.listWrapper}
+        ListFooterComponent={<SeasonRewards rewards={rewards[category]} />}
+        contentContainerStyle={styles.listContent}
+        stickyHeaderIndices={[0]}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+          useNativeDriver: true,
+        })}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        onScrollToIndexFailed={(info) => {
-          requestAnimationFrame(() =>
-            listRef.current?.scrollToIndex({ index: info.index, animated: true }),
-          );
-        }}
       />
     </ScreenContainer>
   );
 };
 
-type PodiumCardAnimatedInput = {
-  pulse: Animated.Value;
-  glowScale: number;
-  accent: string;
-  isChampion: boolean;
+const RankAmbientBackground = ({ scrollY }: { scrollY: Animated.Value }) => (
+  <Animated.View style={StyleSheet.absoluteFill}>
+    <Animated.Image
+      source={ambientBg}
+      style={[
+        styles.ambientImage,
+        { transform: [{ translateY: Animated.multiply(scrollY, 0.15) }] },
+      ]}
+      resizeMode="cover"
+    />
+    <View style={styles.ambientOverlay} />
+  </Animated.View>
+);
+
+const PosterHero = ({
+  topEntry,
+  myRank,
+  onScrollToMine,
+}: {
+  topEntry?: LeaderboardEntry;
+  myRank: LeaderboardEntry | null;
+  onScrollToMine: () => void;
+}) => {
+  const now = new Date();
+  const updatedLabel = t(
+    'rank.updated',
+    { time: formatUpdatedAt(now) },
+    `更新时间 ${formatUpdatedAt(now)}`,
+  );
+  return (
+    <NeonCard
+      backgroundSource={heroBg}
+      overlayColor="rgba(4,6,18,0.65)"
+      borderColors={[palette.primary, palette.accent]}
+      glowColor="rgba(93, 240, 255, 0.35)"
+      contentPadding={20}
+      style={styles.heroCard}
+    >
+      <View style={styles.heroHeaderRow}>
+        <View>
+          <Text style={styles.heroEyebrow}>{t('rank.title', undefined, '排行榜')}</Text>
+          <Text style={styles.heroTitle} numberOfLines={1}>
+            {topEntry?.playerName ?? t('rank.empty', undefined, '暂无上榜记录')}
+          </Text>
+          <Text style={styles.heroSubtitle}>{updatedLabel}</Text>
+        </View>
+        <RipplePressable style={styles.myRankPill} onPress={onScrollToMine}>
+          <QuickGlyph id="leaderboard" size={18} />
+          <Text style={styles.myRankText} numberOfLines={1}>
+            {myRank
+              ? `${t('rank.backToMine', undefined, '回到我的排名')} · #${myRank.rank}`
+              : t('rank.backToMine', undefined, '回到我的排名')}
+          </Text>
+        </RipplePressable>
+      </View>
+      <View style={styles.heroScoreRow}>
+        <View style={styles.heroScoreBlock}>
+          <Text style={styles.heroLabel}>{t('rank.podium.no1', undefined, 'NO.01')}</Text>
+          <Text style={styles.heroScore}>{topEntry ? formatScore(topEntry.score) : '--'}</Text>
+        </View>
+        <View style={styles.heroDivider} />
+        <View style={styles.heroScoreBlock}>
+          <Text style={styles.heroLabel}>{t('rank.my', undefined, '我的排名')}</Text>
+          <Text style={styles.heroMyRank}>{myRank ? `#${myRank.rank}` : '--'}</Text>
+          <Text style={styles.heroScore}>{myRank ? formatScore(myRank.score) : '--'}</Text>
+        </View>
+      </View>
+    </NeonCard>
+  );
 };
 
-const getPodiumCardAnimatedStyle = ({
-  pulse,
-  glowScale,
-  accent,
-  isChampion,
-}: PodiumCardAnimatedInput) => ({
-  shadowColor: accent,
-  shadowOpacity: isChampion ? 0.45 : 0.28,
-  transform: [
-    {
-      scale: pulse.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0.98, glowScale],
-      }),
-    },
-  ],
-});
+const SegmentsBlock = ({
+  category,
+  period,
+  onCategoryChange,
+  onPeriodChange,
+}: {
+  category: LeaderboardCategory;
+  period: LeaderboardPeriod;
+  onCategoryChange: (value: LeaderboardCategory) => void;
+  onPeriodChange: (value: LeaderboardPeriod) => void;
+}) => (
+  <View style={styles.segmentsContainer}>
+    <SegmentedControl value={category} options={CATEGORY_TABS} onChange={onCategoryChange} />
+    <SegmentedControl value={period} options={PERIOD_TABS} onChange={onPeriodChange} />
+  </View>
+);
 
-const getPodiumGlowStyle = ({ pulse, accent }: { pulse: Animated.Value; accent: string }) => ({
-  backgroundColor: accent,
-  opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.14, 0.32] }),
-  transform: [
-    {
-      scale: pulse.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0.95, 1.05],
-      }),
-    },
-  ],
-});
+const SegmentedControl = <T extends string>({
+  value,
+  options,
+  onChange,
+}: {
+  value: T;
+  options: Array<{ key: T; label: string }>;
+  onChange: (value: T) => void;
+}) => (
+  <View style={styles.segmentedRow}>
+    {options.map((option) => {
+      const active = option.key === value;
+      return (
+        <RipplePressable
+          key={option.key}
+          style={[styles.segmentButton, active && styles.segmentButtonActive]}
+          onPress={() => onChange(option.key)}
+        >
+          <Text style={[styles.segmentLabel, active && styles.segmentLabelActive]}>
+            {option.label}
+          </Text>
+        </RipplePressable>
+      );
+    })}
+  </View>
+);
 
-function ListSeparator() {
-  return <View style={styles.rowSeparator} />;
-}
+const PodiumGrid = ({ entries }: { entries: LeaderboardEntry[] }) => {
+  if (!entries.length) {
+    return null;
+  }
+  return (
+    <View style={styles.podiumGrid}>
+      {entries.map((entry) => (
+        <PodiumCard key={entry.userId} entry={entry} />
+      ))}
+    </View>
+  );
+};
+
+const PodiumCard = ({ entry }: { entry: LeaderboardEntry }) => {
+  const tones = getTone(entry.rank);
+  const labels: Record<number, string> = {
+    1: t('rank.podium.no1', undefined, 'NO.01'),
+    2: t('rank.podium.no2', undefined, 'NO.02'),
+    3: t('rank.podium.no3', undefined, 'NO.03'),
+  };
+  return (
+    <NeonCard
+      overlayColor="rgba(8,12,30,0.55)"
+      borderColors={tones.border}
+      glowColor={tones.glow}
+      contentPadding={18}
+      style={[styles.podiumCard, entry.rank === 1 && styles.podiumCardChampion]}
+    >
+      <View style={styles.podiumHeader}>
+        <View style={[styles.rankBadge, { borderColor: tones.accent }]}>
+          <Text style={[styles.rankBadgeText, { color: tones.accent }]}>
+            {labels[entry.rank] ?? `#${entry.rank}`}
+          </Text>
+        </View>
+        <View style={[styles.rankAura, { backgroundColor: tones.aura }]} />
+      </View>
+      <Text style={styles.podiumName} numberOfLines={1}>
+        {entry.playerName}
+      </Text>
+      <Text style={styles.podiumScore}>{formatScore(entry.score)}</Text>
+    </NeonCard>
+  );
+};
+
+const RankRow = ({
+  entry,
+  highlight,
+  isMine,
+}: {
+  entry: LeaderboardEntry;
+  highlight: boolean;
+  isMine: boolean;
+}) => {
+  const tones = getTone(entry.rank);
+  return (
+    <NeonCard
+      overlayColor="rgba(5,8,18,0.7)"
+      contentPadding={16}
+      glowColor={highlight ? tones.glow : undefined}
+      style={[styles.rankRow, highlight && styles.rankRowHighlight]}
+    >
+      <View style={styles.rankRowContent}>
+        <View style={[styles.rankCircle, { borderColor: tones.accent }]}>
+          <Text style={styles.rankCircleText}>{entry.rank}</Text>
+        </View>
+        <View style={styles.rankMeta}>
+          <Text style={[styles.rankName, isMine && styles.rankNameActive]} numberOfLines={1}>
+            {entry.playerName}
+          </Text>
+          <Text style={styles.rankDesc} numberOfLines={1}>
+            {entry.userId}
+          </Text>
+        </View>
+        <View style={styles.rankScoreBlock}>
+          <Text style={styles.rankScore}>{formatScore(entry.score)}</Text>
+          <Text style={styles.rankScoreHint}>{t('rank.points', undefined, '积分')}</Text>
+        </View>
+      </View>
+    </NeonCard>
+  );
+};
+
+const SeasonRewards = ({
+  rewards,
+}: {
+  rewards: { top1To3: string; top4To10: string; top11To20: string };
+}) => {
+  const cards = [
+    { key: 'top', title: t('rank.rewards.top', undefined, '巅峰荣耀'), body: rewards.top1To3 },
+    { key: 'pro', title: t('rank.rewards.pro', undefined, '进阶嘉奖'), body: rewards.top4To10 },
+    { key: 'keep', title: t('rank.rewards.keep', undefined, '持续激励'), body: rewards.top11To20 },
+  ];
+  return (
+    <>
+      <SectionHeading title={t('rank.rewards.section', undefined, '赛季奖励')} />
+      <View style={styles.rewardGrid}>
+        {cards.map((card, index) => (
+          <NeonCard
+            key={card.key}
+            backgroundSource={heroBg}
+            overlayColor={index === 0 ? 'rgba(10,18,40,0.65)' : 'rgba(6,10,22,0.7)'}
+            contentPadding={18}
+            glowColor="rgba(82,131,255,0.2)"
+            style={styles.rewardCard}
+          >
+            <Text style={styles.rewardTitle}>{card.title}</Text>
+            <Text style={styles.rewardBody}>{card.body}</Text>
+          </NeonCard>
+        ))}
+      </View>
+    </>
+  );
+};
+
+const SectionHeading = ({ title }: { title: string }) => (
+  <View style={styles.sectionHeader}>
+    <View style={styles.sectionAccent} />
+    <Text style={styles.sectionTitle}>{title}</Text>
+  </View>
+);
+
+const EmptyState = ({ message }: { message: string }) => (
+  <View style={styles.emptyState}>
+    <Text style={styles.emptyText}>{message}</Text>
+  </View>
+);
+
+const getTone = (rank: number) => {
+  if (rank === 1) {
+    return {
+      accent: '#FFC95C',
+      border: ['#FFC95C', '#FF719A'] as [string, string],
+      glow: '#FF9D66',
+      aura: 'rgba(255,201,92,0.18)',
+    };
+  }
+  if (rank === 2) {
+    return {
+      accent: '#7DD3FC',
+      border: ['#7DD3FC', '#4A6DFF'] as [string, string],
+      glow: '#7DD3FC',
+      aura: 'rgba(125,211,252,0.14)',
+    };
+  }
+  if (rank === 3) {
+    return {
+      accent: '#FF9DEA',
+      border: ['#FF9DEA', '#FF6D6D'] as [string, string],
+      glow: '#FF9DEA',
+      aura: 'rgba(255,157,234,0.12)',
+    };
+  }
+  return {
+    accent: '#7F8CFF',
+    border: ['#7F8CFF', '#5C6AFF'] as [string, string],
+    glow: '#6E8BFF',
+    aura: 'rgba(127,140,255,0.08)',
+  };
+};
+
+const formatScore = (value: number) =>
+  new Intl.NumberFormat('zh-CN', { useGrouping: true }).format(value);
+
+const formatUpdatedAt = (date: Date) =>
+  date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
 
 const styles = StyleSheet.create({
-  listWrapper: {
+  listContent: {
     paddingBottom: spacing.section * 2,
-    gap: spacing.section,
   },
-  headerBlock: {
-    gap: spacing.section * 1.25,
+  ambientImage: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.85,
   },
-  headerRow: {
+  ambientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(3,4,12,0.7)',
+  },
+  heroCard: {
+    marginHorizontal: spacing.pageHorizontal,
+    marginTop: spacing.section,
+  },
+  heroHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: spacing.section,
+    gap: 16,
   },
-  titleWrap: {
-    flex: 1,
+  heroEyebrow: {
+    ...typography.captionCaps,
+    color: palette.muted,
+  },
+  heroTitle: {
+    ...typography.title,
+    color: palette.text,
+    marginTop: 6,
+  },
+  heroSubtitle: {
+    ...typography.caption,
+    color: palette.sub,
+    marginTop: 4,
+  },
+  myRankPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
-  },
-  title: {
-    color: neonPalette.textPrimary,
-    fontSize: 24,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-  },
-  subtitle: {
-    color: 'rgba(226, 231, 255, 0.7)',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  jumpButton: {
-    borderRadius: 999,
-    overflow: 'hidden',
-  },
-  jumpGradient: {
+    borderRadius: shape.capsuleRadius,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 999,
-    alignItems: 'center',
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: 'rgba(6,10,18,0.4)',
   },
-  jumpLabel: {
-    color: '#04010F',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.6,
+  myRankText: {
+    ...typography.caption,
+    color: palette.text,
   },
-  tabSegment: {
+  heroScoreRow: {
     flexDirection: 'row',
-    gap: spacing.cardGap,
+    alignItems: 'center',
+    marginTop: 24,
   },
-  tabItem: {
+  heroScoreBlock: {
     flex: 1,
-    borderWidth: 1,
-    borderRadius: 18,
-    overflow: 'hidden',
-    borderColor: 'rgba(89, 92, 255, 0.22)',
   },
-  tabItemActive: {
-    borderColor: 'rgba(116, 205, 255, 0.65)',
-    shadowColor: 'rgba(79, 120, 255, 0.55)',
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 3,
+  heroLabel: {
+    ...typography.captionCaps,
+    color: palette.sub,
   },
-  tabGradient: {
-    paddingVertical: 12,
-    alignItems: 'center',
+  heroScore: {
+    ...typography.numeric,
+    color: palette.text,
+    marginTop: 6,
   },
-  tabLabel: {
-    color: 'rgba(226, 231, 255, 0.72)',
-    fontSize: 14,
-    fontWeight: '600',
+  heroMyRank: {
+    ...typography.subtitle,
+    color: palette.accent,
+    marginTop: 4,
   },
-  tabLabelActive: {
-    color: neonPalette.textPrimary,
-    textShadowColor: 'rgba(111, 204, 255, 0.65)',
-    textShadowRadius: 12,
+  heroDivider: {
+    width: 1,
+    height: '100%',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginHorizontal: 24,
   },
-  myRankCard: {
-    borderRadius: 22,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(66, 225, 255, 0.25)',
-    gap: 10,
+  segmentsContainer: {
+    paddingHorizontal: spacing.pageHorizontal,
+    paddingTop: spacing.cardGap,
+    paddingBottom: spacing.cardGap / 2,
+    backgroundColor: 'rgba(8,10,20,0.82)',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
   },
-  myRankBadge: {
-    alignSelf: 'flex-start',
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(66, 225, 255, 0.45)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    backgroundColor: 'rgba(64, 205, 255, 0.16)',
+  stickyWrapper: {
+    backgroundColor: 'rgba(8,10,20,0.9)',
   },
-  myRankLabel: {
-    color: '#60F2FF',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-  myRankSummary: {
-    color: neonPalette.textPrimary,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  myRankHint: {
-    color: 'rgba(226, 231, 255, 0.68)',
-    fontSize: 13,
-  },
-  podiumRow: {
+  segmentedRow: {
     flexDirection: 'row',
     gap: spacing.cardGap,
-    alignItems: 'flex-end',
+    marginBottom: spacing.cardGap,
+  },
+  segmentButton: {
+    flex: 1,
+    borderRadius: shape.capsuleRadius,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    paddingVertical: 10,
+    alignItems: 'center',
+    backgroundColor: 'rgba(7,10,18,0.6)',
+  },
+  segmentButtonActive: {
+    borderColor: palette.primary,
+    backgroundColor: 'rgba(0,209,199,0.15)',
+  },
+  segmentLabel: {
+    ...typography.captionCaps,
+    color: palette.sub,
+  },
+  segmentLabelActive: {
+    color: palette.text,
+  },
+  podiumGrid: {
+    flexDirection: 'row',
+    gap: spacing.cardGap,
+    paddingHorizontal: spacing.pageHorizontal,
+    marginTop: spacing.section,
   },
   podiumCard: {
     flex: 1,
-    borderRadius: 26,
-    padding: 2,
-    backgroundColor: 'rgba(59, 72, 140, 0.22)',
   },
   podiumCardChampion: {
-    flex: 1.1,
-    paddingBottom: 6,
-  },
-  podiumGradient: {
-    borderRadius: 24,
-    paddingVertical: 18,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    gap: 16,
-    overflow: 'hidden',
-    minHeight: 220,
-  },
-  podiumGlow: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 24,
+    transform: [{ translateY: -8 }],
   },
   podiumHeader: {
     flexDirection: 'row',
-    width: '100%',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  medalBadge: {
-    borderRadius: 18,
+  rankBadge: {
+    borderRadius: shape.capsuleRadius,
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    backgroundColor: 'rgba(8, 12, 32, 0.48)',
   },
-  medalLabel: {
-    fontSize: 18,
-    fontWeight: '700',
+  rankBadgeText: {
+    ...typography.captionCaps,
   },
-  rankPill: {
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    backgroundColor: 'rgba(8, 12, 32, 0.38)',
-  },
-  rankPillText: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-  },
-  podiumAvatar: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    borderWidth: 1.4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  podiumAvatarLabel: {
-    color: neonPalette.textPrimary,
-    fontSize: 26,
-    fontWeight: '700',
-    letterSpacing: 1,
+  rankAura: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    opacity: 0.6,
   },
   podiumName: {
-    color: neonPalette.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  podiumNameHighlight: {
-    color: '#FFE29F',
+    ...typography.subtitle,
+    color: palette.text,
+    marginTop: 16,
   },
   podiumScore: {
-    color: 'rgba(226, 231, 255, 0.82)',
-    fontSize: 14,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
+    ...typography.numeric,
+    color: palette.text,
+    marginTop: 6,
   },
-  listHeadingRow: {
+  rankRow: {
+    marginHorizontal: spacing.pageHorizontal,
+    marginBottom: spacing.cardGap,
+  },
+  rankRowContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 12,
   },
-  listTitle: {
-    color: neonPalette.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
+  rankRowHighlight: {
+    borderColor: palette.accent,
   },
-  rowSeparator: {
-    height: spacing.cardGap,
-  },
-  rowCard: {
-    borderRadius: 18,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.cardGap,
-    borderWidth: 1,
-    borderColor: 'rgba(56, 62, 120, 0.32)',
-    backgroundColor: 'rgba(16, 18, 38, 0.76)',
-    shadowColor: 'rgba(0, 0, 0, 0.55)',
-    shadowOpacity: 0.28,
-    shadowRadius: 18,
-    elevation: 3,
-  },
-  rowCardActive: {
-    borderColor: 'rgba(64, 205, 255, 0.65)',
-    shadowColor: 'rgba(64, 205, 255, 0.45)',
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-  },
-  rowRankBadge: {
-    width: 48,
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingVertical: 6,
-    alignItems: 'center',
-    backgroundColor: 'rgba(38, 54, 128, 0.35)',
-  },
-  rowRankLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
-  rowAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+  rankCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rowAvatarLabel: {
-    color: neonPalette.textPrimary,
-    fontSize: 18,
-    fontWeight: '700',
+  rankCircleText: {
+    ...typography.subtitle,
+    color: palette.text,
   },
-  rowInfo: {
+  rankMeta: {
     flex: 1,
-    gap: 6,
   },
-  rowInfoHeader: {
+  rankName: {
+    ...typography.subtitle,
+    color: palette.text,
+  },
+  rankNameActive: {
+    color: palette.primary,
+  },
+  rankDesc: {
+    ...typography.captionCaps,
+    color: palette.sub,
+    marginTop: 2,
+  },
+  rankScoreBlock: {
+    alignItems: 'flex-end',
+  },
+  rankScore: {
+    ...typography.numeric,
+    color: palette.text,
+  },
+  rankScoreHint: {
+    ...typography.captionCaps,
+    color: palette.sub,
+    marginTop: 2,
+  },
+  sectionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: spacing.pageHorizontal,
+    marginTop: spacing.section,
+    marginBottom: spacing.cardGap / 2,
+    gap: 10,
   },
-  rowName: {
-    color: neonPalette.textPrimary,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  rowNameHighlight: {
-    color: '#5CFAFF',
-  },
-  rowChip: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(92, 250, 255, 0.4)',
-    color: '#5CFAFF',
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-  rowScore: {
-    color: '#9EAFFF',
-    fontSize: 13,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-  },
-  rewardSection: {
-    gap: 14,
+  sectionAccent: {
+    width: 22,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: palette.primary,
   },
   sectionTitle: {
-    color: neonPalette.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
+    ...typography.subtitle,
+    color: palette.text,
   },
   rewardGrid: {
+    flexDirection: 'column',
     gap: spacing.cardGap,
+    paddingHorizontal: spacing.pageHorizontal,
+    marginTop: spacing.cardGap,
   },
   rewardCard: {
-    borderRadius: 20,
-    padding: 16,
-    flexDirection: 'row',
-    gap: spacing.cardGap,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(6, 10, 24, 0.65)',
-  },
-  rewardIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rewardIcon: {
-    fontSize: 26,
-  },
-  rewardContent: {
-    flex: 1,
-    gap: 6,
+    minHeight: 110,
   },
   rewardTitle: {
-    color: neonPalette.textPrimary,
-    fontSize: 15,
-    fontWeight: '700',
+    ...typography.subtitle,
+    color: palette.text,
   },
-  rewardDescription: {
-    color: 'rgba(226, 231, 255, 0.78)',
-    fontSize: 13,
-    lineHeight: 18,
+  rewardBody: {
+    ...typography.body,
+    color: palette.sub,
+    marginTop: 6,
+  },
+  emptyState: {
+    paddingHorizontal: spacing.pageHorizontal,
+    paddingVertical: spacing.cardGap,
+  },
+  emptyText: {
+    ...typography.caption,
+    color: palette.sub,
+    textAlign: 'center',
   },
 });
