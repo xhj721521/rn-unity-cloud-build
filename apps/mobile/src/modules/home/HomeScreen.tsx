@@ -1,6 +1,5 @@
-﻿import React, { useMemo } from 'react';
-import {
-  ImageSourcePropType,
+﻿import React, { useEffect, useMemo, useRef } from 'react';
+import {\r\n  Animated,\r\n  ImageSourcePropType,
   Pressable,
   StyleSheet,
   Text,
@@ -129,6 +128,19 @@ export const HomeScreen = () => {
     [windowWidth],
   );
 
+  const statusPulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(statusPulse, { toValue: 1, duration: 1500, useNativeDriver: true }),
+        Animated.timing(statusPulse, { toValue: 0, duration: 1500, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [statusPulse]);
+
   const quickCards = useMemo(
     () =>
       QUICK_LINKS.map((link) => ({
@@ -193,10 +205,30 @@ export const HomeScreen = () => {
                 </View>
               </View>
               <View style={styles.statusPill}>
-                <Text style={styles.statusText}>
-                  <Text style={styles.statusDot}>● </Text>
-                  网络：稳定
-                </Text>
+                <View style={styles.statusRow}>
+                  <Animated.Text
+                    style={[
+                      styles.statusDot,
+                      {
+                        opacity: statusPulse.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.6, 1],
+                        }),
+                        transform: [
+                          {
+                            scale: statusPulse.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [0.9, 1.05],
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
+                  >
+                    ●
+                  </Animated.Text>
+                  <Text style={styles.statusText}>网络：稳定</Text>
+                </View>
               </View>
             </View>
             <View style={styles.resourceRow}>
@@ -264,12 +296,7 @@ export const HomeScreen = () => {
                 </View>
               </View>
               {card.locked ? (
-                <View style={styles.lockProgressContainer}>
-                  <View style={styles.lockProgressTrack}>
-                    <View style={styles.lockProgressFill} />
-                  </View>
-                  <Text style={styles.lockProgressText}>{card.progressText ?? '待完成任务'}</Text>
-                </View>
+                <LockProgress text={card.progressText ?? '待完成任务'} />
               ) : null}
             </NeonCard>
           </Pressable>
@@ -316,6 +343,32 @@ export const HomeScreen = () => {
   );
 };
 
+const LockProgress = ({ text }: { text: string }) => {
+  const fill = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(fill, { toValue: 1, duration: 5000, useNativeDriver: false }),
+        Animated.timing(fill, { toValue: 0, duration: 5000, useNativeDriver: false }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [fill]);
+
+  const width = fill.interpolate({ inputRange: [0, 1], outputRange: ['28%', '48%'] });
+
+  return (
+    <View style={styles.lockProgressContainer}>
+      <View style={styles.lockProgressTrack}>
+        <Animated.View style={[styles.lockProgressFill, { width }]} />
+      </View>
+      <Text style={styles.lockProgressText}>{text}</Text>
+    </View>
+  );
+};
+
 const ResourceChip = ({
   label,
   glyph,
@@ -330,18 +383,40 @@ const ResourceChip = ({
   accent: string;
 }) => {
   const secondary = lightenHex(accent, 0.3);
+  const pulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 4000, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 4000, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  const valueAnimStyle = {
+    opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }),
+    transform: [
+      {
+        scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.02] }),
+      },
+    ],
+  };
+
   return (
     <View style={[styles.resourceChip, { borderColor: accent, shadowColor: accent }]}>
       <View style={styles.resourceInfo}>
         <QuickGlyph id={glyph} size={18} strokeWidth={1.8} colors={[accent, secondary]} />
-        <View>
-          <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
-        </View>
+        <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
       </View>
       <View style={styles.resourceValueRow}>
-        <Text style={styles.resourceValue} numberOfLines={1}>
-          {value}
-        </Text>
+        <Animated.View style={[styles.resourceValueWrapper, valueAnimStyle]}>
+          <Text style={styles.resourceValue} numberOfLines={1}>
+            {value}
+          </Text>
+        </Animated.View>
         <Text style={styles.resourceUnit}>{unit}</Text>
       </View>
     </View>
@@ -436,6 +511,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(59, 222, 185, 0.6)',
     backgroundColor: 'rgba(59, 222, 185, 0.12)',
   },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   statusText: {
     ...typography.captionCaps,
     color: '#45E2B4',
@@ -476,6 +556,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 4,
+  },
+  resourceValueWrapper: {
+    minWidth: 0,
   },
   resourceValue: {
     ...typography.numeric,
@@ -549,7 +632,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   lockProgressFill: {
-    width: '35%',
     backgroundColor: 'rgba(0, 209, 199, 0.6)',
   },
   lockProgressText: {
@@ -601,3 +683,4 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+
