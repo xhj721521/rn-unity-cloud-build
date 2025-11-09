@@ -20,6 +20,8 @@ const zhCN = {
   'my.stats.maps.value': '{unlocked} / {total}',
   'my.stats.shards.rare': '稀有碎片',
   'my.stats.shards.subtitle': 'Rare Shards',
+  'my.stats.chain': '链鉴中心',
+  'my.stats.chain.subtitle': '链上数据中枢',
   'my.matrix.section': '功能矩阵',
   'my.entry.team.title': '我的团队',
   'my.entry.team.desc': '成员状态与权益',
@@ -32,7 +34,7 @@ const zhCN = {
   'my.entry.member.badge.inactive': '非会员',
   'my.entry.member.badge.active': 'VIP',
   'my.entry.reports.title': '战报中心',
-  'my.entry.reports.desc': '作战记录与导出',
+  'my.entry.reports.desc': '查看作战记录',
   'my.entry.highlights.title': '收藏亮点',
   'my.entry.highlights.desc': '保留精彩时刻',
   'my.highlights.section': '收藏亮点',
@@ -54,6 +56,11 @@ const zhCN = {
   'my.settings.theme': '个性化外观主题',
   'my.settings.records': '资金记录',
   'my.settings.soon': '即将上线',
+  'settings.title': '系统与支持',
+  'settings.preferences': '偏好设置',
+  'settings.account': '账户与资产',
+  'settings.contact': '联系我们',
+  'settings.contact.error': '无法打开链接，请稍候重试',
   'member.title': '会员中心',
   'member.non': '非会员',
   'member.status': '当前状态：{status}',
@@ -87,6 +94,7 @@ const zhCN = {
   'member.alert': '会员购买通道即将开启。',
   'my.error.title': '暂时无法加载我的数据',
   'common.notice': '提示',
+  'common.cancel': '取消',
 } as const;
 
 export type LocaleKey = keyof typeof zhCN;

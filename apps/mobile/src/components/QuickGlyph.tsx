@@ -25,7 +25,8 @@ export type QuickGlyphId =
   | 'highlights'
   | 'lock'
   | 'globe'
-  | 'network';
+  | 'network'
+  | 'settings';
 
 type QuickGlyphProps = {
   id: QuickGlyphId;
@@ -274,6 +275,20 @@ const renderGlyph = (id: QuickGlyphId, stroke: string, fill: string, strokeWidth
           <Path d="M5 16C7.5 13.5 10.6 12 14 12C17.4 12 20.5 13.5 23 16" {...common} />
           <Path d="M8 19C9.5 17.8 11.7 17 14 17C16.3 17 18.5 17.8 20 19" {...common} />
           <Circle cx={14} cy={22} r={1.5} {...common} />
+        </>
+      );
+    case 'settings':
+      return (
+        <>
+          <Circle cx={14} cy={14} r={4} {...common} fill="none" />
+          <Path d="M14 6V8" {...common} />
+          <Path d="M14 20V22" {...common} />
+          <Path d="M6 14H8" {...common} />
+          <Path d="M20 14H22" {...common} />
+          <Path d="M8.5 8.5L9.9 9.9" {...common} />
+          <Path d="M18.1 18.1L19.5 19.5" {...common} />
+          <Path d="M8.5 19.5L9.9 18.1" {...common} />
+          <Path d="M18.1 9.9L19.5 8.5" {...common} />
         </>
       );
     default:

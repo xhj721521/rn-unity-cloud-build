@@ -25,4 +25,5 @@ export type ProfileStackParamList = {
   Reports: undefined;
   Highlights: undefined;
   KYC: undefined;
+  Settings: undefined;
 };

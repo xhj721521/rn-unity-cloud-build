@@ -1,11 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
-  ActionSheetIOS,
   Alert,
   Animated,
   Image,
   ImageSourcePropType,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,7 +11,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Circle } from 'react-native-svg';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer } from '@components/ScreenContainer';
 import NeonCard from '@components/NeonCard';
@@ -26,12 +24,11 @@ import { ErrorState } from '@components/ErrorState';
 import { useAccountSummary } from '@services/web3/hooks';
 import { useAppDispatch, useAppSelector } from '@state/hooks';
 import { loadAccountSummary } from '@state/account/accountSlice';
-import { ProfileStackParamList } from '@app/navigation/types';
+import { ProfileStackParamList, RootTabParamList } from '@app/navigation/types';
 import { palette } from '@theme/colors';
 import { spacing, shape } from '@theme/tokens';
 import { typography } from '@theme/typography';
-import { useNeonPulse } from '@theme/animations';
-import { languageLabels, supportedLanguages, translate as t } from '@locale/strings';
+import { translate as t } from '@locale/strings';
 
 const cardCommandCenter = require('../../assets/cards/card_command_center.webp');
 const avatarPlaceholder = require('../../assets/profile/ph_avatar.png');
@@ -136,11 +133,11 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export const ProfileScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
+  const parentNavigation = navigation.getParent() as NavigationProp<RootTabParamList> | undefined;
   const dispatch = useAppDispatch();
   const { data, loading, error } = useAccountSummary();
   const teamMembers = useAppSelector((state) => state.team?.members) ?? [];
   const inventoryItems = useAppSelector((state) => state.inventory?.items) ?? [];
-  const [language, setLanguage] = useState<(typeof supportedLanguages)[number]>('zh-CN');
 
   const displayName = data?.displayName ?? 'Pilot Zero';
   const level = data?.level ?? 12;
@@ -151,11 +148,7 @@ export const ProfileScreen = () => {
   const nftCount = inventoryItems.length || 8;
   const mapUnlocked = data?.mapsUnlocked ?? 6;
   const mapTotal = data?.mapsTotal ?? 12;
-  const rareShards = data?.rareShards ?? 1240;
-  const kycStatus = data?.kycStatus ?? 'pending';
-  const isVerified = kycStatus === 'verified';
 
-  const statusPulse = useNeonPulse({ duration: 3200 });
   const background = useMemo(() => <HomeBackground showVaporLayers />, []);
   const mapProgressAnimated = useRef(new Animated.Value(0)).current;
 
@@ -195,14 +188,15 @@ export const ProfileScreen = () => {
         progress: mapTotal > 0 ? mapUnlocked / mapTotal : 0,
       },
       {
-        key: 'shards',
-        title: t('my.stats.shards.rare'),
-        value: formatCompactNumber(rareShards),
-        subtitle: t('my.stats.shards.subtitle'),
-        glyph: 'shard' as QuickGlyphId,
+        key: 'chain',
+        title: t('my.stats.chain'),
+        value: t('my.stats.chain.subtitle'),
+        subtitle: t('my.stats.chain.subtitle'),
+        glyph: 'chain' as QuickGlyphId,
+        onPress: () => parentNavigation?.navigate('OnChainData'),
       },
     ],
-    [mapUnlocked, mapTotal, minersActive, minersTotal, navigation, nftCount, rareShards],
+    [mapUnlocked, mapTotal, minersActive, minersTotal, navigation, nftCount, parentNavigation],
   );
 
   const entryTiles = useMemo(
@@ -232,27 +226,8 @@ export const ProfileScreen = () => {
     Alert.alert(t('common.notice'), t('my.placeholder.entrySoon'));
   };
 
-  const handleLanguage = () => {
-    const labels = supportedLanguages.map((code) => `${languageLabels[code]} (${code})`);
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: t('my.language.sheetTitle'),
-          options: [...labels, '取消'],
-          cancelButtonIndex: labels.length,
-        },
-        (index) => {
-          if (index >= labels.length) {
-            return;
-          }
-          const next = supportedLanguages[index];
-          setLanguage(next);
-          Alert.alert(languageLabels[next], t('my.language.toast'));
-        },
-      );
-    } else {
-      Alert.alert(t('my.language.sheetTitle'), t('my.language.toast'));
-    }
+  const handleSettings = () => {
+    navigation.navigate('Settings');
   };
 
   if (loading) {
@@ -307,12 +282,11 @@ export const ProfileScreen = () => {
             </View>
           </View>
           <View style={styles.heroMeta}>
-            <StatusChip label={t('my.network.stable')} pulse={statusPulse} />
             <View style={styles.levelBadge}>
               <Text style={styles.levelText}>{t('my.hero.level', { level })}</Text>
             </View>
-            <RipplePressable style={styles.iconGhostButton} onPress={handleLanguage}>
-              <QuickGlyph id="globe" size={20} />
+            <RipplePressable style={styles.iconGhostButton} onPress={handleSettings}>
+              <QuickGlyph id="settings" size={20} />
             </RipplePressable>
           </View>
         </View>
@@ -441,61 +415,7 @@ export const ProfileScreen = () => {
           ))}
         </ScrollView>
       </View>
-
-      {!isVerified ? (
-        <RipplePressable style={styles.banner} onPress={() => navigation.navigate('KYC')}>
-          <Text style={styles.bannerText}>{t('my.banner.kyc')}</Text>
-          <View style={styles.bannerButton}>
-            <Text style={styles.bannerButtonText}>{t('my.banner.kyc.cta')}</Text>
-          </View>
-        </RipplePressable>
-      ) : null}
-
-      <SectionHeading title={t('my.settings.section')} iconId="settings" />
-      <View style={styles.settingsGrid}>
-        <SettingChip
-          icon="globe"
-          label={t('my.settings.language')}
-          value={languageLabels[language]}
-          onPress={handleLanguage}
-        />
-        <SettingChip
-          icon="theme"
-          label={t('my.settings.theme')}
-          value={t('my.settings.soon')}
-          disabled
-        />
-        <SettingChip
-          icon="bell"
-          label={t('my.settings.notifications')}
-          value={t('my.settings.soon')}
-          disabled
-        />
-        <SettingChip
-          icon="lock"
-          label={t('my.settings.kyc')}
-          value={isVerified ? t('member.vip') : t('member.non')}
-          onPress={() => navigation.navigate('KYC')}
-        />
-      </View>
     </ScreenContainer>
-  );
-};
-
-const StatusChip = ({ label, pulse }: { label: string; pulse: Animated.Value }) => {
-  const dotStyle = {
-    opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }),
-    transform: [
-      {
-        scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.15] }),
-      },
-    ],
-  };
-  return (
-    <View style={styles.statusChip}>
-      <Animated.View style={[styles.statusDot, dotStyle]} />
-      <Text style={styles.statusText}>{label}</Text>
-    </View>
   );
 };
 
@@ -632,42 +552,7 @@ const SectionHeading = ({
   </View>
 );
 
-const SettingChip = ({
-  icon,
-  label,
-  value,
-  onPress,
-  disabled,
-}: {
-  icon: QuickGlyphId;
-  label: string;
-  value: string;
-  onPress?: () => void;
-  disabled?: boolean;
-}) => (
-  <RipplePressable
-    style={[styles.settingChip, disabled && styles.settingChipDisabled]}
-    onPress={onPress}
-    disabled={disabled || !onPress}
-  >
-    <View style={styles.settingChipInner}>
-      <QuickGlyph id={icon} size={20} />
-      <View>
-        <Text style={styles.settingChipLabel}>{label}</Text>
-        <Text style={styles.settingChipValue}>{value}</Text>
-      </View>
-    </View>
-  </RipplePressable>
-);
-
 const formatNumber = (value: number) => new Intl.NumberFormat('zh-CN').format(value);
-
-const formatCompactNumber = (value: number) => {
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(1).replace(/\.0$/, '')}K`;
-  }
-  return `${value}`;
-};
 
 const formatAssetAmount = (
   tokens: { id: string; amount: string }[] | undefined,
@@ -734,27 +619,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-  },
-  statusChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(5,9,20,0.65)',
-    borderRadius: shape.capsuleRadius,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: palette.success,
-    marginRight: 6,
-  },
-  statusText: {
-    ...typography.captionCaps,
-    color: palette.text,
   },
   levelBadge: {
     paddingHorizontal: 10,
@@ -991,66 +855,6 @@ const styles = StyleSheet.create({
   highlightLevel: {
     ...typography.captionCaps,
     color: palette.sub,
-  },
-  banner: {
-    marginTop: spacing.section,
-    borderRadius: shape.cardRadius,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 208, 0, 0.4)',
-    backgroundColor: 'rgba(255, 208, 0, 0.12)',
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  bannerText: {
-    ...typography.body,
-    color: palette.text,
-    flex: 1,
-  },
-  bannerButton: {
-    borderRadius: shape.capsuleRadius,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: palette.primary,
-  },
-  bannerButtonText: {
-    ...typography.captionCaps,
-    color: palette.primary,
-  },
-  settingsGrid: {
-    marginTop: spacing.cardGap,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    columnGap: spacing.cardGap,
-    rowGap: spacing.cardGap,
-  },
-  settingChip: {
-    width: '48%',
-    borderRadius: shape.cardRadius,
-    borderWidth: 1,
-    borderColor: palette.border,
-    backgroundColor: 'rgba(8,10,24,0.7)',
-    padding: 14,
-  },
-  settingChipDisabled: {
-    opacity: 0.5,
-  },
-  settingChipInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  settingChipLabel: {
-    ...typography.captionCaps,
-    color: palette.sub,
-  },
-  settingChipValue: {
-    ...typography.subtitle,
-    color: palette.text,
-    marginTop: 2,
   },
 });
 
