@@ -14,6 +14,7 @@ module.exports = {
           '@bridge': './src/bridge',
           '@state': './src/state',
           '@theme': './src/theme',
+          '@locale': './src/locale',
         },
       },
     ],

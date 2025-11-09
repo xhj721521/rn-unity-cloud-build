@@ -12,7 +12,20 @@ export type QuickGlyphId =
   | 'home'
   | 'explore'
   | 'trial'
-  | 'chain';
+  | 'chain'
+  | 'miner'
+  | 'nft'
+  | 'map'
+  | 'shard'
+  | 'team'
+  | 'storage'
+  | 'invite'
+  | 'member'
+  | 'reports'
+  | 'highlights'
+  | 'lock'
+  | 'globe'
+  | 'network';
 
 type QuickGlyphProps = {
   id: QuickGlyphId;
@@ -149,6 +162,118 @@ const renderGlyph = (id: QuickGlyphId, stroke: string, fill: string, strokeWidth
           <Circle cx={12} cy={12} r={6} {...common} fill="none" />
           <Line x1={16} y1={16} x2={22} y2={22} {...common} />
           <Path d="M8 12H12V8" {...common} />
+        </>
+      );
+    case 'miner':
+      return (
+        <>
+          <Path d="M6 20L12 14" {...common} />
+          <Path d="M12 14L18 8" {...common} />
+          <Line x1={18} y1={8} x2={22} y2={12} {...common} />
+          <Line x1={12} y1={14} x2={16} y2={18} {...common} />
+          <Circle cx={9} cy={21} r={2} {...common} />
+        </>
+      );
+    case 'nft':
+      return (
+        <>
+          <Polygon points="14,5 22,11 22,19 14,25 6,19 6,11" {...common} fill="none" />
+          <Line x1={14} y1={5} x2={14} y2={25} {...common} />
+          <Line x1={6} y1={11} x2={22} y2={19} {...common} />
+        </>
+      );
+    case 'map':
+      return (
+        <>
+          <Path d="M7 9L13 5L19 9L25 5V19L19 23L13 19L7 23Z" {...common} fill="none" />
+          <Line x1={13} y1={5} x2={13} y2={19} {...common} />
+          <Line x1={19} y1={9} x2={19} y2={23} {...common} />
+          <Line x1={7} y1={9} x2={7} y2={23} {...common} />
+        </>
+      );
+    case 'shard':
+      return (
+        <>
+          <Polygon points="14,4 22,14 14,24 6,14" {...common} fill="none" />
+          <Line x1={14} y1={4} x2={14} y2={24} {...common} />
+          <Line x1={6} y1={14} x2={22} y2={14} {...common} />
+        </>
+      );
+    case 'team':
+      return (
+        <>
+          <Circle cx={10} cy={11} r={3} {...common} fill="none" />
+          <Circle cx={18} cy={11} r={3} {...common} fill="none" />
+          <Path d="M6 23C6 19 9 17 14 17C19 17 22 19 22 23" {...common} />
+        </>
+      );
+    case 'storage':
+      return (
+        <>
+          <Path d="M6 11L14 6L22 11V19L14 24L6 19Z" {...common} fill="none" />
+          <Line x1={6} y1={11} x2={14} y2={16} {...common} />
+          <Line x1={22} y1={11} x2={14} y2={16} {...common} />
+          <Line x1={14} y1={16} x2={14} y2={24} {...common} />
+        </>
+      );
+    case 'invite':
+      return (
+        <>
+          <Path d="M6 18V10L14 6L22 10V18L14 22Z" {...common} fill="none" />
+          <Line x1={10} y1={14} x2={18} y2={14} {...common} />
+          <Line x1={14} y1={10} x2={14} y2={18} {...common} />
+        </>
+      );
+    case 'member':
+      return (
+        <>
+          <Path d="M14 5L20 9V17L14 23L8 17V9Z" {...common} fill="none" />
+          <Path d="M10 11H18L17 15L14 17L11 15Z" {...common} />
+          <Path d="M14 5V2" {...common} />
+        </>
+      );
+    case 'reports':
+      return (
+        <>
+          <Path d="M9 5H19L23 9V23H9Z" {...common} fill="none" />
+          <Line x1={9} y1={11} x2={19} y2={11} {...common} />
+          <Line x1={9} y1={15} x2={21} y2={15} {...common} />
+          <Line x1={9} y1={19} x2={19} y2={19} {...common} />
+        </>
+      );
+    case 'highlights':
+      return (
+        <>
+          <Path
+            d="M14 4L16.5 10.5L23.5 11L18 15.5L19.5 22.5L14 18.5L8.5 22.5L10 15.5L4.5 11L11.5 10.5Z"
+            {...common}
+            fill="none"
+          />
+        </>
+      );
+    case 'lock':
+      return (
+        <>
+          <Path d="M7 13H21V22H7Z" {...common} fill="none" />
+          <Path d="M10 13V10C10 7.8 11.8 6 14 6C16.2 6 18 7.8 18 10V13" {...common} fill="none" />
+          <Circle cx={14} cy={17} r={1.5} {...common} />
+          <Line x1={14} y1={18.5} x2={14} y2={21} {...common} />
+        </>
+      );
+    case 'globe':
+      return (
+        <>
+          <Circle cx={14} cy={14} r={9} {...common} fill="none" />
+          <Path d="M14 5C11 9 11 19 14 23C17 19 17 9 14 5Z" {...common} fill="none" />
+          <Line x1={5} y1={14} x2={23} y2={14} {...common} />
+        </>
+      );
+    case 'network':
+      return (
+        <>
+          <Path d="M5 16C7.5 13.5 10.6 12 14 12C17.4 12 20.5 13.5 23 16" {...common} />
+          <Path d="M8 19C9.5 17.8 11.7 17 14 17C16.3 17 18.5 17.8 20 19" {...common} />
+          <Circle cx={14} cy={22} r={1.5} {...common} />
         </>
       );
     default:

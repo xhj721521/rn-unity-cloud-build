@@ -9,7 +9,8 @@
       "@services/*": ["src/services/*"],
       "@bridge/*": ["src/bridge/*"],
       "@state/*": ["src/state/*"],
-      "@theme/*": ["src/theme/*"]
+      "@theme/*": ["src/theme/*"],
+      "@locale/*": ["src/locale/*"]
     },
     "strict": true,
     "noImplicitAny": true,

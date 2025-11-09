@@ -12,4 +12,9 @@ export type AccountSummary = {
   powerScore: number;
   tokens: ChainAsset[];
   nfts: ChainAsset[];
+  mapsUnlocked?: number;
+  mapsTotal?: number;
+  rareShards?: number;
+  kycStatus?: 'pending' | 'verified' | 'rejected';
+  membershipTier?: 'vip' | 'non-member';
 };

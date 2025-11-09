@@ -20,4 +20,9 @@ export type ProfileStackParamList = {
   MyTeam: undefined;
   MyInventory: undefined;
   MyInvites: undefined;
+  Wallet: undefined;
+  Member: undefined;
+  Reports: undefined;
+  Highlights: undefined;
+  KYC: undefined;
 };
