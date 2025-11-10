@@ -5,7 +5,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 export const useBottomGutter = () => {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight?.() ?? 0;
-  const paddingBottom = tabBarHeight + insets.bottom + 16;
+  const paddingBottom = tabBarHeight + insets.bottom + 24;
 
   const inset = useMemo(() => ({ bottom: paddingBottom }), [paddingBottom]);
 

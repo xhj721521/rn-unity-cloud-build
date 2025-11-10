@@ -26,7 +26,11 @@ export type QuickGlyphId =
   | 'lock'
   | 'globe'
   | 'network'
-  | 'settings';
+  | 'settings'
+  | 'bell'
+  | 'theme'
+  | 'link'
+  | 'logout';
 
 type QuickGlyphProps = {
   id: QuickGlyphId;
@@ -289,6 +293,44 @@ const renderGlyph = (id: QuickGlyphId, stroke: string, fill: string, strokeWidth
           <Path d="M18.1 18.1L19.5 19.5" {...common} />
           <Path d="M8.5 19.5L9.9 18.1" {...common} />
           <Path d="M18.1 9.9L19.5 8.5" {...common} />
+        </>
+      );
+    case 'bell':
+      return (
+        <>
+          <Path d="M11 6C11 4.895 11.895 4 13 4C14.105 4 15 4.895 15 6" {...common} />
+          <Path d="M8 11C8 8.24 10.24 6 13 6C15.76 6 18 8.24 18 11V17H8Z" {...common} fill="none" />
+          <Path d="M10 17C10 19 11 21 13 21C15 21 16 19 16 17" {...common} />
+        </>
+      );
+    case 'theme':
+      return (
+        <>
+          <Circle cx={14} cy={14} r={6} {...common} fill="none" />
+          <Path d="M14 4V7" {...common} />
+          <Path d="M14 21V24" {...common} />
+          <Path d="M4 14H7" {...common} />
+          <Path d="M21 14H24" {...common} />
+          <Path d="M6.5 6.5L8.5 8.5" {...common} />
+          <Path d="M19.5 19.5L21.5 21.5" {...common} />
+          <Path d="M21.5 6.5L19.5 8.5" {...common} />
+          <Path d="M8.5 19.5L6.5 21.5" {...common} />
+        </>
+      );
+    case 'link':
+      return (
+        <>
+          <Path d="M10 18L6 22C4 24 4 26 6 28C8 30 10 30 12 28L16 24" {...common} />
+          <Path d="M18 10L22 6C24 4 26 4 28 6C30 8 30 10 28 12L24 16" {...common} />
+          <Path d="M11 21L21 11" {...common} />
+        </>
+      );
+    case 'logout':
+      return (
+        <>
+          <Path d="M10 6H6V22H10" {...common} />
+          <Path d="M14 14H25" {...common} />
+          <Path d="M20 9L25 14L20 19" {...common} />
         </>
       );
     default:

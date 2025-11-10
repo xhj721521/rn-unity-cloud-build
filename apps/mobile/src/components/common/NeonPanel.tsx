@@ -9,6 +9,8 @@ type NeonPanelProps = PropsWithChildren<{
   overlayColor?: string;
   backgroundSource?: ImageSourcePropType;
   glowColor?: string;
+  borderColors?: [string, string];
+  innerBorderColors?: [string, string];
 }>;
 
 export const NeonPanel = ({
@@ -19,6 +21,8 @@ export const NeonPanel = ({
   overlayColor = 'rgba(6,10,28,0.78)',
   backgroundSource,
   glowColor = '#7BD7FF',
+  borderColors = ['#00FFD1', '#7DB1FF'],
+  innerBorderColors = ['#5CF4FF2E', '#C08BFF2E'],
 }: NeonPanelProps) => {
   return (
     <NeonCard
@@ -26,8 +30,8 @@ export const NeonPanel = ({
       borderRadius={borderRadius}
       contentPadding={padding}
       overlayColor={overlayColor}
-      borderColors={['#00FFD1', '#7DB1FF']}
-      innerBorderColors={['#5CF4FF2E', '#C08BFF2E']}
+      borderColors={borderColors}
+      innerBorderColors={innerBorderColors}
       glowColor={glowColor}
       backgroundSource={backgroundSource}
     >

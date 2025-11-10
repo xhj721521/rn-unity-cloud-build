@@ -12,6 +12,9 @@ import { ReportsScreen } from '@modules/profile/ReportsScreen';
 import { HighlightsScreen } from '@modules/profile/HighlightsScreen';
 import { KYCScreen } from '@modules/profile/KYCScreen';
 import { SettingsScreen } from '@modules/profile/SettingsScreen';
+import { LanguageScreen } from '@screens/settings/LanguageScreen';
+import { NotificationsScreen } from '@screens/settings/NotificationsScreen';
+import { FundsRecordScreen } from '@screens/settings/FundsRecordScreen';
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
 
@@ -33,6 +36,9 @@ export const ProfileNavigator = () => {
       <Stack.Screen name="Highlights" component={HighlightsScreen} />
       <Stack.Screen name="KYC" component={KYCScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="LanguageSettings" component={LanguageScreen} />
+      <Stack.Screen name="NotificationsSettings" component={NotificationsScreen} />
+      <Stack.Screen name="FundsRecord" component={FundsRecordScreen} />
     </Stack.Navigator>
   );
 };
