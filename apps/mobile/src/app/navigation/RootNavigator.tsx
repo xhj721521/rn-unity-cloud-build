@@ -5,7 +5,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import { HomeNavigator } from './HomeNavigator';
 import { TrialsScreen } from '@modules/trials/TrialsScreen';
 import { ExploreScreen } from '@modules/explore/ExploreScreen';
-import { OnChainDataScreen } from '@modules/onchain/OnChainDataScreen';
 import { ProfileNavigator } from './ProfileNavigator';
 import { RootTabParamList } from './types';
 import { BottomTabIcon } from '@components/BottomTabIcon';

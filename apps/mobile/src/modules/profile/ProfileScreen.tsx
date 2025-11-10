@@ -140,7 +140,6 @@ export const ProfileScreen = () => {
   const inventoryItems = useAppSelector((state) => state.inventory?.items) ?? [];
 
   const displayName = data?.displayName ?? 'Pilot Zero';
-  const level = data?.level ?? 12;
   const arcAmount = useMemo(() => formatAssetAmount(data?.tokens, ARC_TOKEN_ID), [data?.tokens]);
   const oreAmount = useMemo(() => formatAssetAmount(data?.tokens, ORE_TOKEN_ID), [data?.tokens]);
   const minersTotal = teamMembers.length || 14;
@@ -282,11 +281,8 @@ export const ProfileScreen = () => {
             </View>
           </View>
           <View style={styles.heroMeta}>
-            <View style={styles.levelBadge}>
-              <Text style={styles.levelText}>{t('my.hero.level', { level })}</Text>
-            </View>
             <RipplePressable style={styles.iconGhostButton} onPress={handleSettings}>
-              <QuickGlyph id="settings" size={20} />
+              <QuickGlyph id="settings" size={28} />
             </RipplePressable>
           </View>
         </View>
@@ -620,22 +616,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  levelBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: shape.capsuleRadius,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
-    backgroundColor: 'rgba(9,11,24,0.7)',
-  },
-  levelText: {
-    ...typography.captionCaps,
-    color: palette.accent,
-  },
   iconGhostButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.18)',
     backgroundColor: 'rgba(6,8,18,0.65)',
