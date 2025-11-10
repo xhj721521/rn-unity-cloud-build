@@ -16,6 +16,8 @@ type NeonCardProps = ViewProps & {
   borderRadius?: number;
   contentPadding?: number;
   glowColor?: string;
+  innerBorderColors?: [string, string];
+  innerBorderWidth?: number;
   backgroundResizeMode?: ImageResizeMode;
   backgroundStyle?: object;
 };

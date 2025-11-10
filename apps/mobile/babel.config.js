@@ -12,6 +12,7 @@ module.exports = {
           '@components': './src/components',
           '@hooks': './src/hooks',
           '@screens': './src/screens',
+          '@mock': './src/mock',
           '@services': './src/services',
           '@bridge': './src/bridge',
           '@state': './src/state',
