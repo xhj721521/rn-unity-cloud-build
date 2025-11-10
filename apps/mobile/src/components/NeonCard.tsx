@@ -26,6 +26,8 @@ export const NeonCard = forwardRef<View, NeonCardProps>(
       style,
       children,
       borderColors = ['#FF5AE0', '#7DD3FC'],
+      innerBorderColors,
+      innerBorderWidth = 1,
       backgroundSource,
       overlayColor = 'rgba(6, 8, 22, 0.8)',
       borderRadius = 24,
@@ -79,6 +81,28 @@ export const NeonCard = forwardRef<View, NeonCardProps>(
               { borderRadius: innerRadius, backgroundColor: overlayColor },
             ]}
           />
+          {innerBorderColors ? (
+            <LinearGradient
+              pointerEvents="none"
+              colors={innerBorderColors}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[
+                StyleSheet.absoluteFillObject,
+                {
+                  borderRadius: Math.max(0, innerRadius - innerBorderWidth),
+                  padding: innerBorderWidth,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.innerMask,
+                  { borderRadius: Math.max(0, innerRadius - innerBorderWidth * 2) },
+                ]}
+              />
+            </LinearGradient>
+          ) : null}
           <View style={styles.body}>{children}</View>
         </View>
       </LinearGradient>
@@ -108,6 +132,10 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
+  },
+  innerMask: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
 });
 

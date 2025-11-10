@@ -13,6 +13,7 @@ import { ChatMessage } from '@services/chatTypes';
 import { MessageItem } from './MessageItem';
 import { palette } from '@theme/colors';
 import { typography } from '@theme/typography';
+import { useBottomGutter } from '@hooks/useBottomGutter';
 
 type RenderRow =
   | { type: 'divider'; id: string; label: string }
@@ -83,13 +84,16 @@ export const MessageList = forwardRef<FlatList<RenderRow>, Props>(
       );
     };
 
+    const bottomGutter = useBottomGutter();
     return (
       <FlatList
         ref={ref}
         data={data}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, bottomGutter.contentContainerStyle]}
+        contentInset={bottomGutter.contentInset}
+        scrollIndicatorInsets={bottomGutter.scrollIndicatorInsets}
         onScroll={handleScroll}
         scrollEventThrottle={32}
         ListHeaderComponent={

@@ -10,6 +10,7 @@ module.exports = {
           '@app': './src/app',
           '@modules': './src/modules',
           '@components': './src/components',
+          '@hooks': './src/hooks',
           '@services': './src/services',
           '@bridge': './src/bridge',
           '@state': './src/state',

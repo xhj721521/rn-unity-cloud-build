@@ -23,13 +23,6 @@ const TAB_ITEMS: TabConfig[] = [
   { name: 'Home', component: HomeNavigator, title: '首页', label: '首页', icon: 'home' },
   { name: 'Trials', component: TrialsScreen, title: '试炼', label: '试炼', icon: 'trials' },
   { name: 'Explore', component: ExploreScreen, title: '探索', label: '探索', icon: 'explore' },
-  {
-    name: 'OnChainData',
-    component: OnChainDataScreen,
-    title: '链鉴',
-    label: '链鉴',
-    icon: 'onchain',
-  },
   { name: 'Profile', component: ProfileNavigator, title: '我的', label: '我的', icon: 'profile' },
 ];
 
