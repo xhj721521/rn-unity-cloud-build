@@ -45,9 +45,12 @@ export const LeaderboardScreen = () => {
   const rewards = useAppSelector((state) => state.leaderboard.rewards);
   const { entries, myRank } = leaderboard[category][period];
 
+  const GRID_ROWS = 5;
+  const GRID_COUNT = GRID_ROWS * 3;
+
   const topThree = entries.filter((entry) => entry.rank <= 3);
-  const gridEntries = entries.filter((entry) => entry.rank > 3 && entry.rank <= 12);
-  const listEntries = entries.filter((entry) => entry.rank > 12);
+  const gridEntries = entries.filter((entry) => entry.rank > 3 && entry.rank <= 3 + GRID_COUNT);
+  const listEntries = entries.filter((entry) => entry.rank > 3 + GRID_COUNT);
 
   const listData = useMemo<ListItem[]>(() => {
     const base: ListItem[] = [{ type: 'hero' }, { type: 'segments' }, { type: 'top' }];
@@ -65,7 +68,7 @@ export const LeaderboardScreen = () => {
     if (!myRank) {
       return;
     }
-    if (myRank.rank <= 12) {
+    if (myRank.rank <= 3 + GRID_COUNT) {
       listRef.current?.scrollToOffset({ offset: 0, animated: true });
       return;
     }

@@ -7,7 +7,8 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CompositeNavigationProp } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { ErrorState } from '@components/ErrorState';
@@ -21,13 +22,16 @@ import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
 import { useAppDispatch } from '@state/hooks';
 import { loadAccountSummary } from '@state/account/accountSlice';
-import { HomeStackParamList } from '@app/navigation/types';
+import { HomeStackParamList, RootTabParamList } from '@app/navigation/types';
 import { palette } from '@theme/colors';
 import { spacing } from '@theme/tokens';
 import { typography } from '@theme/typography';
 import { CARD_WIDTH, GUTTER, H_ASSET, H_BOX, H_SMALL, PRESS_SCALE, SIDE } from '@theme/metrics';
 
-type HomeNavigation = NativeStackNavigationProp<HomeStackParamList, 'HomeMain'>;
+type HomeNavigation = CompositeNavigationProp<
+  NativeStackNavigationProp<HomeStackParamList, 'HomeMain'>,
+  BottomTabNavigationProp<RootTabParamList>
+>;
 
 type QuickLink = {
   key: string;
@@ -236,6 +240,7 @@ export const HomeScreen = () => {
                 value={arcAmount}
                 unit="枚"
                 accent={palette.primary}
+                onPress={() => navigation.navigate('Profile', { screen: 'Wallet' })}
               />
               <ResourceChip
                 label="矿石"
@@ -243,6 +248,7 @@ export const HomeScreen = () => {
                 value={oreAmount}
                 unit="颗"
                 accent={palette.accent}
+                onPress={() => navigation.navigate('Profile', { screen: 'Wallet' })}
               />
             </View>
           </NeonCard>
@@ -372,12 +378,14 @@ const ResourceChip = ({
   value,
   unit,
   accent,
+  onPress,
 }: {
   label: string;
   glyph: QuickGlyphId;
   value: string;
   unit: string;
   accent: string;
+  onPress?: () => void;
 }) => {
   const secondary = lightenHex(accent, 0.3);
   const pulse = useRef(new Animated.Value(0)).current;
@@ -403,7 +411,10 @@ const ResourceChip = ({
   };
 
   return (
-    <View style={[styles.resourceChip, { borderColor: accent, shadowColor: accent }]}>
+    <RipplePressable
+      onPress={onPress}
+      style={[styles.resourceChip, { borderColor: accent, shadowColor: accent }]}
+    >
       <View style={styles.resourceInfo}>
         <QuickGlyph id={glyph} size={18} strokeWidth={1.8} colors={[accent, secondary]} />
         <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
@@ -416,7 +427,7 @@ const ResourceChip = ({
         </Animated.View>
         <Text style={styles.resourceUnit}>{unit}</Text>
       </View>
-    </View>
+    </RipplePressable>
   );
 };
 

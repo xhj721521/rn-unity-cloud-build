@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Image, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -16,9 +16,10 @@ type ItemSlotProps = {
   item?: UIItem;
   onPressEmpty?: () => void;
   onPressItem?: (item: UIItem) => void;
+  style?: ViewStyle;
 };
 
-export const ItemSlot = ({ item, onPressEmpty, onPressItem }: ItemSlotProps) => {
+export const ItemSlot = ({ item, onPressEmpty, onPressItem, style }: ItemSlotProps) => {
   const scale = useSharedValue(1);
   const glow = useSharedValue(0);
 
@@ -43,7 +44,7 @@ export const ItemSlot = ({ item, onPressEmpty, onPressItem }: ItemSlotProps) => 
 
   if (!item) {
     return (
-      <RipplePressable style={styles.slotPressable} onPress={handlePress}>
+      <RipplePressable style={[styles.slotPressable, style]} onPress={handlePress}>
         <View style={styles.emptySlot}>
           <Text style={styles.emptyText}>+</Text>
         </View>
@@ -54,7 +55,7 @@ export const ItemSlot = ({ item, onPressEmpty, onPressItem }: ItemSlotProps) => 
   const glowStyles = rarityGlow(item.rarity);
 
   return (
-    <RipplePressable style={styles.slotPressable} onPress={handlePress}>
+    <RipplePressable style={[styles.slotPressable, style]} onPress={handlePress}>
       <Animated.View style={[glowStyles.shadowStyle, animatedStyle]}>
         <NeonCard
           backgroundSource={item.icon}
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   slot: {
-    aspectRatio: 1,
+    flex: 1,
   },
   slotContent: {
     flex: 1,
@@ -104,13 +105,13 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.9)',
   },
   emptySlot: {
+    flex: 1,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(0,209,199,0.4)',
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
-    aspectRatio: 1,
   },
   emptyText: {
     ...typography.heading,

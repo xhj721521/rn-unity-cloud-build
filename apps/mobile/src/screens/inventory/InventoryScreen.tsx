@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { CategoryChips } from '@components/inventory/CategoryChips';
 import { InventoryToolbar } from '@components/inventory/Toolbar';
@@ -25,6 +25,7 @@ export const InventoryScreen = () => {
   const [items, setItems] = useState<UIItem[]>([]);
 
   const bottomGutter = useBottomGutter();
+  const { width: windowWidth } = useWindowDimensions();
 
   useEffect(() => {
     setLoading(true);
@@ -42,25 +43,35 @@ export const InventoryScreen = () => {
     return items.filter((item) => item.type === category);
   }, [category, items]);
 
-  const [extraSlots, setExtraSlots] = useState(0);
-
-  const data = useMemo(() => {
-    const list = [...filtered];
-    if (extraSlots > 0) {
-      for (let i = 0; i < extraSlots; i++) {
-        list.push(undefined as unknown as UIItem);
-      }
-    }
-    return list;
-  }, [filtered, extraSlots]);
-
-  const handleLoadMore = () => {
-    setExtraSlots((prev) => prev + 2);
-  };
+  const data = useMemo(() => filtered, [filtered]);
 
   const handleItemPress = (item: UIItem) => {
     Alert.alert('物品详情', `${item.name} · ${item.qty} 件`);
   };
+
+  const boardWidth = windowWidth - 32; // ScreenContainer horizontal padding
+  const columns = 4;
+  const gap = 8;
+  const cellSize = Math.max(64, (boardWidth - gap * (columns - 1)) / columns);
+
+  const renderGrid = () => (
+    <View style={[styles.boardFrame, { paddingBottom: bottomGutter.paddingBottom }]}>
+      <View style={[styles.board, { columnGap: gap, rowGap: gap }]}>
+        {data.map((item, index) => (
+          <View
+            key={item ? item.id : `empty-${index}`}
+            style={[styles.cell, { width: cellSize, height: cellSize }]}
+          >
+            <ItemSlot
+              item={item}
+              onPressEmpty={() => Alert.alert('提示', '空槽位')}
+              onPressItem={handleItemPress}
+            />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
 
   if (loading) {
     return (
@@ -73,35 +84,12 @@ export const InventoryScreen = () => {
   }
 
   return (
-    <ScreenContainer variant="plain" edgeVignette scrollable={false}>
-      <FlatList
-        data={data}
-        keyExtractor={(item, index) => (item ? item.id : `empty-${index}`)}
-        numColumns={2}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={[styles.listContent, { paddingBottom: bottomGutter.paddingBottom }]}
-        contentInset={bottomGutter.contentInset}
-        scrollIndicatorInsets={bottomGutter.scrollIndicatorInsets}
-        ListHeaderComponent={
-          <>
-            <Text style={styles.heading}>仓库</Text>
-            <Text style={styles.subHeading}>所有资源与 NFT 均在此管理</Text>
-            <CategoryChips options={CATEGORY_OPTIONS} value={category} onChange={setCategory} />
-            <InventoryToolbar />
-          </>
-        }
-        renderItem={({ item }) => (
-          <View style={styles.slotWrapper}>
-            <ItemSlot
-              item={item}
-              onPressEmpty={() => Alert.alert('提示', '空槽位')}
-              onPressItem={handleItemPress}
-            />
-          </View>
-        )}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.2}
-      />
+    <ScreenContainer variant="plain" edgeVignette scrollable>
+      <Text style={styles.heading}>仓库</Text>
+      <Text style={styles.subHeading}>所有资源与 NFT 均在此管理</Text>
+      <CategoryChips options={CATEGORY_OPTIONS} value={category} onChange={setCategory} />
+      <InventoryToolbar />
+      {renderGrid()}
     </ScreenContainer>
   );
 };
@@ -120,16 +108,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 12,
   },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-    gap: 12,
+  boardFrame: {
+    marginTop: 12,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(5,8,18,0.85)',
+    padding: 12,
   },
-  columnWrapper: {
-    gap: 12,
-    marginBottom: 12,
+  board: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
   },
-  slotWrapper: {
-    flex: 1,
+  cell: {
+    borderRadius: 18,
+    alignItems: 'stretch',
+    justifyContent: 'stretch',
   },
 });

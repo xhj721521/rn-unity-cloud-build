@@ -15,7 +15,6 @@ import { translate as t } from '@locale/strings';
 import { palette } from '@theme/colors';
 import { spacing, shape } from '@theme/tokens';
 import { typography } from '@theme/typography';
-import { PRESS_SCALE } from '@theme/metrics';
 
 type CategoryFilter = 'all' | 'ore' | 'shard' | 'nft';
 type MarketMode = 'trade' | 'auction';
@@ -349,9 +348,7 @@ export const MarketplaceScreen = () => {
               );
             })}
           </ScrollView>
-          <Pressable
-            style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}
-          >
+          <Pressable style={styles.actionButton}>
             <Text style={styles.actionButtonText}>
               {mode === 'trade'
                 ? t('market.trade.quickAsk', undefined, '发布求购')
@@ -634,9 +631,7 @@ const AuctionLotCard = ({ lot }: { lot: AuctionLot }) => (
 
 const FloatingCTA = ({ variant }: { variant: MarketMode }) => (
   <View pointerEvents="box-none" style={styles.floatingSlot}>
-    <Pressable
-      style={({ pressed }) => [styles.floatingButton, pressed && styles.floatingButtonPressed]}
-    >
+    <Pressable style={styles.floatingButton}>
       <Text style={styles.floatingText}>
         {variant === 'trade'
           ? t('market.trade.floating', undefined, '我要上架')
@@ -749,10 +744,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     backgroundColor: 'rgba(10,14,30,0.85)',
-  },
-  actionButtonPressed: {
-    opacity: 0.85,
-    transform: [{ scale: PRESS_SCALE }],
   },
   actionButtonText: {
     ...typography.captionCaps,
@@ -1080,10 +1071,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,209,199,0.32)',
     borderWidth: 1,
     borderColor: palette.primary,
-  },
-  floatingButtonPressed: {
-    opacity: 0.85,
-    transform: [{ scale: PRESS_SCALE }],
   },
   floatingText: {
     ...typography.subtitle,
