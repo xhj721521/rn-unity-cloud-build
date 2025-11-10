@@ -15,6 +15,7 @@ import { SettingsScreen } from '@modules/profile/SettingsScreen';
 import { LanguageScreen } from '@screens/settings/LanguageScreen';
 import { NotificationsScreen } from '@screens/settings/NotificationsScreen';
 import { FundsRecordScreen } from '@screens/settings/FundsRecordScreen';
+import RaidLobbyScreen from '@screens/team/RaidLobbyScreen';
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
 
@@ -39,6 +40,7 @@ export const ProfileNavigator = () => {
       <Stack.Screen name="LanguageSettings" component={LanguageScreen} />
       <Stack.Screen name="NotificationsSettings" component={NotificationsScreen} />
       <Stack.Screen name="FundsRecord" component={FundsRecordScreen} />
+      <Stack.Screen name="RaidLobby" component={RaidLobbyScreen} />
     </Stack.Navigator>
   );
 };

@@ -1,0 +1,13 @@
+{
+  "members": [
+    { "id": "u1", "name": "Aegis", "role": "leader", "online": true, "lastSeen": "now", "contribWeek": 420 },
+    { "id": "u2", "name": "Nova", "role": "officer", "online": true, "lastSeen": "5m", "contribWeek": 360 },
+    { "id": "u3", "name": "Rook", "role": "member", "online": false, "lastSeen": "2h", "contribWeek": 190 },
+    { "id": "u4", "name": "Echo", "role": "member", "online": true, "lastSeen": "now", "contribWeek": 210 },
+    { "id": "u5", "name": "Shade", "role": "officer", "online": false, "lastSeen": "1d", "contribWeek": 150 },
+    { "id": "u6", "name": "Flux", "role": "member", "online": true, "lastSeen": "20m", "contribWeek": 275 },
+    { "id": "u7", "name": "Quill", "role": "member", "online": false, "lastSeen": "3h", "contribWeek": 120 },
+    { "id": "u8", "name": "Nyx", "role": "member", "online": true, "lastSeen": "1m", "contribWeek": 198 },
+    { "id": "u9", "name": "Vera", "role": "member", "online": false, "lastSeen": "12h", "contribWeek": 160 }
+  ]
+}

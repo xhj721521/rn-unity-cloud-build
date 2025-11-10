@@ -1,0 +1,13 @@
+{
+  "team": { "name": "Abyss Raiders", "level": 8, "online": 23, "cap": 50 },
+  "wallet": { "arc": 2450, "stones": 780, "o1": 120, "o2": 90, "o3": 40, "o4": 12, "o5": 3 },
+  "raid": {
+    "name": "虚空节点清扫",
+    "difficulty": "NORMAL",
+    "cleared": 12,
+    "total": 30,
+    "endsIn": "48:12:03",
+    "attemptsLeft": 1
+  },
+  "maps": { "opened": 2, "quota": 3, "ticket": "5 ARC" }
+}

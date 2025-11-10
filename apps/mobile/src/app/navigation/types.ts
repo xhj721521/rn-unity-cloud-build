@@ -29,4 +29,5 @@ export type ProfileStackParamList = {
   LanguageSettings: undefined;
   NotificationsSettings: undefined;
   FundsRecord: undefined;
+  RaidLobby: undefined;
 };
