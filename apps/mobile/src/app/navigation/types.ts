@@ -1,9 +1,8 @@
 export type RootTabParamList = {
-  Home: undefined;
+  Home: { screen?: keyof HomeStackParamList } | undefined;
   Trials: undefined;
   Explore: undefined;
-  OnChainData: undefined;
-  Profile: undefined;
+  Profile: { screen?: keyof ProfileStackParamList } | undefined;
 };
 
 export type HomeStackParamList = {

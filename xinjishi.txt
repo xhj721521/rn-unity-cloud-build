@@ -1,0 +1,180 @@
+目标
+
+单一路由：/market
+
+视觉统一：沿用首页的玻璃霓虹+黑金科技体系
+
+交互：按“品类”自动切换视图——nft => AuctionView；其余 => TradeView
+
+轻量高质感：UI 伪3D + 小动效，重场景（地图/试炼）再用真3D
+
+页面结构
+
+Header
+
+标题：集市
+
+副标题：链上实时价格脉冲 · 采购矿石/碎片/竞拍 NFT
+
+筛选区（两排 Chips）
+
+第1排（分类）：全部｜矿石｜碎片｜NFT
+
+第2排（排序，互斥）：
+
+在 TradeView：价格｜数量｜最新｜流动性/稀有度
+
+在 AuctionView：即将结束｜当前价｜最新｜热度
+
+右侧按钮：
+
+TradeView ⇒ 发布求购（或 快速挂单）
+
+AuctionView ⇒ 发起拍卖
+
+内容区（视图切换）
+
+TradeView（全部/矿石/碎片）
+
+StatTicker ×3：今日新增挂单｜均价涨跌｜即时成交
+
+MarketSection ×3（矿石/碎片/NFT 概览可选）
+
+顶部 mini sparkline
+
+下方 2 行预览挂单（卖家/价格ARC/数量/更新时间）
+
+底部双按钮：浏览全部挂单（主）/ 查看成交记录（次）
+
+悬浮 CTA：我要上架（弹出 CreateListingSheet，先提供 卖单/求购 选项）
+
+（可选）当分类=全部时，在 Ticker 下方加一条NFT 焦点滑条（横滑 3～5 张拍品卡，点进 AuctionView）
+
+AuctionView（仅 NFT）
+
+HeroLot：本周焦点拍品（预览框/倒计时/当前价/出价）
+
+2×3 网格 AuctionLotCard（预览、剩余时长、当前价、出价按钮）
+
+悬浮 CTA：发起拍卖（CreateAuctionSheet）
+
+底部操作栏（可选）
+
+仅在 TradeView 的“全部挂单”列表页显示：筛选按钮、清空筛选、结果统计
+
+状态与路由
+
+单页：/market
+
+查询参数：?cat=all|ore|shard|nft&sort=...
+
+由 cat 推导视图：mode = (cat==='nft' ? 'auction' : 'trade')
+
+切换分类时：保留各自的滚动与筛选状态（返回不丢）
+
+组件复用与新增
+
+复用：NeonCard / Chip / GlassButton / GlowBadge / 现有 TableRow、列表骨架
+
+新增（通用）
+
+StatTicker({label,value,trend})
+
+Sparkline({data: number[]})（SVG/Canvas，24点采样）
+
+FloatingCTA({variant:'trade'|'auction'})
+
+新增（交易）
+
+MarketSection({icon,title,desc,badgeText,rows,onViewAll,onViewHistory})
+
+新增（拍卖）
+
+HeroLot({title,image,current,endsAt,onBid})
+
+AuctionLotCard({title,image,current,endsAt,onBid})
+
+筛选抽屉 FiltersSheet
+
+Trade：价格区间、数量区间、仅可立即成交、仅认证、稀有度
+
+Auction：价格区间、剩余时长、标签/稀有度
+
+数据与接口（示例）
+type Category = 'all'|'ore'|'shard'|'nft';
+type Mode = 'trade'|'auction';
+
+interface MarketState {
+  category: Category;   // from ?cat=
+  sort: string;         // trade: price/qty/latest/rarity/liquidity; auction: ending/price/latest/hot
+  filters: {
+    price?: [number,number];
+    qty?: [number,number];
+    instantOnly?: boolean;
+    verifiedOnly?: boolean;
+    rarity?: string;
+    tag?: string;       // for NFT
+  };
+}
+
+interface Listing { id:string; seller:string; price:number; qty:number; updatedAt:number; category:Category }
+interface Auction { id:string; title:string; image?:string; current:number; endsAt:number; tag?:string }
+
+
+/api/market/overview?cat=all|ore|shard → tickers + sections preview rows
+
+/api/listings?category=&sort=&... → 交易列表（分页）
+
+/api/auctions?status=live&sort=&... → 拍卖列表（分页）
+
+轮询：Ticker 10s；列表 30s（节流/失焦暂停）
+
+视觉与动效规范（与首页一致）
+
+底图：深色纵向渐变 + 极弱六边网纹 + 青/紫光晕；（可直接用你已有的 market_overview_mock 风格底图）
+
+卡片：玻璃底 + 双描边（青 #7DF0FF 12% + 紫 #8A5CFF 10%）+ 柔阴影
+
+字号：卡标题 44～46；行价 40；正文 28～32
+
+间距：卡内上下 24；行高 80～86
+
+动效（轻量）：
+
+CTA 呼吸光 12%↔20%
+
+行按压亮度 +6%
+
+Sparkline 入场淡显 200ms
+
+禁用复杂阴影/模糊动画，保证 60fps
+
+空态与文案约束
+
+空态给“去探索/活动”按钮；**不出现“去购买”**字样
+
+错误重试/弱提示，不打断交易/拍卖流程
+
+性能
+
+列表虚拟化、图片懒加载、资源分区预取
+
+Sparkline 预渲染静态兜底
+
+大图（NFT预览）首屏做低清占位（LQIP）+ 渐进清晰
+
+Copilot 任务清单（不新增无必要的路由）
+
+在 MarketScreen.tsx 读取 ?cat=，推导 mode 并渲染 TradeView / AuctionView。
+
+实现/复用组件：StatTicker、Sparkline、MarketSection、AuctionLotCard、HeroLot、FloatingCTA、FiltersSheet。
+
+顶部 Chips：分类改变时更新 URL；排序按视图切配置。
+
+右下 CTA：variant 随视图变化（上架/发拍）。
+
+接入 useMarketQuery(state)：ticker（10s）与列表（30s）轮询；退后台暂停；返回页面恢复。
+
+列表与记录页复用你已有路由；只换样式 props。
+
+空态/骨架/错误态按规范展示；禁“去购买”用语。

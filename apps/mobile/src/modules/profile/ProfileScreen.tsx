@@ -10,7 +10,6 @@ import {
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Svg, { Circle } from 'react-native-svg';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer } from '@components/ScreenContainer';
@@ -129,7 +128,6 @@ const highlightCards = [
 ];
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export const ProfileScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
@@ -137,29 +135,13 @@ export const ProfileScreen = () => {
   const dispatch = useAppDispatch();
   const { data, loading, error } = useAccountSummary();
   const teamMembers = useAppSelector((state) => state.team?.members) ?? [];
-  const inventoryItems = useAppSelector((state) => state.inventory?.items) ?? [];
 
   const displayName = data?.displayName ?? 'Pilot Zero';
   const arcAmount = useMemo(() => formatAssetAmount(data?.tokens, ARC_TOKEN_ID), [data?.tokens]);
   const oreAmount = useMemo(() => formatAssetAmount(data?.tokens, ORE_TOKEN_ID), [data?.tokens]);
   const minersTotal = teamMembers.length || 14;
   const minersActive = Math.max(1, Math.floor(minersTotal * 0.7));
-  const nftCount = inventoryItems.length || 8;
-  const mapUnlocked = data?.mapsUnlocked ?? 6;
-  const mapTotal = data?.mapsTotal ?? 12;
-
   const background = useMemo(() => <HomeBackground showVaporLayers />, []);
-  const mapProgressAnimated = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const ratio = mapTotal > 0 ? mapUnlocked / mapTotal : 0;
-    Animated.timing(mapProgressAnimated, {
-      toValue: ratio,
-      duration: 500,
-      useNativeDriver: false,
-    }).start();
-  }, [mapProgressAnimated, mapTotal, mapUnlocked]);
-
   const statsTiles = useMemo(
     () => [
       {
@@ -168,23 +150,7 @@ export const ProfileScreen = () => {
         value: formatNumber(minersTotal),
         subtitle: t('my.stats.miners.active', { active: minersActive, total: minersTotal }),
         glyph: 'miner' as QuickGlyphId,
-        onPress: () => navigation.navigate('MyTeam'),
-      },
-      {
-        key: 'nft',
-        title: t('my.stats.nft'),
-        value: formatNumber(nftCount),
-        subtitle: t('my.stats.nft.subtitle'),
-        glyph: 'nft' as QuickGlyphId,
-        onPress: () => navigation.navigate('MyInventory'),
-      },
-      {
-        key: 'maps',
-        title: t('my.stats.maps'),
-        value: t('my.stats.maps.value', { unlocked: mapUnlocked, total: mapTotal }),
-        subtitle: t('my.stats.maps.subtitle'),
-        glyph: 'map' as QuickGlyphId,
-        progress: mapTotal > 0 ? mapUnlocked / mapTotal : 0,
+        onPress: () => parentNavigation?.navigate('Home', { screen: 'BlindBox' } as never),
       },
       {
         key: 'chain',
@@ -192,10 +158,10 @@ export const ProfileScreen = () => {
         value: t('my.stats.chain.subtitle'),
         subtitle: t('my.stats.chain.subtitle'),
         glyph: 'chain' as QuickGlyphId,
-        onPress: () => parentNavigation?.navigate('OnChainData'),
+        onPress: () => Alert.alert(t('common.notice'), t('my.placeholder.entrySoon')),
       },
     ],
-    [mapUnlocked, mapTotal, minersActive, minersTotal, navigation, nftCount, parentNavigation],
+    [minersActive, minersTotal, parentNavigation],
   );
 
   const entryTiles = useMemo(
@@ -315,6 +281,36 @@ export const ProfileScreen = () => {
         </View>
       </NeonCard>
 
+      <SectionHeading
+        title={t('my.highlights.section')}
+        actionLabel={t('my.highlights.viewAll')}
+        onAction={() => navigation.navigate('Highlights')}
+      />
+      <View style={styles.highlightContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.highlightRow}
+        >
+          {highlightCards.map((item) => (
+            <NeonCard
+              key={item.id}
+              borderRadius={shape.cardRadius}
+              overlayColor="rgba(6,8,16,0.5)"
+              backgroundSource={item.image}
+              contentPadding={14}
+              style={styles.highlightCard}
+            >
+              <Text style={styles.highlightTitle}>{t(item.titleKey)}</Text>
+              <View style={styles.highlightFooter}>
+                <Text style={styles.highlightTag}>{t(item.tagKey)}</Text>
+                <Text style={styles.highlightLevel}>{item.level}</Text>
+              </View>
+            </NeonCard>
+          ))}
+        </ScrollView>
+      </View>
+
       <SectionHeading title={t('my.stats.section')} />
       <View style={styles.statsGrid}>
         {statsTiles.map((tile) => (
@@ -334,16 +330,9 @@ export const ProfileScreen = () => {
                 <QuickGlyph id={tile.glyph} size={26} />
                 <View style={styles.statValueBlock}>
                   <Text style={styles.statLabel}>{tile.title}</Text>
-                  <AnimatedText
-                    style={[styles.statValue, tile.key === 'maps' ? styles.statValueSmall : null]}
-                  >
-                    {tile.value}
-                  </AnimatedText>
+                  <AnimatedText style={styles.statValue}>{tile.value}</AnimatedText>
                   <Text style={styles.statSubtitle}>{tile.subtitle}</Text>
                 </View>
-                {tile.key === 'maps' ? (
-                  <MapProgress progressAnimated={mapProgressAnimated} />
-                ) : null}
               </View>
             </NeonCard>
           </RipplePressable>
@@ -380,36 +369,6 @@ export const ProfileScreen = () => {
             </NeonCard>
           </RipplePressable>
         ))}
-      </View>
-
-      <SectionHeading
-        title={t('my.highlights.section')}
-        actionLabel={t('my.highlights.viewAll')}
-        onAction={() => navigation.navigate('Highlights')}
-      />
-      <View style={styles.highlightContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.highlightRow}
-        >
-          {highlightCards.map((item) => (
-            <NeonCard
-              key={item.id}
-              borderRadius={shape.cardRadius}
-              overlayColor="rgba(6,8,16,0.5)"
-              backgroundSource={item.image}
-              contentPadding={18}
-              style={styles.highlightCard}
-            >
-              <Text style={styles.highlightTitle}>{t(item.titleKey)}</Text>
-              <View style={styles.highlightFooter}>
-                <Text style={styles.highlightTag}>{t(item.tagKey)}</Text>
-                <Text style={styles.highlightLevel}>{item.level}</Text>
-              </View>
-            </NeonCard>
-          ))}
-        </ScrollView>
       </View>
     </ScreenContainer>
   );
@@ -486,38 +445,6 @@ const lightenHex = (hex: string, amount = 0.2) => {
   const rgb = [0, 1, 2].map((index) => parseInt(normalized.slice(index * 2, index * 2 + 2), 16));
   const lightened = rgb.map((channel) => Math.min(255, Math.round(channel * (1 + amount))));
   return `#${lightened.map((val) => val.toString(16).padStart(2, '0')).join('')}`;
-};
-
-const MapProgress = ({ progressAnimated }: { progressAnimated: Animated.Value }) => {
-  const radius = 26;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = progressAnimated.interpolate({
-    inputRange: [0, 1],
-    outputRange: [circumference, 0],
-  });
-  return (
-    <Svg width={60} height={60} style={styles.mapRing}>
-      <Circle
-        cx={30}
-        cy={30}
-        r={radius}
-        stroke="rgba(255,255,255,0.15)"
-        strokeWidth={2}
-        fill="none"
-      />
-      <AnimatedCircle
-        cx={30}
-        cy={30}
-        r={radius}
-        stroke={palette.primary}
-        strokeWidth={3}
-        strokeDasharray={`${circumference} ${circumference}`}
-        strokeDashoffset={strokeDashoffset}
-        strokeLinecap="round"
-        fill="none"
-      />
-    </Svg>
-  );
 };
 
 const SectionHeading = ({
@@ -727,19 +654,11 @@ const styles = StyleSheet.create({
     color: palette.text,
     marginTop: 2,
   },
-  statValueSmall: {
-    fontSize: 18,
-  },
   statSubtitle: {
     ...typography.body,
     fontSize: 12,
     color: palette.muted,
     marginTop: 2,
-  },
-  mapRing: {
-    position: 'absolute',
-    top: -10,
-    right: -10,
   },
   entryGrid: {
     flexDirection: 'row',
@@ -813,22 +732,23 @@ const styles = StyleSheet.create({
   },
   highlightContainer: {
     marginTop: spacing.cardGap,
+    marginBottom: spacing.section,
   },
   highlightRow: {
     flexDirection: 'row',
     gap: spacing.cardGap,
-    paddingRight: spacing.cardGap,
+    paddingHorizontal: spacing.pageHorizontal,
   },
   highlightCard: {
-    width: 240,
-    height: 120,
+    width: 140,
+    height: 180,
   },
   highlightTitle: {
-    ...typography.subtitle,
+    ...typography.body,
     color: palette.text,
   },
   highlightFooter: {
-    marginTop: 36,
+    marginTop: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },

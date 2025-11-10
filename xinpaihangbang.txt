@@ -1,0 +1,190 @@
+排行榜页面重构（v2）— 一次性交付任务单
+
+目标：让排行榜页与首页完全同风格/同世界观，先把骨架与交互落地，再替换插图。能复用首页的全部复用；已有路由沿用，只有缺了才新建。
+
+0. 总原则（必读）
+
+视觉一致：复用首页的 NeonCard/TileCard/SegmentedControl/StatusChip/Carousel/ListItem/Skeleton、圆角、描边、阴影、色板、等宽数字、动画曲线。
+
+资源最少：整页使用 2 张背景图（ambient/hero）。其他卡片不使用大插图，仅玻璃底+轻纹理+光效。
+
+路由策略：已有就用；没有才新建（文末写出“可能新增”的最少路由）。
+
+1. 信息架构 & 布局（按出现顺序，方案 C）
+
+页面级背景（Ambient）
+
+放在 ScrollView 背后，淡化+可选视差（0.15×）。
+
+海报式 Hero（Poster）
+
+背景用 hero 背景图（不透明 30–40%），中心突出 NO.1 信息（头像/昵称/分数/角标），右下叠一颗 “我的排名”胶囊。
+
+分段（吸顶）
+
+两排 SegmentedControl：榜单类型（邀请达人｜团队排行｜财富榜）＋ 周期（日｜周｜月）。
+
+Top3 奖台
+
+三张 TileCard（中大两小），卡内仅头像/昵称/积分/角标（金银铜），背景靠光效分级而非大图。
+
+明细列表
+
+VirtualizedList/FlashList，行用薄款 NeonCard：排名圆徽＋头像＋昵称＋分数＋右箭头。
+
+赛季奖励看板
+
+3 张 TileCard（巅峰荣耀｜进阶嘉奖｜持续激励），仅图标+文字，底图用 hero 的裁切/暗化版本。
+
+底部导航
+
+与首页一致。
+
+2. 复用与样式 Tokens
+
+边距：左右 16；模块上下 20；卡片间距 12
+
+圆角：卡 20；按钮 14；Chip 999
+
+玻璃底：rgba(15,20,34,0.92)
+
+霓虹描边：1px 内发光 #7DF0FF → #8A5CFF
+
+阴影：0 6 20 rgba(70,120,255,0.08)（Hero/主卡可到 0.12）
+
+字号：标题 18–20；数值 22–24；说明 12–13（等宽数字）
+
+3. 必备资源（仅两张图 + 可选纹理）
+
+rank_ambient_bg_9x16.jpg（必备）：1440×2560，整页底图（淡化 8–12%，可加 blur 8–12）。
+
+rank_hero_bg_9x16.jpg（必备）：1440×900（或同 1440×2560 再裁），Hero 内背景（30–40%）。
+
+可选纹理（叠加提升质感，体积很小）：
+
+noise_2pct.png（平铺细噪点）
+
+hex_grid_2pct.png（平铺六边格，极淡）
+
+bokeh_soft.png（柔光斑，仅 Hero/Top3）
+
+Top3/奖励卡底图直接从 hero 裁切或暗化获得；列表行不用插图。
+
+4. 名次分级视觉规则（统一世界观，不换底图）
+
+No.1：径向高光 cyan α≈0.18 r≈140；描边亮度 ×1.2；金徽章
+
+No.2：径向高光 blue α≈0.14 r≈120；描边 ×1.1；银徽章
+
+No.3：径向高光 purple α≈0.12 r≈110；描边 ×1.05；铜徽章
+
+Top10：线性薄膜 cyan→transparent α≈0.06；角标 “TOP10”
+
+11+：仅玻璃底 + 极淡六边格（α≈0.02）
+
+5. 交互与动效
+
+吸顶逻辑：分段组件滚动到顶后吸顶（阴影+2）；返回顶部还原。
+
+回到我的排名：点击“我的排名”胶囊 → 平滑定位到该行（300ms），该行描边高亮 600ms。
+
+滚动视差：ambient 背景 translateY = scrollY * 0.15。
+
+刷新：30s 轮询或 WebSocket；仅对发生变化的行做数字闪烁，避免整表闪屏。
+
+空/错态：空态插画＋“去邀请/去探索”；顶部轻提示，不用模态。
+
+6. 数据模型 / 接口对接（示例）
+
+GET /leaderboard?category={invite|team|wealth}&period={day|week|month}&cursor=…
+
+{
+  "updatedAt": "2025-11-09T12:31:00Z",
+  "myRank": { "rank": 6, "id": "u123", "name": "Pilot Zero", "score": 978, "avatar": "...", "vip": 1 },
+  "top": [
+    {"rank":1,"id":"u1","name":"A","score":4321,"avatar":"..."},
+    {"rank":2,"id":"u2","name":"B","score":3890,"avatar":"..."},
+    {"rank":3,"id":"u3","name":"C","score":3510,"avatar":"..."}
+  ],
+  "items": [
+    {"rank":4,"id":"u4","name":"...","score":...,"avatar":"..."},
+    ...
+  ],
+  "nextCursor":"..."
+}
+
+
+分页：下拉刷新＋上拉加载（cursor）。
+
+我的名次：服务端返回 myRank；若不在当前页，定位时先拉取到含我名次的页。
+
+安全展示：昵称截断两行，分数等宽数字；头像占位兜底。
+
+7. i18n 文案键（追加/复用）
+rank.title = 排行榜 / Leaderboard
+rank.category = 邀请达人|团队排行|财富榜
+rank.period = 日榜|周榜|月榜
+rank.updated = 更新于 {time}
+rank.backToMine = 回到我的排名 / Back to my rank
+rank.my = 我的排名 / My Rank
+rank.points = 积分 / Points
+rank.rewards.top = 巅峰荣耀
+rank.rewards.pro = 进阶嘉奖
+rank.rewards.keep = 持续激励
+rank.podium.no1 = NO.01
+rank.podium.no2 = NO.02
+rank.podium.no3 = NO.03
+rank.empty = 暂无上榜记录 / No rankings yet
+
+8. 无障碍与适配
+
+等宽数字：排名/分数全部使用（防跳动）。
+
+长名：两行截断＋尾省略；头像 40px、排名圆徽直径 32px。
+
+安全区：顶部 0–160px 不放高对比主体；720×1280 到常见机型等比适配。
+
+9. 性能与验收（必须量化）
+
+资源体积：rank_ambient_bg_9x16 < 250KB，rank_hero_bg_9x16 < 200KB；纹理 PNG 单个 < 60KB。
+
+首屏：TTI ≤ 1.5s（中端安卓实机）；滚动 60fps，无明显掉帧。
+
+列表：虚拟化渲染，首屏不超过 10 行。
+
+统一性：任何卡片不出现新的卡样式；描边/圆角/阴影与首页一致。
+
+交互：分段吸顶可用；“回到我的排名”定位准确并高亮。
+
+10. 组件树（示意，命名按你项目为准）
+<LeaderboardScreen>
+  <AmbientBackground/>         // rank_ambient_bg_9x16 + 视差 + 渐变遮罩
+  <ScrollView>
+    <PosterHero/>              // rank_hero_bg_9x16 + NO.1 + 我的排名胶囊
+    <StickySegmented/>         // 类型 & 周期 两排分段
+    <PodiumTop3/>              // TileCard x3
+    <RankList/>                // VirtualizedList -> NeonCard rows
+    <SeasonRewards/>           // TileCard x3
+  </ScrollView>
+  <BottomTab/>                 // 与首页一致
+</LeaderboardScreen>
+
+11. 可能新增的最少路由（已有就直连）
+
+/rank/user/:id 或弹出 <UserSheet>（查看头像/称号/战绩）
+
+/rank/rewards（赛季奖励说明）
+
+如果项目已有“用户/团队详情/奖励说明”，直接沿用，不新增。
+
+12. 交付物清单
+
+✅ LeaderboardScreen 重构完成（方案 C 骨架 + 占位效果）
+
+✅ 2 张背景图接入（ambient/hero）＋（可选）3 张纹理叠加
+
+✅ i18n 文案新增与热切换
+
+✅ 数据接入（轮询/WS）＋分页
+
+✅ 验收自测截图（720×1280、1080×2400），含“我的名次定位”与“分段吸顶”演示
