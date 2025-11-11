@@ -1,12 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { CategoryChips } from '@components/inventory/CategoryChips';
 import { InventoryToolbar } from '@components/inventory/Toolbar';
 import { SkeletonGrid } from '@components/inventory/SkeletonGrid';
 import { InventoryGrid } from '@components/InventoryGrid';
 import { inventoryItems, ItemType, UIItem } from '@mock/inventory';
-import { useBottomGutter } from '@hooks/useBottomGutter';
 import { typography } from '@theme/typography';
 import { palette } from '@theme/colors';
 import { tokens } from '@theme/tokens';
@@ -24,10 +23,7 @@ export const InventoryScreen = () => {
   const [category, setCategory] = useState<ItemType | 'all'>('all');
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<UIItem[]>([]);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [multiSelect, setMultiSelect] = useState(false);
-
-  const bottomGutter = useBottomGutter();
+  const [boardWidth, setBoardWidth] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -45,36 +41,15 @@ export const InventoryScreen = () => {
     return items.filter((item) => item.type === category);
   }, [category, items]);
 
-  const handleSelectionCleanup = (next: Set<string>) => {
-    if (next.size === 0) {
-      setMultiSelect(false);
-    }
-  };
-
-  const handleSlotPress = (item: UIItem) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (!multiSelect && !next.has(item.id)) {
-        next.clear();
+  const handleGridLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { width } = event.nativeEvent.layout;
+      if (width && Math.abs(width - boardWidth) > 1) {
+        setBoardWidth(width);
       }
-      if (next.has(item.id)) {
-        next.delete(item.id);
-      } else {
-        next.add(item.id);
-      }
-      handleSelectionCleanup(next);
-      return next;
-    });
-  };
-
-  const handleSlotLongPress = (item: UIItem) => {
-    setMultiSelect(true);
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      next.add(item.id);
-      return next;
-    });
-  };
+    },
+    [boardWidth],
+  );
 
   if (loading) {
     return (
@@ -92,23 +67,15 @@ export const InventoryScreen = () => {
       <Text style={styles.subHeading}>所有资源与 NFT 均在此管理</Text>
       <CategoryChips options={CATEGORY_OPTIONS} value={category} onChange={setCategory} />
       <InventoryToolbar />
-      {selectedIds.size > 0 ? (
-        <Text style={styles.selectionHint}>
-          {multiSelect ? '多选模式 · ' : ''}
-          已选择 {selectedIds.size} 个
-        </Text>
-      ) : null}
-      <View style={styles.gridWrapper}>
-        <InventoryGrid
-          items={filtered}
-          columns={5}
-          selectedIds={selectedIds}
-          showRarityDot
-          onPressItem={handleSlotPress}
-          onLongPressItem={handleSlotLongPress}
-          contentBottomPadding={bottomGutter.paddingBottom}
-          scrollIndicatorInsets={bottomGutter.scrollIndicatorInsets}
-        />
+      <View style={styles.gridWrapper} onLayout={handleGridLayout}>
+        {boardWidth > 0 ? (
+          <InventoryGrid
+            items={filtered}
+            columns={5}
+            containerWidth={boardWidth}
+            innerPadding={tokens.spacing.inventoryGap}
+          />
+        ) : null}
       </View>
     </ScreenContainer>
   );
@@ -128,16 +95,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 12,
   },
-  selectionHint: {
-    ...typography.captionCaps,
-    color: palette.sub,
-    marginBottom: 8,
-  },
   gridWrapper: {
     borderRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     backgroundColor: tokens.colors.backgroundDeep,
     overflow: 'hidden',
+    marginTop: 12,
+    marginBottom: 32,
   },
 });

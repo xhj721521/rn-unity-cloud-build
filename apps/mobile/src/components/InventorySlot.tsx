@@ -1,16 +1,14 @@
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { rarityColors, tokens } from '@theme/tokens';
+import { tokens } from '@theme/tokens';
 import { UIItem } from '@mock/inventory';
 
 type InventorySlotProps = {
   item?: UIItem;
   size: number;
-  selected?: boolean;
-  showRarityDot?: boolean;
 };
 
-export const InventorySlot = ({ item, size, selected, showRarityDot }: InventorySlotProps) => {
+export const InventorySlot = ({ item, size }: InventorySlotProps) => {
   const outerStyle = [
     styles.outer,
     {
@@ -26,7 +24,6 @@ export const InventorySlot = ({ item, size, selected, showRarityDot }: Inventory
       borderRadius: tokens.radius.inventoryInner,
       borderColor: tokens.colors.accentCyanInner,
     },
-    selected && styles.selectedInner,
   ];
 
   if (!item) {
@@ -39,14 +36,9 @@ export const InventorySlot = ({ item, size, selected, showRarityDot }: Inventory
     );
   }
 
-  const rarityColor = rarityColors[item.rarity as keyof typeof rarityColors] ?? rarityColors.common;
-
   return (
     <View style={outerStyle}>
       <View style={innerStyle}>
-        {showRarityDot ? (
-          <View style={[styles.rarityDot, { backgroundColor: rarityColor }]} />
-        ) : null}
         <Image source={item.icon} style={styles.icon} resizeMode="contain" />
         <View style={styles.countPill}>
           <Text style={styles.countText}>x{item.qty}</Text>
@@ -67,10 +59,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(5,10,16,0.72)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  selectedInner: {
-    backgroundColor: 'rgba(10,26,34,0.6)',
-    ...tokens.shadow.cyanGlow,
   },
   emptyPlus: {
     color: 'rgba(0,229,255,0.7)',
@@ -97,14 +85,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '600',
-  },
-  rarityDot: {
-    position: 'absolute',
-    top: 6,
-    left: 6,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
   },
 });
 

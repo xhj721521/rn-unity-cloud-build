@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { FlatList, Pressable, StyleSheet, useWindowDimensions, ViewStyle } from 'react-native';
+import { FlatList, StyleSheet, ViewStyle } from 'react-native';
 import { InventorySlot } from './InventorySlot';
 import { UIItem } from '@mock/inventory';
 import { tokens } from '@theme/tokens';
@@ -7,33 +7,23 @@ import { tokens } from '@theme/tokens';
 type InventoryGridProps = {
   items: Array<UIItem | undefined>;
   columns?: number;
-  showRarityDot?: boolean;
-  selectedIds?: Set<string>;
-  onPressItem?: (item: UIItem) => void;
-  onLongPressItem?: (item: UIItem) => void;
   style?: ViewStyle;
-  contentBottomPadding?: number;
-  scrollIndicatorInsets?: { bottom: number };
+  containerWidth: number;
+  innerPadding?: number;
 };
 
 export const InventoryGrid = ({
   items,
   columns = 5,
-  showRarityDot = true,
-  selectedIds,
-  onPressItem,
-  onLongPressItem,
+  containerWidth,
+  innerPadding = 12,
   style,
-  contentBottomPadding,
-  scrollIndicatorInsets,
 }: InventoryGridProps) => {
-  const { width } = useWindowDimensions();
   const gap = tokens.spacing.inventoryGap;
-  const horizontalPadding = tokens.spacing.page * 2;
   const cellSize = useMemo(() => {
-    const available = width - horizontalPadding - gap * (columns - 1);
-    return Math.max(60, available / columns);
-  }, [width, columns, gap, horizontalPadding]);
+    const available = containerWidth - innerPadding * 2 - gap * (columns - 1);
+    return Math.floor(available / columns);
+  }, [containerWidth, innerPadding, gap, columns]);
 
   const paddedItems = useMemo(() => {
     const result = [...items];
@@ -54,33 +44,18 @@ export const InventoryGrid = ({
       data={paddedItems}
       numColumns={columns}
       keyExtractor={(item, index) => (item ? item.id : `empty-${index}`)}
-      renderItem={({ item }) => (
-        <Pressable
-          disabled={!item}
-          onPress={item ? () => onPressItem?.(item) : undefined}
-          onLongPress={item ? () => onLongPressItem?.(item) : undefined}
-        >
-          <InventorySlot
-            item={item}
-            size={cellSize}
-            selected={item ? selectedIds?.has(item.id) : false}
-            showRarityDot={showRarityDot}
-          />
-        </Pressable>
-      )}
+      renderItem={({ item }) => <InventorySlot item={item} size={cellSize} />}
       columnWrapperStyle={[styles.columnWrapper, { columnGap: gap }]}
       contentContainerStyle={[
         styles.content,
         {
-          paddingHorizontal: tokens.spacing.page,
+          paddingHorizontal: innerPadding,
+          paddingVertical: innerPadding,
           rowGap: gap,
-          paddingBottom: contentBottomPadding ?? tokens.spacing.page * 2,
         },
         style,
       ]}
-      style={{ backgroundColor: tokens.colors.backgroundDeep }}
       removeClippedSubviews
-      scrollIndicatorInsets={scrollIndicatorInsets ?? { bottom: contentBottomPadding ?? 0 }}
       getItemLayout={getItemLayout}
     />
   );
@@ -88,10 +63,9 @@ export const InventoryGrid = ({
 
 const styles = StyleSheet.create({
   content: {
-    paddingTop: tokens.spacing.inventoryGap,
   },
   columnWrapper: {
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
   },
 });
 
