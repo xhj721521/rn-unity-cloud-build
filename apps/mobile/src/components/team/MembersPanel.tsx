@@ -1,5 +1,5 @@
-﻿import React, { useCallback, useMemo, useState } from 'react';
-import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { LayoutChangeEvent, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import MemberPill from './MemberPill';
 import { palette } from '@theme/colors';
 import { typography } from '@theme/typography';
@@ -11,6 +11,7 @@ type TeamMember = {
   online: boolean;
   avatar?: string;
   intelToday?: number;
+  contribWeek?: number;
 };
 
 type Props = {
@@ -19,20 +20,20 @@ type Props = {
   onLeave?: () => void;
 };
 
-const COLUMN_GAP = 12;
+const GAP = 10;
 
 export const MembersPanel = ({ members, onInvite, onLeave }: Props) => {
   const [gridWidth, setGridWidth] = useState(0);
 
   const paddedMembers = useMemo(() => {
-    const source = [...members];
-    while (source.length % 2 !== 0) {
-      source.push(undefined as unknown as TeamMember);
+    const data = [...members];
+    while (data.length % 2 !== 0) {
+      data.push(undefined as unknown as TeamMember);
     }
-    return source;
+    return data;
   }, [members]);
 
-  const handleLayout = useCallback(
+  const handleGridLayout = useCallback(
     (event: LayoutChangeEvent) => {
       const nextWidth = event.nativeEvent.layout.width;
       if (nextWidth && Math.abs(nextWidth - gridWidth) > 1) {
@@ -42,7 +43,7 @@ export const MembersPanel = ({ members, onInvite, onLeave }: Props) => {
     [gridWidth],
   );
 
-  const cardWidth = gridWidth > 0 ? (gridWidth - COLUMN_GAP) / 2 : 0;
+  const cardWidth = gridWidth > 0 ? (gridWidth - GAP) / 2 : 0;
 
   return (
     <View style={styles.container}>
@@ -50,12 +51,14 @@ export const MembersPanel = ({ members, onInvite, onLeave }: Props) => {
         <Text style={styles.headerTitle}>成员列表</Text>
         <Text style={styles.headerHint}>头像 · 名字 · 职务 · 今日情报</Text>
       </View>
-      <View
-        style={[styles.grid, { columnGap: COLUMN_GAP, rowGap: COLUMN_GAP }]}
-        onLayout={handleLayout}
-      >
-        {cardWidth > 0
-          ? paddedMembers.map((member, index) =>
+      <View style={styles.scrollShell} onLayout={handleGridLayout}>
+        {cardWidth > 0 ? (
+          <ScrollView
+            style={styles.memberScroll}
+            contentContainerStyle={[styles.grid, { columnGap: GAP, rowGap: GAP }]}
+            showsVerticalScrollIndicator={false}
+          >
+            {paddedMembers.map((member, index) =>
               member ? (
                 <MemberPill
                   key={member.id}
@@ -69,8 +72,9 @@ export const MembersPanel = ({ members, onInvite, onLeave }: Props) => {
                   <Text style={styles.placeholderPlus}>+</Text>
                 </View>
               ),
-            )
-          : null}
+            )}
+          </ScrollView>
+        ) : null}
       </View>
       <View style={styles.bottomBar}>
         <Pressable style={[styles.cta, styles.invite]} onPress={onInvite}>
@@ -86,12 +90,12 @@ export const MembersPanel = ({ members, onInvite, onLeave }: Props) => {
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: 'rgba(0,229,255,0.2)',
-    padding: 12,
-    backgroundColor: 'rgba(8,12,18,0.92)',
-    gap: 12,
+    padding: 16,
+    backgroundColor: 'rgba(8,12,18,0.94)',
+    gap: 14,
   },
   header: {
     gap: 4,
@@ -104,13 +108,26 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: palette.sub,
   },
+  scrollShell: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(4,8,14,0.9)',
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    maxHeight: 360,
+  },
+  memberScroll: {
+    flexGrow: 0,
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    padding: 6,
   },
   placeholder: {
-    height: 92,
-    borderRadius: 16,
+    height: 88,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(0,229,255,0.15)',
     backgroundColor: 'rgba(255,255,255,0.04)',
@@ -119,7 +136,7 @@ const styles = StyleSheet.create({
   },
   placeholderPlus: {
     color: 'rgba(0,229,255,0.7)',
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '600',
   },
   bottomBar: {
@@ -130,7 +147,7 @@ const styles = StyleSheet.create({
   cta: {
     flex: 1,
     borderRadius: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
     alignItems: 'center',
   },
   invite: {

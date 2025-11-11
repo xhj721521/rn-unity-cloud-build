@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import ActionCard from './ActionCard';
 
@@ -18,10 +18,10 @@ export const ActionGrid = ({
   dungeon,
 }: Props) => (
   <View style={styles.grid}>
-    <ActionCard title="团队地图" subtitle="今日可开 3 / 3" glyph="map" onPress={onOpenMap} />
+    <ActionCard title="团队地图" subtitle="进入地图" glyph="map" onPress={onOpenMap} />
     <ActionCard
       title="团队副本"
-      subtitle={`难度 ${dungeon.difficulty} · 剩余 ${dungeon.left}/${dungeon.max}`}
+      subtitle={`去挑战 · 剩余 ${dungeon.left}/${dungeon.max}`}
       glyph="blindbox"
       onPress={onOpenDungeon}
     />

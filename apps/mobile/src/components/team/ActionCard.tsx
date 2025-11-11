@@ -12,17 +12,18 @@ type Props = {
 };
 
 export const ActionCard = ({ title, subtitle, glyph, onPress }: Props) => (
-  <Pressable style={({ pressed }) => [styles.card, pressed && { opacity: 0.9 }]} onPress={onPress}>
-    <View style={styles.iconShell}>
-      <QuickGlyph id={glyph} size={28} />
-    </View>
-    <View style={styles.textColumn}>
+  <Pressable style={({ pressed }) => [styles.card, pressed && { opacity: 0.92 }]} onPress={onPress}>
+    <View style={styles.cardInner}>
+      <View style={styles.iconShell}>
+        <QuickGlyph id={glyph} size={28} />
+      </View>
       <Text style={styles.title} numberOfLines={1}>
         {title}
       </Text>
-      <Text style={styles.subtitle} numberOfLines={2}>
+      <Text style={styles.subtitle} numberOfLines={1}>
         {subtitle}
       </Text>
+      <View style={styles.tapHint} />
     </View>
   </Pressable>
 );
@@ -30,35 +31,51 @@ export const ActionCard = ({ title, subtitle, glyph, onPress }: Props) => (
 const styles = StyleSheet.create({
   card: {
     flexBasis: '48%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 16,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(0,229,255,0.25)',
-    backgroundColor: 'rgba(5,10,16,0.85)',
-    minHeight: 96,
+    backgroundColor: 'rgba(5,10,16,0.9)',
+    padding: 2,
+    minHeight: 128,
+  },
+  cardInner: {
+    flex: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
   },
   iconShell: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     backgroundColor: 'rgba(0,229,255,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  textColumn: {
-    flex: 1,
-  },
   title: {
     ...typography.subtitle,
     color: palette.text,
+    textAlign: 'center',
   },
   subtitle: {
     ...typography.caption,
     color: palette.sub,
-    marginTop: 4,
+    textAlign: 'center',
+  },
+  tapHint: {
+    position: 'absolute',
+    bottom: 6,
+    left: 16,
+    right: 16,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: 'rgba(0,229,255,0.4)',
+    opacity: 0.4,
   },
 });
 

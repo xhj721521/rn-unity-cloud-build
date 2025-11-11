@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Member } from '@mock/team.members';
 import { typography } from '@theme/typography';
@@ -6,17 +6,22 @@ import { palette } from '@theme/colors';
 
 type Props = {
   member: Member;
+  style?: ViewStyle;
   onPress?: () => void;
   onLongPress?: () => void;
-  style?: ViewStyle;
 };
 
-export const MemberPill = ({ member, onPress, onLongPress, style }: Props) => {
-  const roleLabel = member.role === 'leader' ? '队长' : member.role === 'officer' ? '副官' : '成员';
-  const metricValue = member.intelToday ?? 0;
+const ROLE_LABEL: Record<Member['role'], string> = {
+  leader: '队长',
+  officer: '副官',
+  member: '成员',
+};
+
+export const MemberPill = ({ member, style, onPress, onLongPress }: Props) => {
+  const metricValue = member.intelToday ?? member.contribWeek ?? 0;
   return (
     <Pressable
-      style={({ pressed }) => [styles.card, style, pressed && { opacity: 0.9 }]}
+      style={({ pressed }) => [styles.card, style, pressed && { opacity: 0.92 }]}
       onPress={onPress}
       onLongPress={onLongPress}
     >
@@ -24,36 +29,36 @@ export const MemberPill = ({ member, onPress, onLongPress, style }: Props) => {
         {member.avatar ? (
           <Image source={member.avatar} style={styles.avatar} />
         ) : (
-          <Text style={styles.avatarText}>{member.name.slice(0, 1).toUpperCase()}</Text>
+          <Text style={styles.avatarText}>{member.name.charAt(0).toUpperCase()}</Text>
         )}
       </View>
-      <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>
-          {member.name}
-        </Text>
-        <Text style={styles.role}>{roleLabel}</Text>
-        <Text style={styles.metric}>今日情报 · {metricValue}</Text>
+      <Text style={styles.name} numberOfLines={1}>
+        {member.name}
+      </Text>
+      <View style={styles.roleTag}>
+        <Text style={styles.roleText}>{ROLE_LABEL[member.role]}</Text>
       </View>
+      <Text style={styles.metric}>今日情报 · {metricValue}</Text>
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 16,
+    height: 88,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(0,229,255,0.25)',
-    padding: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    gap: 12,
+    borderColor: 'rgba(0,229,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 8,
   },
   avatarShell: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -61,23 +66,26 @@ const styles = StyleSheet.create({
   avatar: {
     width: '100%',
     height: '100%',
-    borderRadius: 22,
+    borderRadius: 20,
   },
   avatarText: {
     ...typography.subtitle,
     color: '#FFFFFF',
   },
-  info: {
-    flex: 1,
-    gap: 4,
-  },
   name: {
-    ...typography.subtitle,
+    ...typography.captionCaps,
     color: palette.text,
   },
-  role: {
+  roleTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  roleText: {
     ...typography.captionCaps,
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.8)',
   },
   metric: {
     ...typography.caption,

@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -27,8 +27,8 @@ type PanelKey = 'warehouse' | 'notice' | null;
 
 export const TeamScreen = () => {
   const [openPanel, setOpenPanel] = useState<PanelKey>(null);
-  const [languageVisible, setLanguageVisible] = useState(false);
-  const [languageDraft, setLanguageDraft] = useState('');
+  const [chatVisible, setChatVisible] = useState(false);
+  const [chatDraft, setChatDraft] = useState('');
   const [members] = useState<Member[]>(membersData.members as Member[]);
 
   const normalizedMembers = useMemo(
@@ -58,17 +58,16 @@ export const TeamScreen = () => {
         stickyHeaderIndices={[0]}
         nestedScrollEnabled
       >
-        <TeamStickyHeader
-          name={teamSummary.team.name}
-          level={teamSummary.team.level}
-          exp={teamSummary.team.exp}
-          next={teamSummary.team.next}
-          membersOnline={teamSummary.team.online}
-          memberCap={teamSummary.team.cap}
-          onPressLanguage={() => setLanguageVisible(true)}
-        />
-
-        <View style={styles.section}>
+        <View style={styles.commandCard}>
+          <TeamStickyHeader
+            name={teamSummary.team.name}
+            level={teamSummary.team.level}
+            exp={teamSummary.team.exp}
+            next={teamSummary.team.next}
+            membersOnline={teamSummary.team.online}
+            memberCap={teamSummary.team.cap}
+            onPressChat={() => setChatVisible(true)}
+          />
           <ActionGrid
             dungeon={teamSummary.raid}
             onOpenMap={() => {}}
@@ -76,7 +75,9 @@ export const TeamScreen = () => {
             onToggleWarehouse={() => handleTogglePanel('warehouse')}
             onToggleNotice={() => handleTogglePanel('notice')}
           />
+        </View>
 
+        <View style={styles.section}>
           {openPanel === 'warehouse' ? (
             <ExpandablePanel>
               <WarehouseGrid items={teamWarehouseItems} />
@@ -92,11 +93,11 @@ export const TeamScreen = () => {
         <MembersPanel members={normalizedMembers} />
       </ScrollView>
 
-      <LanguageComposer
-        visible={languageVisible}
-        value={languageDraft}
-        onChange={setLanguageDraft}
-        onClose={() => setLanguageVisible(false)}
+      <ChatComposer
+        visible={chatVisible}
+        value={chatDraft}
+        onChange={setChatDraft}
+        onClose={() => setChatVisible(false)}
       />
     </View>
   );
@@ -109,17 +110,17 @@ type ComposerProps = {
   onClose: () => void;
 };
 
-const LanguageComposer = ({ visible, value, onChange, onClose }: ComposerProps) => (
+const ChatComposer = ({ visible, value, onChange, onClose }: ComposerProps) => (
   <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
     <View style={styles.modalBackdrop}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.modalCard}
       >
-        <Text style={styles.modalTitle}>团队语言</Text>
+        <Text style={styles.modalTitle}>团队聊天（占位）</Text>
         <TextInput
           style={styles.modalInput}
-          placeholder="输入团队语言或公告..."
+          placeholder="发送一条团队消息..."
           placeholderTextColor="rgba(255,255,255,0.4)"
           multiline
           autoFocus
@@ -131,7 +132,7 @@ const LanguageComposer = ({ visible, value, onChange, onClose }: ComposerProps) 
             <Text style={styles.modalGhostText}>取消</Text>
           </Pressable>
           <Pressable style={[styles.modalButton, styles.modalPrimary]} onPress={onClose}>
-            <Text style={styles.modalPrimaryText}>保存</Text>
+            <Text style={styles.modalPrimaryText}>发送</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -149,9 +150,19 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: 120,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     gap: 16,
     paddingTop: 0,
+  },
+  commandCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(0,229,255,0.25)',
+    backgroundColor: 'rgba(5,9,15,0.92)',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+    gap: 16,
   },
   section: {
     gap: 12,

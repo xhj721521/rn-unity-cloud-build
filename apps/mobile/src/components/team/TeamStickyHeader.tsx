@@ -15,7 +15,7 @@ type Props = {
   next?: number;
   membersOnline?: number;
   memberCap?: number;
-  onPressLanguage?: () => void;
+  onPressChat?: () => void;
 };
 
 export const TeamStickyHeader = ({
@@ -26,7 +26,7 @@ export const TeamStickyHeader = ({
   next,
   membersOnline,
   memberCap,
-  onPressLanguage,
+  onPressChat,
 }: Props) => {
   const safeNext = next && next > 0 ? next : 800;
   const safeExp = exp ?? Math.floor(safeNext * 0.45);
@@ -59,15 +59,22 @@ export const TeamStickyHeader = ({
             离上一级还差 {remaining} / {safeNext}
           </Text>
         </View>
-        <ProgressEnergyBar progress={progress} variant="thin" />
+        <View style={styles.progressRow}>
+          <View style={styles.progressFlex}>
+            <ProgressEnergyBar progress={progress} variant="thin" />
+          </View>
+          <Text style={styles.progressHint}>
+            距下一级 {safeExp}/{safeNext}
+          </Text>
+        </View>
         <Text style={styles.countText}>
           队员 {membersOnline ?? 0} / {memberCap ?? '--'}
         </Text>
       </View>
-      {onPressLanguage ? (
-        <Pressable style={styles.languageBubble} onPress={onPressLanguage}>
+      {onPressChat ? (
+        <Pressable style={styles.languageBubble} onPress={onPressChat}>
           <QuickGlyph id="chat" size={16} />
-          <Text style={styles.languageText}>团队语言</Text>
+          <Text style={styles.languageText}>团队聊天</Text>
         </Pressable>
       ) : null}
     </LinearGradient>
@@ -132,9 +139,21 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: palette.sub,
   },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  progressFlex: {
+    flex: 1,
+  },
+  progressHint: {
+    ...typography.captionCaps,
+    color: 'rgba(255,255,255,0.7)',
+  },
   countText: {
     ...typography.captionCaps,
-    color: 'rgba(255,255,255,0.72)',
+    color: 'rgba(255,255,255,0.75)',
   },
   languageBubble: {
     position: 'absolute',
