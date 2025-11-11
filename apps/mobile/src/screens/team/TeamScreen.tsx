@@ -4,13 +4,14 @@ import {
   Modal,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import TeamStickyHeader from '@components/team/TeamStickyHeader';
 import ActionGrid from '@components/team/ActionGrid';
 import ExpandablePanel from '@components/team/ExpandablePanel';
@@ -30,6 +31,9 @@ export const TeamScreen = () => {
   const [chatVisible, setChatVisible] = useState(false);
   const [chatDraft, setChatDraft] = useState('');
   const [members] = useState<Member[]>(membersData.members as Member[]);
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight?.() ?? 0;
+  const bottomPadding = tabBarHeight + insets.bottom + 80;
 
   const normalizedMembers = useMemo(
     () =>
@@ -52,12 +56,7 @@ export const TeamScreen = () => {
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        stickyHeaderIndices={[0]}
-        nestedScrollEnabled
-      >
+      <View style={[styles.body, { paddingBottom: bottomPadding }]}>
         <View style={styles.commandCard}>
           <TeamStickyHeader
             name={teamSummary.team.name}
@@ -90,8 +89,8 @@ export const TeamScreen = () => {
           ) : null}
         </View>
 
-        <MembersPanel members={normalizedMembers} />
-      </ScrollView>
+        <MembersPanel members={normalizedMembers} style={styles.membersPanel} />
+      </View>
 
       <ChatComposer
         visible={chatVisible}
@@ -145,27 +144,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#030610',
   },
-  container: {
+  body: {
     flex: 1,
-  },
-  content: {
-    paddingBottom: 120,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     gap: 16,
-    paddingTop: 0,
   },
   commandCard: {
     borderRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(0,229,255,0.25)',
     backgroundColor: 'rgba(5,9,15,0.92)',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    padding: 16,
     gap: 16,
   },
   section: {
     gap: 12,
+  },
+  membersPanel: {
+    flex: 1,
   },
   modalBackdrop: {
     flex: 1,

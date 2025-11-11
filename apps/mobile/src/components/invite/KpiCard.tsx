@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import GlassCard from '@components/shared/GlassCard';
 import { typography } from '@theme/typography';

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { ImageSourcePropType, Pressable, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import QuickGlyph from '@components/QuickGlyph';
@@ -34,12 +34,12 @@ export const TeamStickyHeader = ({
   const remaining = Math.max(safeNext - safeExp, 0);
 
   return (
-    <LinearGradient colors={['rgba(4,12,24,0.9)', 'rgba(6,18,32,0.96)']} style={styles.container}>
+    <LinearGradient colors={['rgba(4,12,24,0.92)', 'rgba(6,18,32,0.94)']} style={styles.container}>
       <View style={styles.avatarShell}>
         {emblem ? (
           <LinearGradient colors={['#20E0E8', '#E8C26A']} style={styles.emblemOuter}>
             <LinearGradient
-              colors={['rgba(11,17,22,0.85)', 'rgba(3,5,12,0.95)']}
+              colors={['rgba(11,17,22,0.9)', 'rgba(3,5,12,0.95)']}
               style={styles.emblemInner}
             />
           </LinearGradient>
@@ -64,7 +64,7 @@ export const TeamStickyHeader = ({
             <ProgressEnergyBar progress={progress} variant="thin" />
           </View>
           <Text style={styles.progressHint}>
-            距下一级 {safeExp}/{safeNext}
+            当前进度 {safeExp}/{safeNext}
           </Text>
         </View>
         <Text style={styles.countText}>
@@ -72,9 +72,9 @@ export const TeamStickyHeader = ({
         </Text>
       </View>
       {onPressChat ? (
-        <Pressable style={styles.languageBubble} onPress={onPressChat}>
+        <Pressable style={styles.chatBubble} onPress={onPressChat}>
           <QuickGlyph id="chat" size={16} />
-          <Text style={styles.languageText}>团队聊天</Text>
+          <Text style={styles.chatText}>团队聊天</Text>
         </Pressable>
       ) : null}
     </LinearGradient>
@@ -86,29 +86,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: tokens.spacing.page,
-    paddingVertical: 14,
-    backgroundColor: 'transparent',
+    height: 104,
+    borderRadius: 20,
   },
   avatarShell: {
     marginRight: 12,
   },
   emblemOuter: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
   },
   emblemInner: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
   emblemPlaceholder: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 1.5,
     borderColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -155,10 +155,10 @@ const styles = StyleSheet.create({
     ...typography.captionCaps,
     color: 'rgba(255,255,255,0.75)',
   },
-  languageBubble: {
+  chatBubble: {
     position: 'absolute',
     right: 16,
-    top: 16,
+    top: 12,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,229,255,0.35)',
     backgroundColor: 'rgba(5,12,20,0.9)',
   },
-  languageText: {
+  chatText: {
     ...typography.captionCaps,
     color: palette.text,
   },

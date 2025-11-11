@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { ImageBackground, ImageSourcePropType, StyleSheet, Text, View } from 'react-native';
 import { typography } from '@theme/typography';
 import { palette } from '@theme/colors';

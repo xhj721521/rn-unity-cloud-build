@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { LayoutChangeEvent, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { FlatList, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import MemberPill from './MemberPill';
 import { palette } from '@theme/colors';
 import { typography } from '@theme/typography';
@@ -16,65 +16,25 @@ type TeamMember = {
 
 type Props = {
   members: TeamMember[];
+  style?: ViewStyle;
   onInvite?: () => void;
   onLeave?: () => void;
 };
 
-const GAP = 10;
-
-export const MembersPanel = ({ members, onInvite, onLeave }: Props) => {
-  const [gridWidth, setGridWidth] = useState(0);
-
-  const paddedMembers = useMemo(() => {
-    const data = [...members];
-    while (data.length % 2 !== 0) {
-      data.push(undefined as unknown as TeamMember);
-    }
-    return data;
-  }, [members]);
-
-  const handleGridLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      const nextWidth = event.nativeEvent.layout.width;
-      if (nextWidth && Math.abs(nextWidth - gridWidth) > 1) {
-        setGridWidth(nextWidth);
-      }
-    },
-    [gridWidth],
-  );
-
-  const cardWidth = gridWidth > 0 ? (gridWidth - GAP) / 2 : 0;
-
+export const MembersPanel = ({ members, style, onInvite, onLeave }: Props) => {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>成员列表</Text>
-        <Text style={styles.headerHint}>头像 · 名字 · 职务 · 今日情报</Text>
+        <Text style={styles.headerHint}>头像 · 名字 · 职务 · 情报</Text>
       </View>
-      <View style={styles.scrollShell} onLayout={handleGridLayout}>
-        {cardWidth > 0 ? (
-          <ScrollView
-            style={styles.memberScroll}
-            contentContainerStyle={[styles.grid, { columnGap: GAP, rowGap: GAP }]}
-            showsVerticalScrollIndicator={false}
-          >
-            {paddedMembers.map((member, index) =>
-              member ? (
-                <MemberPill
-                  key={member.id}
-                  member={member}
-                  style={{ width: cardWidth }}
-                  onPress={() => {}}
-                  onLongPress={() => {}}
-                />
-              ) : (
-                <View key={`empty-${index}`} style={[styles.placeholder, { width: cardWidth }]}>
-                  <Text style={styles.placeholderPlus}>+</Text>
-                </View>
-              ),
-            )}
-          </ScrollView>
-        ) : null}
+      <View style={styles.listWrapper}>
+        <FlatList
+          data={members}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <MemberPill member={item} style={styles.memberItem} />}
+          showsVerticalScrollIndicator={false}
+        />
       </View>
       <View style={styles.bottomBar}>
         <Pressable style={[styles.cta, styles.invite]} onPress={onInvite}>
@@ -92,10 +52,12 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: 'rgba(0,229,255,0.2)',
+    borderColor: 'rgba(255,255,255,0.08)',
     padding: 16,
-    backgroundColor: 'rgba(8,12,18,0.94)',
-    gap: 14,
+    backgroundColor: 'rgba(6,10,18,0.95)',
+    gap: 12,
+    flex: 1,
+    maxHeight: 420,
   },
   header: {
     gap: 4,
@@ -108,41 +70,16 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: palette.sub,
   },
-  scrollShell: {
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-    backgroundColor: 'rgba(4,8,14,0.9)',
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    maxHeight: 360,
+  listWrapper: {
+    flex: 1,
   },
-  memberScroll: {
-    flexGrow: 0,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 6,
-  },
-  placeholder: {
-    height: 88,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(0,229,255,0.15)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholderPlus: {
-    color: 'rgba(0,229,255,0.7)',
-    fontSize: 22,
-    fontWeight: '600',
+  memberItem: {
+    marginBottom: 8,
   },
   bottomBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     gap: 12,
+    marginTop: 4,
   },
   cta: {
     flex: 1,

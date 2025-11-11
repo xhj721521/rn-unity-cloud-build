@@ -17,17 +17,23 @@ const ROLE_LABEL: Record<Member['role'], string> = {
   member: '成员',
 };
 
+const ROLE_COLORS: Record<Member['role'], string> = {
+  leader: '#8A5CFF',
+  officer: '#00E5FF',
+  member: 'rgba(255,255,255,0.4)',
+};
+
 export const MemberPill = ({ member, style, onPress, onLongPress }: Props) => {
-  const metricValue = member.intelToday ?? member.contribWeek ?? 0;
+  const intel = member.intelToday ?? member.contribWeek ?? 0;
   return (
     <Pressable
-      style={({ pressed }) => [styles.card, style, pressed && { opacity: 0.92 }]}
+      style={({ pressed }) => [styles.row, style, pressed && styles.pressed]}
       onPress={onPress}
       onLongPress={onLongPress}
     >
-      <View style={styles.avatarShell}>
+      <View style={styles.avatar}>
         {member.avatar ? (
-          <Image source={member.avatar} style={styles.avatar} />
+          <Image source={member.avatar} style={styles.avatarImage} />
         ) : (
           <Text style={styles.avatarText}>{member.name.charAt(0).toUpperCase()}</Text>
         )}
@@ -35,35 +41,44 @@ export const MemberPill = ({ member, style, onPress, onLongPress }: Props) => {
       <Text style={styles.name} numberOfLines={1}>
         {member.name}
       </Text>
-      <View style={styles.roleTag}>
-        <Text style={styles.roleText}>{ROLE_LABEL[member.role]}</Text>
+      <View style={[styles.rolePill, { borderColor: ROLE_COLORS[member.role] }]}>
+        <Text style={[styles.roleText, { color: ROLE_COLORS[member.role] }]}>
+          {ROLE_LABEL[member.role]}
+        </Text>
       </View>
-      <Text style={styles.metric}>今日情报 · {metricValue}</Text>
+      <View style={styles.infoChip}>
+        <Text style={styles.infoText}>情报 {intel}</Text>
+      </View>
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    height: 88,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(0,229,255,0.2)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+  row: {
+    height: 56,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    paddingHorizontal: 12,
+    gap: 10,
+    backgroundColor: 'rgba(4,10,18,0.9)',
   },
-  avatarShell: {
+  pressed: {
+    opacity: 0.85,
+  },
+  avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,229,255,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
-  avatar: {
+  avatarImage: {
     width: '100%',
     height: '100%',
     borderRadius: 20,
@@ -73,23 +88,31 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   name: {
-    ...typography.captionCaps,
+    ...typography.subtitle,
     color: palette.text,
+    flexShrink: 1,
   },
-  roleTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+  rolePill: {
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 2,
   },
   roleText: {
     ...typography.captionCaps,
-    color: 'rgba(255,255,255,0.8)',
   },
-  metric: {
-    ...typography.caption,
-    color: palette.sub,
+  infoChip: {
+    marginLeft: 'auto',
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(0,229,255,0.35)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(0,229,255,0.08)',
+  },
+  infoText: {
+    ...typography.captionCaps,
+    color: '#00E5FF',
   },
 });
 

@@ -1,4 +1,4 @@
-export type RootTabParamList = {
+﻿export type RootTabParamList = {
   Home: { screen?: keyof HomeStackParamList } | undefined;
   Trials: undefined;
   Explore: undefined;
