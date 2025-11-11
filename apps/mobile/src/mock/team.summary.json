@@ -1,5 +1,5 @@
-{
-  "team": { "name": "Abyss Raiders", "level": 8, "online": 23, "cap": 50 },
+﻿{
+  "team": { "name": "Abyss Raiders", "level": 8, "online": 23, "cap": 50, "exp": 320, "next": 800 },
   "wallet": { "arc": 2450, "stones": 780, "o1": 120, "o2": 90, "o3": 40, "o4": 12, "o5": 3 },
   "raid": {
     "name": "虚空节点清扫",
@@ -9,5 +9,8 @@
     "endsIn": "48:12:03",
     "attemptsLeft": 1
   },
-  "maps": { "opened": 2, "quota": 3, "ticket": "5 ARC" }
+  "maps": { "opened": 2, "quota": 3, "ticket": "5 ARC" },
+  "notice": "今晚 21:00 集结开荒，记得携带门票。"
 }
+
+

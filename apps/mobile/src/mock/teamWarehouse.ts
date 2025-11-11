@@ -1,4 +1,4 @@
-import { UIItem } from '@mock/inventory';
+﻿import { UIItem } from '@mock/inventory';
 
 export const teamWarehouseItems: Array<UIItem | undefined> = [
   {

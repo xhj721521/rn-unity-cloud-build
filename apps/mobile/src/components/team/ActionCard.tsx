@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import QuickGlyph, { QuickGlyphId } from '@components/QuickGlyph';
 import { typography } from '@theme/typography';
@@ -29,13 +29,16 @@ export const ActionCard = ({ title, subtitle, glyph, onPress }: Props) => (
 
 const styles = StyleSheet.create({
   card: {
+    flexBasis: '48%',
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(0,229,255,0.25)',
-    backgroundColor: 'rgba(5,10,16,0.8)',
+    backgroundColor: 'rgba(5,10,16,0.85)',
+    minHeight: 96,
   },
   iconShell: {
     width: 44,

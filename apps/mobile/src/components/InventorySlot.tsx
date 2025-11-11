@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { tokens } from '@theme/tokens';
 import { UIItem } from '@mock/inventory';

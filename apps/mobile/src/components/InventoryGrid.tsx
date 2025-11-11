@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { FlatList, StyleSheet, ViewStyle } from 'react-native';
 import { InventorySlot } from './InventorySlot';
 import { UIItem } from '@mock/inventory';
@@ -62,8 +62,7 @@ export const InventoryGrid = ({
 };
 
 const styles = StyleSheet.create({
-  content: {
-  },
+  content: {},
   columnWrapper: {
     justifyContent: 'flex-start',
   },

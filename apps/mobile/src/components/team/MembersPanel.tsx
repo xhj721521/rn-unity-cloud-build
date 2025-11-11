@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+﻿import React, { useCallback, useMemo, useState } from 'react';
+import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import MemberPill from './MemberPill';
 import { palette } from '@theme/colors';
 import { typography } from '@theme/typography';
@@ -10,8 +10,7 @@ type TeamMember = {
   role: 'leader' | 'officer' | 'member';
   online: boolean;
   avatar?: string;
-  intelToday: number;
-  intelTotal: number;
+  intelToday?: number;
 };
 
 type Props = {
@@ -20,52 +19,59 @@ type Props = {
   onLeave?: () => void;
 };
 
-export const MembersPanel = ({ members, onInvite, onLeave }: Props) => {
-  const [metric, setMetric] = useState<'today' | 'total'>('today');
-  const listRef = useRef<FlatList<TeamMember>>(null);
+const COLUMN_GAP = 12;
 
-  const data = useMemo(() => members, [members]);
+export const MembersPanel = ({ members, onInvite, onLeave }: Props) => {
+  const [gridWidth, setGridWidth] = useState(0);
+
+  const paddedMembers = useMemo(() => {
+    const source = [...members];
+    while (source.length % 2 !== 0) {
+      source.push(undefined as unknown as TeamMember);
+    }
+    return source;
+  }, [members]);
+
+  const handleLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const nextWidth = event.nativeEvent.layout.width;
+      if (nextWidth && Math.abs(nextWidth - gridWidth) > 1) {
+        setGridWidth(nextWidth);
+      }
+    },
+    [gridWidth],
+  );
+
+  const cardWidth = gridWidth > 0 ? (gridWidth - COLUMN_GAP) / 2 : 0;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>成员列表</Text>
-        <View style={styles.segmentRow}>
-          {(['today', 'total'] as const).map((key) => {
-            const active = key === metric;
-            return (
-              <Pressable
-                key={key}
-                style={[styles.segmentChip, active && styles.segmentActive]}
-                onPress={() => setMetric(key)}
-              >
-                <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
-                  {key === 'today' ? '今日' : '总计'}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <Text style={styles.headerHint}>头像 · 名字 · 职务 · 今日情报</Text>
       </View>
-      <FlatList
-        ref={listRef}
-        data={data}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.column}
-        nestedScrollEnabled
-        initialNumToRender={12}
-        windowSize={9}
-        getItemLayout={(_, index) => ({
-          length: 100,
-          offset: 100 * index,
-          index,
-        })}
-        renderItem={({ item }) => (
-          <MemberPill member={item} metricMode={metric} onPress={() => {}} onLongPress={() => {}} />
-        )}
-        style={styles.list}
-      />
+      <View
+        style={[styles.grid, { columnGap: COLUMN_GAP, rowGap: COLUMN_GAP }]}
+        onLayout={handleLayout}
+      >
+        {cardWidth > 0
+          ? paddedMembers.map((member, index) =>
+              member ? (
+                <MemberPill
+                  key={member.id}
+                  member={member}
+                  style={{ width: cardWidth }}
+                  onPress={() => {}}
+                  onLongPress={() => {}}
+                />
+              ) : (
+                <View key={`empty-${index}`} style={[styles.placeholder, { width: cardWidth }]}>
+                  <Text style={styles.placeholderPlus}>+</Text>
+                </View>
+              ),
+            )
+          : null}
+      </View>
       <View style={styles.bottomBar}>
         <Pressable style={[styles.cta, styles.invite]} onPress={onInvite}>
           <Text style={styles.ctaText}>邀请</Text>
@@ -84,53 +90,42 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(0,229,255,0.2)',
     padding: 12,
-    height: 440,
     backgroundColor: 'rgba(8,12,18,0.92)',
+    gap: 12,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    gap: 4,
   },
   headerTitle: {
     ...typography.subtitle,
     color: palette.text,
   },
-  segmentRow: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  segmentChip: {
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  segmentActive: {
-    borderColor: '#00E5FF',
-    backgroundColor: 'rgba(0,229,255,0.15)',
-  },
-  segmentText: {
-    ...typography.captionCaps,
+  headerHint: {
+    ...typography.caption,
     color: palette.sub,
   },
-  segmentTextActive: {
-    color: '#00E5FF',
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
-  list: {
-    flex: 1,
+  placeholder: {
+    height: 92,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0,229,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  column: {
-    gap: 10,
-    marginBottom: 10,
+  placeholderPlus: {
+    color: 'rgba(0,229,255,0.7)',
+    fontSize: 20,
+    fontWeight: '600',
   },
   bottomBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
-    marginTop: 8,
   },
   cta: {
     flex: 1,

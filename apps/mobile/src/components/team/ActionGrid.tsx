@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import ActionCard from './ActionCard';
 
@@ -18,15 +18,20 @@ export const ActionGrid = ({
   dungeon,
 }: Props) => (
   <View style={styles.grid}>
-    <ActionCard title="团队地图" subtitle="今日可开 3/3" glyph="map" onPress={onOpenMap} />
+    <ActionCard title="团队地图" subtitle="今日可开 3 / 3" glyph="map" onPress={onOpenMap} />
     <ActionCard
-      title="副本任务"
+      title="团队副本"
       subtitle={`难度 ${dungeon.difficulty} · 剩余 ${dungeon.left}/${dungeon.max}`}
       glyph="blindbox"
       onPress={onOpenDungeon}
     />
-    <ActionCard title="团队仓库" subtitle="物资一览" glyph="storage" onPress={onToggleWarehouse} />
-    <ActionCard title="团队公告" subtitle="查看 / 编辑" glyph="reports" onPress={onToggleNotice} />
+    <ActionCard
+      title="团队仓库"
+      subtitle="查看全部物资"
+      glyph="storage"
+      onPress={onToggleWarehouse}
+    />
+    <ActionCard title="团队公告" subtitle="查看 / 发布" glyph="reports" onPress={onToggleNotice} />
   </View>
 );
 
@@ -34,8 +39,8 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    columnGap: 10,
-    rowGap: 10,
+    columnGap: 12,
+    rowGap: 12,
   },
 });
 
