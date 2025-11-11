@@ -1,1 +1,1 @@
-export { InviteScreen as MyInvitesScreen } from '@screens/invite/InviteScreen';
+export { InviteHomeScreen as MyInvitesScreen } from '@screens/InviteHome';

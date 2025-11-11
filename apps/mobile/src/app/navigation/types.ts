@@ -20,6 +20,7 @@ export type ProfileStackParamList = {
   TeamChat: { initialTab?: 'members' | 'announcements' | 'chat' } | undefined;
   MyInventory: undefined;
   MyInvites: undefined;
+  PosterWorkshop: undefined;
   Wallet: undefined;
   Member: undefined;
   Reports: undefined;

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "u1",
+    "nickname": "Trinity",
+    "status": "joined",
+    "invitedAt": "2025-11-10T21:00:00Z",
+    "lastActiveAt": "2025-11-11T00:00:00Z",
+    "templateId": "A",
+    "contrib": { "today": 3, "total": 18 }
+  },
+  {
+    "id": "u2",
+    "nickname": "Nova",
+    "status": "pending",
+    "invitedAt": "2025-11-10T22:10:00Z",
+    "lastActiveAt": "2025-11-10T23:00:00Z",
+    "templateId": "B",
+    "contrib": { "today": 1, "total": 1 }
+  },
+  {
+    "id": "u3",
+    "nickname": "Orion",
+    "status": "expired",
+    "invitedAt": "2025-11-08T10:20:00Z",
+    "lastActiveAt": "2025-11-09T08:00:00Z",
+    "templateId": "A",
+    "contrib": { "today": 0, "total": 0 }
+  },
+  {
+    "id": "u4",
+    "nickname": "Vera",
+    "status": "joined",
+    "invitedAt": "2025-11-07T09:10:00Z",
+    "lastActiveAt": "2025-11-11T01:12:00Z",
+    "templateId": "C",
+    "contrib": { "today": 4, "total": 25 }
+  },
+  {
+    "id": "u5",
+    "nickname": "Shade",
+    "status": "pending",
+    "invitedAt": "2025-11-11T02:34:00Z",
+    "lastActiveAt": "2025-11-11T02:34:00Z",
+    "templateId": "C",
+    "contrib": { "today": 0, "total": 0 }
+  }
+]

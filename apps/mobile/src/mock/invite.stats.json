@@ -1,0 +1,14 @@
+{
+  "totalInvites": 13,
+  "weeklyInvites": 9,
+  "pending": 4,
+  "totalRewards": [
+    { "type": "blind_box", "qty": 3 }
+  ],
+  "nextReward": {
+    "threshold": 10,
+    "current": 7,
+    "reward": { "type": "blind_box", "qty": 1 }
+  },
+  "thresholds": [10, 20, 50]
+}
