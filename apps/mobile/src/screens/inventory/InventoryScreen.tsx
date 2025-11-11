@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { CategoryChips } from '@components/inventory/CategoryChips';
 import { InventoryToolbar } from '@components/inventory/Toolbar';
-import { ItemSlot } from '@components/inventory/ItemSlot';
 import { SkeletonGrid } from '@components/inventory/SkeletonGrid';
+import { InventoryGrid } from '@components/InventoryGrid';
 import { inventoryItems, ItemType, UIItem } from '@mock/inventory';
 import { useBottomGutter } from '@hooks/useBottomGutter';
 import { typography } from '@theme/typography';
 import { palette } from '@theme/colors';
+import { tokens } from '@theme/tokens';
 
 const CATEGORY_OPTIONS: Array<{ key: ItemType | 'all'; label: string }> = [
   { key: 'all', label: '全部' },
@@ -23,9 +24,10 @@ export const InventoryScreen = () => {
   const [category, setCategory] = useState<ItemType | 'all'>('all');
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<UIItem[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [multiSelect, setMultiSelect] = useState(false);
 
   const bottomGutter = useBottomGutter();
-  const { width: windowWidth } = useWindowDimensions();
 
   useEffect(() => {
     setLoading(true);
@@ -43,35 +45,36 @@ export const InventoryScreen = () => {
     return items.filter((item) => item.type === category);
   }, [category, items]);
 
-  const data = useMemo(() => filtered, [filtered]);
-
-  const handleItemPress = (item: UIItem) => {
-    Alert.alert('物品详情', `${item.name} · ${item.qty} 件`);
+  const handleSelectionCleanup = (next: Set<string>) => {
+    if (next.size === 0) {
+      setMultiSelect(false);
+    }
   };
 
-  const boardWidth = windowWidth - 32; // ScreenContainer horizontal padding
-  const columns = 4;
-  const gap = 8;
-  const cellSize = Math.max(64, (boardWidth - gap * (columns - 1)) / columns);
+  const handleSlotPress = (item: UIItem) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (!multiSelect && !next.has(item.id)) {
+        next.clear();
+      }
+      if (next.has(item.id)) {
+        next.delete(item.id);
+      } else {
+        next.add(item.id);
+      }
+      handleSelectionCleanup(next);
+      return next;
+    });
+  };
 
-  const renderGrid = () => (
-    <View style={[styles.boardFrame, { paddingBottom: bottomGutter.paddingBottom }]}>
-      <View style={[styles.board, { columnGap: gap, rowGap: gap }]}>
-        {data.map((item, index) => (
-          <View
-            key={item ? item.id : `empty-${index}`}
-            style={[styles.cell, { width: cellSize, height: cellSize }]}
-          >
-            <ItemSlot
-              item={item}
-              onPressEmpty={() => Alert.alert('提示', '空槽位')}
-              onPressItem={handleItemPress}
-            />
-          </View>
-        ))}
-      </View>
-    </View>
-  );
+  const handleSlotLongPress = (item: UIItem) => {
+    setMultiSelect(true);
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.add(item.id);
+      return next;
+    });
+  };
 
   if (loading) {
     return (
@@ -89,7 +92,24 @@ export const InventoryScreen = () => {
       <Text style={styles.subHeading}>所有资源与 NFT 均在此管理</Text>
       <CategoryChips options={CATEGORY_OPTIONS} value={category} onChange={setCategory} />
       <InventoryToolbar />
-      {renderGrid()}
+      {selectedIds.size > 0 ? (
+        <Text style={styles.selectionHint}>
+          {multiSelect ? '多选模式 · ' : ''}
+          已选择 {selectedIds.size} 个
+        </Text>
+      ) : null}
+      <View style={styles.gridWrapper}>
+        <InventoryGrid
+          items={filtered}
+          columns={5}
+          selectedIds={selectedIds}
+          showRarityDot
+          onPressItem={handleSlotPress}
+          onLongPressItem={handleSlotLongPress}
+          contentBottomPadding={bottomGutter.paddingBottom}
+          scrollIndicatorInsets={bottomGutter.scrollIndicatorInsets}
+        />
+      </View>
     </ScreenContainer>
   );
 };
@@ -108,22 +128,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 12,
   },
-  boardFrame: {
-    marginTop: 12,
+  selectionHint: {
+    ...typography.captionCaps,
+    color: palette.sub,
+    marginBottom: 8,
+  },
+  gridWrapper: {
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(5,8,18,0.85)',
-    padding: 12,
-  },
-  board: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-  },
-  cell: {
-    borderRadius: 18,
-    alignItems: 'stretch',
-    justifyContent: 'stretch',
+    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: tokens.colors.backgroundDeep,
+    overflow: 'hidden',
   },
 });
