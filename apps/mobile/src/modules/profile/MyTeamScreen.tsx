@@ -1,1 +1,1 @@
-export { TeamHomeScreen as MyTeamScreen } from '@screens/team/TeamHomeScreen';
+export { TeamScreen as MyTeamScreen } from '@screens/team/TeamScreen';

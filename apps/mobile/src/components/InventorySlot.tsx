@@ -39,7 +39,7 @@ export const InventorySlot = ({ item, size, selected, showRarityDot }: Inventory
     );
   }
 
-  const rarityColor = rarityColors[item.rarity] ?? rarityColors.common;
+  const rarityColor = rarityColors[item.rarity as keyof typeof rarityColors] ?? rarityColors.common;
 
   return (
     <View style={outerStyle}>

@@ -1,12 +1,41 @@
+export const spacing = {
+  grid: 8,
+  section: 16,
+  cardGap: 12,
+  cardPadding: 16,
+  cardPaddingVertical: 14,
+  pageHorizontal: 16,
+  pageVertical: 20,
+};
+
+export const shape = {
+  blockRadius: 16,
+  cardRadius: 16,
+  buttonRadius: 16,
+  capsuleRadius: 24,
+};
+
+export const shadowStyles = {
+  card: {
+    shadowColor: 'rgba(0, 0, 0, 0.35)',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+};
+
 export const tokens = {
   colors: {
     backgroundDeep: '#0B1116',
     accentCyan: '#00E5FF',
     accentCyanSoft: 'rgba(0,229,255,0.2)',
     accentCyanInner: 'rgba(0,229,255,0.6)',
+    neonPurple: '#8A5CFF',
+    neonGold: '#E8C26A',
   },
   spacing: {
-    page: 16,
+    page: spacing.pageHorizontal,
     inventoryGap: 8,
   },
   radius: {
