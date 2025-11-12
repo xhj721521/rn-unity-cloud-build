@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Video from 'react-native-video';
 
-const backgroundSource = require('@assets/shouyeshiping_loop.mp4');
+const backgroundSource = require('../assets/shouyeshiping_loop.mp4');
 
 export const GlobalBackground = () => (
   <View pointerEvents="none" style={styles.container}>
