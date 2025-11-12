@@ -1,5 +1,6 @@
 import React from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import MemberPill from './MemberPill';
 import { palette } from '@theme/colors';
 import { typography } from '@theme/typography';
@@ -21,32 +22,31 @@ type Props = {
   onLeave?: () => void;
 };
 
-export const MembersPanel = ({ members, style, onInvite, onLeave }: Props) => {
-  return (
-    <View style={[styles.container, style]}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>成员列表</Text>
-        <Text style={styles.headerHint}>头像 · 名字 · 职务 · 情报</Text>
-      </View>
-      <View style={styles.listWrapper}>
-        <FlatList
-          data={members}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <MemberPill member={item} style={styles.memberItem} />}
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
-      <View style={styles.bottomBar}>
-        <Pressable style={[styles.cta, styles.invite]} onPress={onInvite}>
-          <Text style={styles.ctaText}>邀请</Text>
-        </Pressable>
-        <Pressable style={[styles.cta, styles.leave]} onPress={onLeave}>
-          <Text style={styles.leaveText}>离队</Text>
-        </Pressable>
-      </View>
+export const MembersPanel = ({ members, style, onInvite, onLeave }: Props) => (
+  <View style={[styles.container, style]}>
+    <View style={styles.header}>
+      <Text style={styles.headerTitle}>成员列表</Text>
+      <Text style={styles.headerHint}>头像 · 名字 · 职务 · 情报</Text>
     </View>
-  );
-};
+    <View style={styles.listWrapper}>
+      <FlashList
+        data={members}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <MemberPill member={item} style={styles.memberItem} />}
+        estimatedItemSize={56}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+    <View style={styles.bottomBar}>
+      <Pressable style={[styles.cta, styles.invite]} onPress={onInvite}>
+        <Text style={styles.ctaText}>邀请</Text>
+      </Pressable>
+      <Pressable style={[styles.cta, styles.leave]} onPress={onLeave}>
+        <Text style={styles.leaveText}>离队</Text>
+      </Pressable>
+    </View>
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {

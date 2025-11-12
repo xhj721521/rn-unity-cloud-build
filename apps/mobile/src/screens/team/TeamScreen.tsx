@@ -56,7 +56,15 @@ export const TeamScreen = () => {
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <View style={[styles.body, { paddingBottom: bottomPadding }]}>
+      <View
+        style={[
+          styles.body,
+          {
+            paddingBottom: bottomPadding,
+            paddingTop: insets.top + 12,
+          },
+        ]}
+      >
         <View style={styles.commandCard}>
           <TeamStickyHeader
             name={teamSummary.team.name}
@@ -68,7 +76,8 @@ export const TeamScreen = () => {
             onPressChat={() => setChatVisible(true)}
           />
           <ActionGrid
-            dungeon={teamSummary.raid}
+            dungeon={{ attemptsLeft: teamSummary.raid.attemptsLeft, total: teamSummary.raid.total }}
+            maps={teamSummary.maps}
             onOpenMap={() => {}}
             onOpenDungeon={() => {}}
             onToggleWarehouse={() => handleTogglePanel('warehouse')}

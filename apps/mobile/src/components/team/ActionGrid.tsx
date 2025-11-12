@@ -8,7 +8,8 @@ type Props = {
   onOpenDungeon: () => void;
   onToggleWarehouse: () => void;
   onToggleNotice: () => void;
-  dungeon: { difficulty: string; left: number; max: number };
+  dungeon: { attemptsLeft: number; total?: number };
+  maps: { opened: number; quota: number };
 };
 
 export const ActionGrid = ({
@@ -17,10 +18,15 @@ export const ActionGrid = ({
   onToggleWarehouse,
   onToggleNotice,
   dungeon,
+  maps,
 }: Props) => {
   const actions = [
-    { label: '团队地图', hint: '进入地图', handler: onOpenMap },
-    { label: '团队副本', hint: `剩余 ${dungeon.left}/${dungeon.max}`, handler: onOpenDungeon },
+    { label: '团队地图', hint: `今日 ${maps.opened}/${maps.quota}`, handler: onOpenMap },
+    {
+      label: '团队副本',
+      hint: `剩余 ${dungeon.attemptsLeft}/${dungeon.total ?? 3}`,
+      handler: onOpenDungeon,
+    },
     { label: '团队仓库', hint: '查看物资', handler: onToggleWarehouse },
     { label: '团队公告', hint: '查看 / 发布', handler: onToggleNotice },
   ];
