@@ -29,7 +29,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 const TabBarBackground = () => (
   <LinearGradient
-    colors={['rgba(20, 26, 54, 0.92)', 'rgba(8, 12, 28, 0.72)']}
+    colors={['rgba(8, 12, 24, 0.88)', 'rgba(4, 8, 18, 0.78)']}
     start={{ x: 0, y: 0 }}
     end={{ x: 1, y: 1 }}
     style={StyleSheet.absoluteFill}
@@ -49,7 +49,8 @@ export const RootNavigator = () => (
       tabBarShowLabel: false,
       tabBarBackground: TabBarBackground,
       tabBarStyle: tabStyles.glass,
-      tabBarItemStyle: { paddingVertical: 6 },
+      tabBarItemStyle: { paddingVertical: 0 },
+      tabBarActiveTintColor: '#E6F1FF',
     }}
   >
     {TAB_ITEMS.map((item) => (
@@ -69,19 +70,21 @@ export const RootNavigator = () => (
 const tabStyles = StyleSheet.create({
   glass: {
     position: 'absolute',
-    left: 18,
-    right: 18,
-    bottom: 18,
+    left: 12,
+    right: 12,
+    bottom: 20,
     borderTopWidth: 0,
-    borderRadius: 28,
-    height: 78,
-    paddingBottom: 12,
-    paddingTop: 8,
+    borderRadius: 32,
+    height: 82,
+    paddingBottom: 14,
+    paddingTop: 12,
     backgroundColor: 'transparent',
-    elevation: 20,
-    shadowColor: '#4DE0FF',
-    shadowOpacity: 0.25,
-    shadowRadius: 25,
-    shadowOffset: { width: 0, height: 10 },
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    shadowColor: '#5AE6FF',
+    shadowOpacity: 0.35,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 18,
   },
 });
