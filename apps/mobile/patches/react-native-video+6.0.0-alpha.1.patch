@@ -1,0 +1,17 @@
+diff --git a/node_modules/react-native-video/android/src/main/res/layout/exo_player_control_view.xml b/node_modules/react-native-video/android/src/main/res/layout/exo_player_control_view.xml
+index becee6a..c3f41a7 100644
+--- a/node_modules/react-native-video/android/src/main/res/layout/exo_player_control_view.xml
++++ b/node_modules/react-native-video/android/src/main/res/layout/exo_player_control_view.xml
+@@ -24,10 +24,10 @@
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_gravity="center">
+-            <ImageButton android:id="@id/exo_play"
++            <ImageButton android:id="@+id/exo_play"
+                 style="@style/ExoMediaButton.Play"/>
+ 
+-            <ImageButton android:id="@id/exo_pause"
++            <ImageButton android:id="@+id/exo_pause"
+                 style="@style/ExoMediaButton.Pause"/>
+         </FrameLayout>
+ 
