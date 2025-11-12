@@ -22,19 +22,19 @@ type TemplateInfo = { id: string; image: ImageSourcePropType };
 
 const templates: Record<string, TemplateInfo[]> = {
   '9:16': [
-    { id: 'A', image: require('@assets/posters/templateA_9x16.png') },
-    { id: 'B', image: require('@assets/posters/templateB_9x16.png') },
-    { id: 'C', image: require('@assets/posters/templateC_9x16.png') },
+    { id: 'A', image: require('../assets/posters/templateA_9x16.png') },
+    { id: 'B', image: require('../assets/posters/templateB_9x16.png') },
+    { id: 'C', image: require('../assets/posters/templateC_9x16.png') },
   ],
   '1:1': [
-    { id: 'A', image: require('@assets/posters/templateA_1x1.png') },
-    { id: 'B', image: require('@assets/posters/templateB_1x1.png') },
-    { id: 'C', image: require('@assets/posters/templateC_1x1.png') },
+    { id: 'A', image: require('../assets/posters/templateA_1x1.png') },
+    { id: 'B', image: require('../assets/posters/templateB_1x1.png') },
+    { id: 'C', image: require('../assets/posters/templateC_1x1.png') },
   ],
   '16:9': [
-    { id: 'A', image: require('@assets/posters/templateA_16x9.png') },
-    { id: 'B', image: require('@assets/posters/templateB_16x9.png') },
-    { id: 'C', image: require('@assets/posters/templateC_16x9.png') },
+    { id: 'A', image: require('../assets/posters/templateA_16x9.png') },
+    { id: 'B', image: require('../assets/posters/templateB_16x9.png') },
+    { id: 'C', image: require('../assets/posters/templateC_16x9.png') },
   ],
 };
 
