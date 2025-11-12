@@ -104,6 +104,8 @@ android {
 dependencies {
     // The version of react-native is managed by the React Native Gradle Plugin.
     implementation("com.facebook.react:react-android")
+    implementation "com.google.android.exoplayer:exoplayer:2.19.1"
+    implementation "com.google.android.exoplayer:exoplayer-ui:2.19.1"
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
