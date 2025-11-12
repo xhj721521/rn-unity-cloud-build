@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   ListRenderItemInfo,
@@ -10,12 +10,11 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { ScreenContainer } from '@components/ScreenContainer';
-import KpiCard from '@components/invite/KpiCard';
-import RewardProgress from '@components/invite/RewardProgress';
 import GlassCard from '@components/shared/GlassCard';
+import RewardProgress from '@components/invite/RewardProgress';
 import { FilterBar, InviteFilterTab } from '@components/invite/FilterBar';
 import { Invitee, InviteeItem } from '@components/invite/InviteeItem';
-import NeonButton from '@components/NeonButton';
+import ExpandablePanel from '@components/team/ExpandablePanel';
 import statsData from '@mock/invite.stats.json';
 import membersData from '@mock/invite.members.json';
 import { typography } from '@theme/typography';
@@ -41,20 +40,32 @@ export const InviteHomeScreen = () => {
   const [activeTab, setActiveTab] = useState<InviteFilterTab>('all');
   const [searchValue, setSearchValue] = useState('');
   const [sortLabel, setSortLabel] = useState('今日贡献↓');
+  const [rewardExpanded, setRewardExpanded] = useState(false);
   const { height } = useWindowDimensions();
-  const listHeight = Math.min(height * 0.56, 460);
+  const listHeight = Math.min(height * 0.56, 420);
   const listRef = useRef<FlatList<Invitee>>(null);
 
-  const kpis = useMemo(
+  const statItems = useMemo(
     () => [
-      { label: '累计邀请', value: stats.totalInvites, tab: 'all' as InviteFilterTab },
-      { label: '本周邀请', value: stats.weeklyInvites, tab: 'all' as InviteFilterTab },
-      { label: '待确认', value: stats.pending, tab: 'pending' as InviteFilterTab },
+      { label: '累计邀请', value: `${stats.totalInvites} 人`, tab: 'all' as InviteFilterTab },
+      { label: '本周邀请', value: `${stats.weeklyInvites} 人`, tab: 'all' as InviteFilterTab },
+      { label: '待确认', value: `${stats.pending} 人`, tab: 'pending' as InviteFilterTab },
     ],
     [],
   );
 
-  const handleKpiPress = (tab: InviteFilterTab) => {
+  const filteredList = useMemo(() => {
+    const byTab =
+      activeTab === 'all' ? invitees : invitees.filter((item) => item.status === activeTab);
+    if (!searchValue.trim()) {
+      return byTab;
+    }
+    return byTab.filter((item) =>
+      item.nickname.toLowerCase().includes(searchValue.trim().toLowerCase()),
+    );
+  }, [activeTab, searchValue]);
+
+  const handleStatPress = (tab: InviteFilterTab) => {
     setActiveTab(tab);
     requestAnimationFrame(() => {
       listRef.current?.scrollToOffset({ offset: 0, animated: true });
@@ -74,24 +85,33 @@ export const InviteHomeScreen = () => {
         </Pressable>
       </View>
 
-      <View style={styles.kpiRow}>
-        {kpis.map((item) => (
-          <KpiCard
-            key={item.label}
-            label={item.label}
-            value={item.value}
-            onPress={() => handleKpiPress(item.tab)}
-            active={activeTab === item.tab}
-            style={styles.kpiCard}
-          />
-        ))}
-      </View>
+      <GlassCard style={styles.statsCard} padding={18}>
+        <View style={styles.statsRow}>
+          {statItems.map((item, index) => (
+            <Pressable
+              key={item.label}
+              style={[styles.statCell, activeTab === item.tab && styles.statCellActive]}
+              onPress={() => handleStatPress(item.tab)}
+            >
+              <Text style={styles.statLabel}>{item.label}</Text>
+              <Text style={styles.statValue}>{item.value}</Text>
+              {index < statItems.length - 1 ? <View style={styles.statDivider} /> : null}
+            </Pressable>
+          ))}
+        </View>
+      </GlassCard>
 
       <GlassCard style={styles.rewardCard}>
-        <View style={styles.rewardLeft}>
-          <Text style={styles.rewardLabel}>总奖励（占位）</Text>
-          <Pressable style={styles.rewardButton} onPress={() => console.log('rewards')}>
-            <Text style={styles.rewardButtonText}>查看奖励</Text>
+        <View style={styles.rewardHeader}>
+          <View>
+            <Text style={styles.rewardTitle}>总奖励</Text>
+            <Text style={styles.rewardSubtitle}>当前进度</Text>
+          </View>
+          <Pressable
+            style={styles.rewardGhostButton}
+            onPress={() => setRewardExpanded((prev) => !prev)}
+          >
+            <Text style={styles.rewardGhostText}>{rewardExpanded ? '收起奖励' : '查看奖励'}</Text>
           </Pressable>
         </View>
         <RewardProgress
@@ -99,11 +119,31 @@ export const InviteHomeScreen = () => {
           target={stats.nextReward.threshold}
           rewardLabel="满 10 人 赠盲盒券 ×1（占位）"
         />
+        <View style={styles.rewardFooter}>
+          <Text style={styles.rewardDelta}>
+            差 {Math.max(stats.nextReward.threshold - stats.nextReward.current, 0)} 人
+          </Text>
+          <Pressable
+            style={styles.designButton}
+            onPress={() => navigation.navigate('PosterWorkshop')}
+          >
+            <Text style={styles.designText}>去设计邀请海报</Text>
+          </Pressable>
+        </View>
       </GlassCard>
+
+      {rewardExpanded ? (
+        <ExpandablePanel>
+          {stats.totalRewards.map((reward, index) => (
+            <Text key={`${reward.type}-${index}`} style={styles.rewardRow}>
+              · 奖励 {reward.type} ×{reward.qty}
+            </Text>
+          ))}
+        </ExpandablePanel>
+      ) : null}
 
       <GlassCard style={styles.memberCard} padding={16}>
         <Text style={styles.sectionTitle}>成员列表</Text>
-        <Text style={styles.sectionHint}>头像 · 名字 · 职务 · 今日情报</Text>
         <FilterBar
           value={activeTab}
           onChange={setActiveTab}
@@ -111,8 +151,8 @@ export const InviteHomeScreen = () => {
           onSearchChange={setSearchValue}
           sortLabel={sortLabel}
           onPressSort={() => {
-            console.log('sort');
             setSortLabel((prev) => (prev === '今日贡献↓' ? '今日贡献↑' : '今日贡献↓'));
+            console.log('sort');
           }}
         />
         <View style={[styles.listWrapper, { height: listHeight }]}>
@@ -123,10 +163,12 @@ export const InviteHomeScreen = () => {
           />
           <FlatList
             ref={listRef}
-            data={invitees}
+            data={filteredList}
             keyExtractor={(item) => item.id}
             renderItem={renderInvitee}
             showsVerticalScrollIndicator={false}
+            nestedScrollEnabled
+            scrollEnabled
           />
           <LinearGradient
             pointerEvents="none"
@@ -135,10 +177,6 @@ export const InviteHomeScreen = () => {
           />
         </View>
       </GlassCard>
-
-      <View style={styles.ctaWrapper}>
-        <NeonButton title="去设计邀请海报" onPress={() => navigation.navigate('PosterWorkshop')} />
-      </View>
     </ScreenContainer>
   );
 };
@@ -165,51 +203,100 @@ const styles = StyleSheet.create({
     ...typography.captionCaps,
     color: palette.sub,
   },
-  kpiRow: {
+  statsCard: {
+    marginBottom: 16,
+  },
+  statsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 12,
   },
-  kpiCard: {
+  statCell: {
     flex: 1,
-    minWidth: '30%',
+    borderRadius: 18,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(255,255,255,0.02)',
   },
-  rewardCard: {
-    marginTop: 16,
-    flexDirection: 'row',
-    gap: 16,
-    alignItems: 'center',
+  statCellActive: {
+    borderWidth: 1,
+    borderColor: '#00E5FF',
+    backgroundColor: 'rgba(0,229,255,0.1)',
   },
-  rewardLeft: {
-    width: 140,
-    gap: 8,
+  statLabel: {
+    ...typography.captionCaps,
+    color: palette.sub,
+    marginBottom: 4,
   },
-  rewardLabel: {
+  statValue: {
     ...typography.subtitle,
     color: palette.text,
   },
-  rewardButton: {
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.24)',
+  statDivider: {
+    position: 'absolute',
+    right: -6,
+    top: 12,
+    bottom: 12,
+    width: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  rewardCard: {
+    gap: 12,
+  },
+  rewardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  rewardButtonText: {
+  rewardTitle: {
+    ...typography.subtitle,
+    color: palette.text,
+  },
+  rewardSubtitle: {
+    ...typography.caption,
+    color: palette.sub,
+  },
+  rewardGhostButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
+  rewardGhostText: {
     ...typography.captionCaps,
-    color: '#00E5FF',
+    color: palette.text,
+  },
+  rewardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  rewardDelta: {
+    ...typography.captionCaps,
+    color: palette.sub,
+  },
+  designButton: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: '#00E5FF',
+  },
+  designText: {
+    ...typography.captionCaps,
+    color: '#041016',
+  },
+  rewardRow: {
+    ...typography.caption,
+    color: palette.text,
+    marginBottom: 6,
   },
   memberCard: {
     marginTop: 24,
-    gap: 10,
+    gap: 12,
   },
   sectionTitle: {
     ...typography.subtitle,
     color: palette.text,
-  },
-  sectionHint: {
-    ...typography.caption,
-    color: palette.sub,
   },
   listWrapper: {
     marginTop: 12,
@@ -230,9 +317,6 @@ const styles = StyleSheet.create({
   },
   fadeBottom: {
     bottom: 0,
-  },
-  ctaWrapper: {
-    marginTop: 24,
   },
 });
 

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { typography } from '@theme/typography';
 import { palette } from '@theme/colors';
@@ -15,10 +15,10 @@ type FilterBarProps = {
 };
 
 const TAB_ITEMS: Array<{ key: InviteFilterTab; label: string }> = [
-  { key: 'all', label: '全部' },
-  { key: 'pending', label: '待确认' },
-  { key: 'joined', label: '已加入' },
-  { key: 'expired', label: '已过期' },
+  { key: 'all', label: 'ȫ��' },
+  { key: 'pending', label: '��ȷ��' },
+  { key: 'joined', label: '�Ѽ���' },
+  { key: 'expired', label: '�ѹ���' },
 ];
 
 export const FilterBar = ({
@@ -51,7 +51,7 @@ export const FilterBar = ({
     <View style={styles.tools}>
       <TextInput
         style={styles.searchInput}
-        placeholder="搜索昵称..."
+        placeholder="�����ǳ�..."
         placeholderTextColor="rgba(230,241,255,0.5)"
         value={searchValue}
         onChangeText={onSearchChange}
