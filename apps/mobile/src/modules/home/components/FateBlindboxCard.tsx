@@ -15,11 +15,11 @@ const FateBlindboxCard = ({ width, onPress }: Props) => (
     style={({ pressed }) => [
       styles.pressable,
       { width },
-      pressed && { transform: [{ scale: 0.98 }] },
+      pressed && { transform: [{ scale: 0.97 }] },
     ]}
   >
     <LinearGradient
-      colors={['#071428', '#050814']}
+      colors={['#08142A', '#040713']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.card, { width }]}
@@ -53,12 +53,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   card: {
-    flexDirection: 'row',
     borderRadius: fateRadius.bigCard,
     borderWidth: 1,
     borderColor: fateColors.borderSoft,
+    flexDirection: 'row',
     padding: 20,
-    gap: 16,
+    gap: 18,
     alignItems: 'center',
   },
   copy: {

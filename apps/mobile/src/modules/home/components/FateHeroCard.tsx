@@ -10,13 +10,13 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { fateColors, fateRadius } from '../fateTheme';
 
-type FateHeroCardProps = {
+type Props = {
   width: number;
   displayName: string;
   arcAmount: string;
   oreAmount: string;
-  onPress?: () => void;
   backgroundSource: ImageSourcePropType;
+  onPress?: () => void;
 };
 
 const FateHeroCard = ({
@@ -24,9 +24,9 @@ const FateHeroCard = ({
   displayName,
   arcAmount,
   oreAmount,
-  onPress,
   backgroundSource,
-}: FateHeroCardProps) => {
+  onPress,
+}: Props) => {
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
@@ -36,17 +36,12 @@ const FateHeroCard = ({
       style={({ pressed }) => [
         styles.pressable,
         { width },
-        onPress && pressed && { transform: [{ scale: 0.98 }] },
+        onPress && pressed && { transform: [{ scale: 0.97 }] },
       ]}
     >
-      <ImageBackground
-        source={backgroundSource}
-        borderRadius={fateRadius.hero}
-        resizeMode="cover"
-        style={styles.card}
-      >
+      <ImageBackground source={backgroundSource} resizeMode="cover" style={styles.card}>
         <LinearGradient
-          colors={['rgba(5,8,20,0.88)', 'rgba(5,8,20,0.4)']}
+          colors={['rgba(5,8,20,0.92)', 'rgba(5,8,20,0.4)']}
           style={StyleSheet.absoluteFill}
         />
         <View style={styles.content}>
@@ -91,8 +86,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   card: {
+    borderRadius: fateRadius.hero,
     minHeight: 196,
-    justifyContent: 'center',
   },
   content: {
     paddingHorizontal: 20,
@@ -138,7 +133,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 999,
+    borderRadius: fateRadius.chip,
     borderWidth: 1,
     borderColor: fateColors.success,
     backgroundColor: 'rgba(5,250,160,0.16)',

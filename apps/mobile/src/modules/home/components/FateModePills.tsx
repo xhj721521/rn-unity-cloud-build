@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { fateColors, fateRadius, fateSpacing } from '../fateTheme';
 
-type FateMainAction = {
+export type FateModeAction = {
   key: string;
   title: string;
   subtitle: string;
@@ -13,10 +13,10 @@ type FateMainAction = {
 };
 
 type Props = {
-  actions: FateMainAction[];
+  actions: FateModeAction[];
 };
 
-const FateMainActions = ({ actions }: Props) => (
+const FateModePills = ({ actions }: Props) => (
   <View style={styles.container}>
     {actions.map((action) => (
       <Pressable
@@ -33,9 +33,7 @@ const FateMainActions = ({ actions }: Props) => (
           <View style={styles.icon}>{action.icon}</View>
           <View style={styles.textBlock}>
             <Text style={styles.title}>{action.title}</Text>
-            <Text style={styles.subtitle} numberOfLines={2}>
-              {action.subtitle}
-            </Text>
+            <Text style={styles.subtitle}>{action.subtitle}</Text>
           </View>
           <Text style={styles.chevron}>›</Text>
         </LinearGradient>
@@ -46,7 +44,7 @@ const FateMainActions = ({ actions }: Props) => (
 
 const styles = StyleSheet.create({
   container: {
-    gap: fateSpacing.featureGap + 2,
+    gap: fateSpacing.featureGap + 4,
   },
   pressable: {
     borderRadius: fateRadius.chip,
@@ -60,15 +58,15 @@ const styles = StyleSheet.create({
     borderRadius: fateRadius.chip,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     shadowColor: fateColors.accentShadow,
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.35,
     shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 10,
+    shadowRadius: 12,
     elevation: 4,
   },
   icon: {
-    width: 32,
+    width: 36,
     alignItems: 'center',
   },
   textBlock: {
@@ -83,7 +81,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 12,
     color: fateColors.textSecondary,
-    marginTop: 4,
+    marginTop: 2,
   },
   chevron: {
     fontSize: 24,
@@ -92,4 +90,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FateMainActions;
+export default FateModePills;
