@@ -1,37 +1,32 @@
-﻿import React, { useEffect, useMemo, useRef } from 'react';
+﻿import React, { useMemo } from 'react';
 import {
-  Animated,
   ImageSourcePropType,
+  Pressable,
   StyleSheet,
   Text,
   View,
   useWindowDimensions,
 } from 'react-native';
-import { useNavigation, CompositeNavigationProp } from '@react-navigation/native';
-import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer } from '@components/ScreenContainer';
+import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 import { ErrorState } from '@components/ErrorState';
 import NeonButton from '@components/NeonButton';
 import QuickGlyph, { QuickGlyphId } from '@components/QuickGlyph';
 import NeonCard from '@components/NeonCard';
-import RipplePressable from '@components/RipplePressable';
 import HomeBackground from '../../ui/HomeBackground';
-import HomeSkeleton from './HomeSkeleton';
 import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
 import { useAppDispatch } from '@state/hooks';
 import { loadAccountSummary } from '@state/account/accountSlice';
-import { HomeStackParamList, RootTabParamList } from '@app/navigation/types';
+import { HomeStackParamList } from '@app/navigation/types';
 import { palette } from '@theme/colors';
 import { spacing } from '@theme/tokens';
 import { typography } from '@theme/typography';
 import { CARD_WIDTH, GUTTER, H_ASSET, H_BOX, H_SMALL, PRESS_SCALE, SIDE } from '@theme/metrics';
 
-type HomeNavigation = CompositeNavigationProp<
-  NativeStackNavigationProp<HomeStackParamList, 'HomeMain'>,
-  BottomTabNavigationProp<RootTabParamList>
->;
+type HomeNavigation = NativeStackNavigationProp<HomeStackParamList, 'HomeMain'>;
 
 type QuickLink = {
   key: string;
@@ -77,7 +72,9 @@ const QUICK_LINKS: QuickLink[] = [
     borderColor: palette.accent,
     glyph: 'market',
     background: cardMarket,
-    locked: false,
+    locked: true,
+    lockLevel: 'Lv2 解锁',
+    progressText: '还差 200 EXP',
   },
   {
     key: 'EventShop',
@@ -87,7 +84,9 @@ const QUICK_LINKS: QuickLink[] = [
     borderColor: palette.primary,
     glyph: 'event',
     background: cardEvent,
-    locked: false,
+    locked: true,
+    lockLevel: 'Lv3 解锁',
+    progressText: '再赢 3 场即可',
   },
 ];
 const BLIND_BOX_COPY = {
@@ -130,19 +129,6 @@ export const HomeScreen = () => {
     [windowWidth],
   );
 
-  const statusPulse = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(statusPulse, { toValue: 1, duration: 1500, useNativeDriver: true }),
-        Animated.timing(statusPulse, { toValue: 0, duration: 1500, useNativeDriver: true }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [statusPulse]);
-
   const quickCards = useMemo(
     () =>
       QUICK_LINKS.map((link) => ({
@@ -160,7 +146,9 @@ export const HomeScreen = () => {
   if (loading) {
     return (
       <ScreenContainer variant="plain" edgeVignette background={cavernBackdrop}>
-        <HomeSkeleton />
+        <View style={styles.centerBox}>
+          <LoadingPlaceholder label="指挥中心正在唤醒…" />
+        </View>
       </ScreenContainer>
     );
   }
@@ -207,30 +195,10 @@ export const HomeScreen = () => {
                 </View>
               </View>
               <View style={styles.statusPill}>
-                <View style={styles.statusRow}>
-                  <Animated.Text
-                    style={[
-                      styles.statusDot,
-                      {
-                        opacity: statusPulse.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.6, 1],
-                        }),
-                        transform: [
-                          {
-                            scale: statusPulse.interpolate({
-                              inputRange: [0, 1],
-                              outputRange: [0.9, 1.05],
-                            }),
-                          },
-                        ],
-                      },
-                    ]}
-                  >
-                    ●
-                  </Animated.Text>
-                  <Text style={styles.statusText}>网络：稳定</Text>
-                </View>
+                <Text style={styles.statusText}>
+                  <Text style={styles.statusDot}>● </Text>
+                  网络：稳定
+                </Text>
               </View>
             </View>
             <View style={styles.resourceRow}>
@@ -240,7 +208,6 @@ export const HomeScreen = () => {
                 value={arcAmount}
                 unit="枚"
                 accent={palette.primary}
-                onPress={() => navigation.navigate('Profile', { screen: 'Wallet' })}
               />
               <ResourceChip
                 label="矿石"
@@ -248,7 +215,6 @@ export const HomeScreen = () => {
                 value={oreAmount}
                 unit="颗"
                 accent={palette.accent}
-                onPress={() => navigation.navigate('Profile', { screen: 'Wallet' })}
               />
             </View>
           </NeonCard>
@@ -257,11 +223,10 @@ export const HomeScreen = () => {
 
       <View style={[styles.quickGrid, { width: frameWidth }]}>
         {quickCards.map((card) => (
-          <RipplePressable
+          <Pressable
             key={card.key}
             onPress={card.onPress}
             disabled={card.locked}
-            rippleColor="rgba(255,255,255,0.18)"
             style={({ pressed }) => [
               styles.quickPressable,
               { width: quickCardWidth, height: H_SMALL },
@@ -300,9 +265,16 @@ export const HomeScreen = () => {
                   </Text>
                 </View>
               </View>
-              {card.locked ? <LockProgress text={card.progressText ?? '待完成任务'} /> : null}
+              {card.locked ? (
+                <View style={styles.lockProgressContainer}>
+                  <View style={styles.lockProgressTrack}>
+                    <View style={styles.lockProgressFill} />
+                  </View>
+                  <Text style={styles.lockProgressText}>{card.progressText ?? '待完成任务'}</Text>
+                </View>
+              ) : null}
             </NeonCard>
-          </RipplePressable>
+          </Pressable>
         ))}
       </View>
 
@@ -346,88 +318,35 @@ export const HomeScreen = () => {
   );
 };
 
-const LockProgress = ({ text }: { text: string }) => {
-  const fill = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(fill, { toValue: 1, duration: 5000, useNativeDriver: false }),
-        Animated.timing(fill, { toValue: 0, duration: 5000, useNativeDriver: false }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [fill]);
-
-  const width = fill.interpolate({ inputRange: [0, 1], outputRange: ['28%', '48%'] });
-
-  return (
-    <View style={styles.lockProgressContainer}>
-      <View style={styles.lockProgressTrack}>
-        <Animated.View style={[styles.lockProgressFill, { width }]} />
-      </View>
-      <Text style={styles.lockProgressText}>{text}</Text>
-    </View>
-  );
-};
-
 const ResourceChip = ({
   label,
   glyph,
   value,
   unit,
   accent,
-  onPress,
 }: {
   label: string;
   glyph: QuickGlyphId;
   value: string;
   unit: string;
   accent: string;
-  onPress?: () => void;
 }) => {
   const secondary = lightenHex(accent, 0.3);
-  const pulse = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 4000, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0, duration: 4000, useNativeDriver: true }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
-
-  const valueAnimStyle = {
-    opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }),
-    transform: [
-      {
-        scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.02] }),
-      },
-    ],
-  };
-
   return (
-    <RipplePressable
-      onPress={onPress}
-      style={[styles.resourceChip, { borderColor: accent, shadowColor: accent }]}
-    >
+    <View style={[styles.resourceChip, { borderColor: accent, shadowColor: accent }]}>
       <View style={styles.resourceInfo}>
         <QuickGlyph id={glyph} size={18} strokeWidth={1.8} colors={[accent, secondary]} />
-        <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
+        <View>
+          <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
+        </View>
       </View>
       <View style={styles.resourceValueRow}>
-        <Animated.View style={[styles.resourceValueWrapper, valueAnimStyle]}>
-          <Text style={styles.resourceValue} numberOfLines={1}>
-            {value}
-          </Text>
-        </Animated.View>
+        <Text style={styles.resourceValue} numberOfLines={1}>
+          {value}
+        </Text>
         <Text style={styles.resourceUnit}>{unit}</Text>
       </View>
-    </RipplePressable>
+    </View>
   );
 };
 
@@ -519,11 +438,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(59, 222, 185, 0.6)',
     backgroundColor: 'rgba(59, 222, 185, 0.12)',
   },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
   statusText: {
     ...typography.captionCaps,
     color: '#45E2B4',
@@ -564,9 +478,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 4,
-  },
-  resourceValueWrapper: {
-    minWidth: 0,
   },
   resourceValue: {
     ...typography.numeric,
@@ -640,6 +551,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   lockProgressFill: {
+    width: '35%',
     backgroundColor: 'rgba(0, 209, 199, 0.6)',
   },
   lockProgressText: {
