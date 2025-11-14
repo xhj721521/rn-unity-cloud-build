@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from 'react';
+﻿import React, { useEffect, useMemo } from 'react';
 import {
   ImageSourcePropType,
   Pressable,
@@ -120,6 +120,10 @@ export const HomeScreen = () => {
   const navigation = useNavigation<HomeNavigation>();
   const { data, loading, error } = useAccountSummary();
   const { width: windowWidth } = useWindowDimensions();
+
+  useEffect(() => {
+    console.log('[fate-home-debug] HomeScreen mounted');
+  }, []);
 
   const displayName = data?.displayName ?? 'Pilot Zero';
   const arcAmount = useMemo(() => formatAssetAmount(data?.tokens, ARC_TOKEN_ID), [data?.tokens]);
