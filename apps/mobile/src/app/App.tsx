@@ -6,7 +6,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import { store } from '@state/store';
 import { RootNavigator } from './navigation/RootNavigator';
-import { GlobalBackground } from '@components/GlobalBackground';
 
 export const App = () => {
   return (
@@ -14,7 +13,6 @@ export const App = () => {
       <GestureHandlerRootView style={styles.root}>
         <SafeAreaProvider>
           <View style={styles.shell}>
-            <GlobalBackground />
             <NavigationContainer>
               <RootNavigator />
             </NavigationContainer>
