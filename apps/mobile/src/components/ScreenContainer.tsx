@@ -4,7 +4,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useNeonPulse, getGlowStyle } from '@theme/animations';
 import { neonPalette } from '@theme/neonPalette';
 import { shape, spacing } from '@theme/tokens';
-import { useBottomGutter } from '@hooks/useBottomGutter';
 
 type ScreenContainerVariant = 'overlay' | 'plain';
 
@@ -72,7 +71,6 @@ export const ScreenContainer = ({
     variant === 'overlay' ? styles.overlayStatic : styles.plainStatic,
   ];
 
-  const bottomGutter = useBottomGutter();
   const shouldRenderDefaultBackground = !background;
   const BackgroundWrapper = background ? (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
@@ -98,10 +96,8 @@ export const ScreenContainer = ({
         )}
         {edgeVignette ? <EdgeVignette /> : null}
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, bottomGutter.contentContainerStyle]}
+          contentContainerStyle={styles.scrollContent}
           style={[styles.scroll, variant === 'overlay' ? undefined : styles.plainScroll]}
-          contentInset={bottomGutter.contentInset}
-          scrollIndicatorInsets={bottomGutter.scrollIndicatorInsets}
         >
           <View style={contentStyle}>{children}</View>
         </ScrollView>

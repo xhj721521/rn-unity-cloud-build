@@ -1,19 +1,18 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   ListRenderItemInfo,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
-  useWindowDimensions,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { ScreenContainer } from '@components/ScreenContainer';
 import GlassCard from '@components/shared/GlassCard';
 import RewardProgress from '@components/invite/RewardProgress';
-import { FilterBar, InviteFilterTab } from '@components/invite/FilterBar';
 import { Invitee, InviteeItem } from '@components/invite/InviteeItem';
+import { InviteFilterTab } from '@components/invite/FilterBar';
 import ExpandablePanel from '@components/team/ExpandablePanel';
 import statsData from '@mock/invite.stats.json';
 import membersData from '@mock/invite.members.json';
@@ -34,16 +33,20 @@ type InviteStats = {
 
 const stats = statsData as InviteStats;
 const invitees = membersData as Invitee[];
+const FILTER_TABS = [
+  { key: 'all', label: '全部' },
+  { key: 'joined', label: '已加入' },
+  { key: 'pending', label: '待确认' },
+  { key: 'expired', label: '已过期' },
+  { key: 'weekly', label: '本周' },
+] as const;
 
 export const InviteHomeScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const [activeTab, setActiveTab] = useState<InviteFilterTab>('all');
+  const [selectedFilter, setSelectedFilter] = useState(FILTER_TABS[0].key);
   const [searchValue, setSearchValue] = useState('');
-  const [sortLabel, setSortLabel] = useState('今日贡献↓');
   const [rewardExpanded, setRewardExpanded] = useState(false);
-  const { height } = useWindowDimensions();
-  const listHeight = Math.min(height * 0.56, 420);
-  const listRef = useRef<FlatList<Invitee>>(null);
 
   const statItems = useMemo(
     () => [
@@ -67,9 +70,6 @@ export const InviteHomeScreen = () => {
 
   const handleStatPress = (tab: InviteFilterTab) => {
     setActiveTab(tab);
-    requestAnimationFrame(() => {
-      listRef.current?.scrollToOffset({ offset: 0, animated: true });
-    });
   };
 
   const renderInvitee = ({ item }: ListRenderItemInfo<Invitee>) => (
@@ -78,7 +78,8 @@ export const InviteHomeScreen = () => {
 
   return (
     <ScreenContainer variant="plain" scrollable>
-      <View style={styles.headerRow}>
+      <View style={styles.pageContent}>
+        <View style={styles.headerRow}>
         <Text style={styles.title}>我的邀请</Text>
         <Pressable style={styles.helpButton} onPress={() => console.log('help')}>
           <Text style={styles.helpText}>帮助</Text>
@@ -141,46 +142,46 @@ export const InviteHomeScreen = () => {
         </ExpandablePanel>
       ) : null}
 
-      <GlassCard style={styles.memberCard} padding={16}>
+        <GlassCard style={styles.memberCard} padding={16}>
         <Text style={styles.sectionTitle}>成员列表</Text>
-        <FilterBar
-          value={activeTab}
-          onChange={setActiveTab}
-          searchValue={searchValue}
-          onSearchChange={setSearchValue}
-          sortLabel={sortLabel}
-          onPressSort={() => {
-            setSortLabel((prev) => (prev === '今日贡献↓' ? '今日贡献↑' : '今日贡献↓'));
-            console.log('sort');
-          }}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filterChipsRow}
+          contentContainerStyle={styles.filterChipsContent}
+        >
+          {FILTER_TABS.map((tab) => {
+            const isActive = tab.key === selectedFilter;
+            return (
+              <Pressable
+                key={tab.key}
+                style={[styles.filterChip, isActive && styles.filterChipActive]}
+                onPress={() => setSelectedFilter(tab.key)}
+              >
+                <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+                  {tab.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+        <FlatList
+          data={filteredList}
+          keyExtractor={(item) => item.id}
+          renderItem={renderInvitee}
+          scrollEnabled={false}
+          contentContainerStyle={styles.memberList}
         />
-        <View style={[styles.listWrapper, { height: listHeight }]}>
-          <LinearGradient
-            pointerEvents="none"
-            colors={['#040814', 'transparent']}
-            style={[styles.fade, styles.fadeTop]}
-          />
-          <FlatList
-            ref={listRef}
-            data={filteredList}
-            keyExtractor={(item) => item.id}
-            renderItem={renderInvitee}
-            showsVerticalScrollIndicator={false}
-            nestedScrollEnabled
-            scrollEnabled
-          />
-          <LinearGradient
-            pointerEvents="none"
-            colors={['transparent', '#040814']}
-            style={[styles.fade, styles.fadeBottom]}
-          />
-        </View>
-      </GlassCard>
+        </GlassCard>
+      </View>
     </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
+  pageContent: {
+    paddingBottom: 120,
+  },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -288,29 +289,45 @@ const styles = StyleSheet.create({
     marginTop: 24,
     gap: 12,
   },
+  filterChipsRow: {
+    marginTop: 8,
+  },
+  filterChipsContent: {
+    columnGap: 10,
+    paddingRight: 6,
+  },
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: 'rgba(5,8,20,0.4)',
+  },
+  filterChipActive: {
+    borderColor: '#33F5FF',
+    backgroundColor: 'rgba(51,245,255,0.22)',
+    shadowColor: '#33F5FF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 8,
+    shadowOpacity: 0.35,
+    elevation: 6,
+  },
+  filterChipText: {
+    ...typography.captionCaps,
+    color: 'rgba(255,255,255,0.72)',
+  },
+  filterChipTextActive: {
+    color: '#FFFFFF',
+  },
   sectionTitle: {
     ...typography.subtitle,
     color: palette.text,
   },
-  listWrapper: {
+  memberList: {
     marginTop: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    overflow: 'hidden',
-  },
-  fade: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 28,
-    zIndex: 1,
-  },
-  fadeTop: {
-    top: 0,
-  },
-  fadeBottom: {
-    bottom: 0,
+    paddingTop: 4,
+    paddingBottom: 8,
   },
 });
 

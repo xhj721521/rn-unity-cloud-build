@@ -32,42 +32,44 @@ const STATUS_LABEL: Record<InviteeStatus, string> = {
 
 const STATUS_COLORS: Record<InviteeStatus, string> = {
   pending: '#31C3FF',
-  joined: '#00D7A6',
+  joined: '#05FAA0',
   expired: '#F36A6A',
 };
 
-export const InviteeItem = ({ data, onPress, onPressMenu }: InviteeItemProps) => (
-  <Pressable
-    style={({ pressed }) => [styles.container, pressed && styles.pressed]}
-    onPress={onPress}
-  >
-    <View style={styles.avatar}>
-      <Text style={styles.avatarText}>{data.nickname.charAt(0).toUpperCase()}</Text>
-    </View>
-    <View style={styles.detail}>
-      <View style={styles.topRow}>
+export const InviteeItem = ({ data, onPress, onPressMenu }: InviteeItemProps) => {
+  const statusColor = STATUS_COLORS[data.status];
+  const statusLabel = STATUS_LABEL[data.status];
+
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.container, pressed && styles.pressed]}
+      onPress={onPress}
+    >
+      <View style={styles.avatar}>
+        <Text style={styles.avatarText}>{data.nickname.charAt(0).toUpperCase()}</Text>
+      </View>
+      <View style={styles.detail}>
         <Text style={styles.name} numberOfLines={1}>
           {data.nickname}
         </Text>
-        <View style={[styles.statusPill, { borderColor: STATUS_COLORS[data.status] }]}>
-          <Text style={[styles.statusText, { color: STATUS_COLORS[data.status] }]}>
-            {STATUS_LABEL[data.status]}
-          </Text>
-        </View>
+        <Text style={styles.contrib} numberOfLines={1}>
+          今日贡献 {data.contrib.today} · 累计 {data.contrib.total}
+        </Text>
+        <Text style={styles.meta} numberOfLines={1}>
+          邀请 {formatTime(data.invitedAt)} · 活跃 {formatTime(data.lastActiveAt)}
+        </Text>
       </View>
-      <Text style={styles.contrib} numberOfLines={1}>
-        今日贡献 {data.contrib.today} · 累计 {data.contrib.total}
-      </Text>
-      <Text style={styles.meta} numberOfLines={1}>
-        邀请 {formatTime(data.invitedAt)} · 活跃 {formatTime(data.lastActiveAt)} · 来源{' '}
-        {data.templateId ?? '--'}
-      </Text>
-    </View>
-    <Pressable style={styles.menu} onPress={onPressMenu}>
-      <Text style={styles.menuDot}>⋯</Text>
+      <View style={styles.actions}>
+        <View style={[styles.statusPill, { borderColor: statusColor }]}>
+          <Text style={[styles.statusText, { color: statusColor }]}>{statusLabel}</Text>
+        </View>
+        <Pressable style={styles.menu} onPress={onPressMenu}>
+          <Text style={styles.menuDot}>⋯</Text>
+        </Pressable>
+      </View>
     </Pressable>
-  </Pressable>
-);
+  );
+};
 
 const formatTime = (value?: string) => {
   if (!value) {
@@ -89,24 +91,27 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: 'rgba(4,10,20,0.75)',
+    borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
+    gap: 14,
+    marginBottom: 10,
   },
   pressed: {
     opacity: 0.9,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(0,229,255,0.45)',
+    borderColor: 'rgba(51,245,255,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
   },
   avatarText: {
     ...typography.subtitle,
@@ -116,40 +121,38 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
   },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
   name: {
     ...typography.subtitle,
     color: palette.text,
-    flex: 1,
-  },
-  statusPill: {
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-  },
-  statusText: {
-    ...typography.captionCaps,
   },
   contrib: {
     ...typography.caption,
-    color: palette.sub,
+    color: 'rgba(230,241,255,0.8)',
   },
   meta: {
     ...typography.caption,
     color: 'rgba(230,241,255,0.6)',
   },
+  actions: {
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  statusPill: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(5, 10, 25, 0.6)',
+  },
+  statusText: {
+    ...typography.captionCaps,
+  },
   menu: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
   },
   menuDot: {
-    fontSize: 20,
+    fontSize: 16,
     color: palette.sub,
   },
 });
