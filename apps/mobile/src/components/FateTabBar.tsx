@@ -39,7 +39,7 @@ const FateTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
       pointerEvents="box-none"
       style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom - 4, 0) }]}
     >
-      <View style={[styles.pill, { width: pillWidth }]}>
+      <View style={[styles.pill, { width: pillWidth - 20 }]}>
         {routes.map((route, index) => {
           const focused = state.index === state.routes.indexOf(route);
           const Icon = ICONS[route.name as keyof typeof ICONS];
@@ -101,10 +101,10 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: 12,
     shadowColor: '#00ffff',
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
+    shadowOpacity: 0.28,
+    shadowRadius: 14,
     shadowOffset: { width: 0, height: 0 },
-    elevation: 8,
+    elevation: 10,
   },
   item: {
     flex: 1,

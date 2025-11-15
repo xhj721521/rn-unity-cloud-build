@@ -16,7 +16,12 @@ type Props = {
 };
 
 const FateFeatureGrid = ({ features, cardWidth }: Props) => (
-  <View style={[styles.grid, { columnGap: fateSpacing.featureGap, rowGap: fateSpacing.featureGap }]}>
+  <View
+    style={[
+      styles.grid,
+      { columnGap: fateSpacing.featureGap, rowGap: fateSpacing.featureGap + 4 },
+    ]}
+  >
     {features.map((feature) => (
       <Pressable
         key={feature.key}

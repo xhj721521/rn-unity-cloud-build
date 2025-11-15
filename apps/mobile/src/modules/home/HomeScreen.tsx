@@ -150,13 +150,15 @@ export const HomeScreen = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <FateHeroCard
-            width={heroWidth}
-            displayName={displayName}
-            arcAmount={arcAmount}
-            oreAmount={oreAmount}
-            backgroundSource={cardCommandCenter}
-          />
+          <View style={styles.heroWrapper}>
+            <FateHeroCard
+              width={heroWidth}
+              displayName={displayName}
+              arcAmount={arcAmount}
+              oreAmount={oreAmount}
+              backgroundSource={cardCommandCenter}
+            />
+          </View>
           <FateModePills actions={modeActions} />
           <FateFeatureGrid features={featureCards} cardWidth={featureWidth} />
           <FateBlindboxCard width={heroWidth} onPress={() => navigation.navigate('BlindBox')} />
@@ -191,6 +193,9 @@ const styles = StyleSheet.create({
     paddingTop: fateSpacing.sectionVertical,
     paddingBottom: fateSpacing.sectionVertical + 88,
     gap: fateSpacing.sectionVertical,
+  },
+  heroWrapper: {
+    marginBottom: 6,
   },
   center: {
     flex: 1,
