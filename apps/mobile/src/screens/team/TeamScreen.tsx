@@ -3,61 +3,119 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import QuickGlyph from '@components/QuickGlyph';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import teamSummary from '@mock/team.summary.json';
 import membersData from '@mock/team.members.json';
 import { Member } from '@mock/team.members';
 import { typography } from '@theme/typography';
+import { ProfileStackParamList } from '@app/navigation/types';
 
 const gradientColors = ['#050A18', '#08152F', '#042D4A'];
 
+type DisplayMember = {
+  id: string;
+  name: string;
+  roleLabel: string;
+  onlineStatus: 'online' | 'offline';
+  intel: number;
+};
+
 export const TeamScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
+  const tabBarHeight = useBottomTabBarHeight?.() ?? 0;
   const [chatVisible, setChatVisible] = useState(false);
   const [chatDraft, setChatDraft] = useState('');
+  const [leaveModalVisible, setLeaveModalVisible] = useState(false);
   const members = membersData.members as Member[];
-  const tabBarHeight = useBottomTabBarHeight?.() ?? 0;
 
-  const memberList = useMemo(
+  const memberList = useMemo<DisplayMember[]>(
     () =>
       members.map((member) => ({
-        ...member,
-        initials: member.name.charAt(0).toUpperCase(),
+        id: member.id,
+        name: member.name,
+        roleLabel: member.role === 'leader' ? '队长' : member.role === 'officer' ? '副官' : '成员',
+        onlineStatus: member.online ? 'online' : 'offline',
+        intel: member.contribWeek ?? 0,
       })),
     [members],
   );
 
+  const handleTeamMapPress = () => {
+    console.log('navigate to team map');
+  };
+
+  const handleTeamDungeonPress = () => {
+    console.log('navigate to team dungeon');
+  };
+
+  const handleTeamStoragePress = () => {
+    console.log('open team storage');
+  };
+
+  const handleTeamNoticePress = () => {
+    console.log('open team notice');
+  };
+
+  const handleInvitePress = () => {
+    navigation.navigate('MyInvites');
+  };
+
+  const handleLeavePress = () => {
+    setLeaveModalVisible(true);
+  };
+
+  const confirmLeaveTeam = () => {
+    setLeaveModalVisible(false);
+    console.log('leave team confirmed');
+  };
+
   return (
     <View style={styles.root}>
       <LinearGradient colors={gradientColors} style={StyleSheet.absoluteFill} />
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.safeArea}>
         <ScrollView
+          style={styles.container}
           contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: tabBarHeight + 180 },
+            styles.contentContainer,
+            { paddingBottom: tabBarHeight ? tabBarHeight + 32 : 120 },
           ]}
           showsVerticalScrollIndicator={false}
         >
           <TeamHeaderCard onPressChat={() => setChatVisible(true)} />
-          <TeamQuickActions />
-          <TeamMembersCard members={memberList} />
+          <TeamFunctionSection
+            onTeamMapPress={handleTeamMapPress}
+            onTeamDungeonPress={handleTeamDungeonPress}
+            onTeamStoragePress={handleTeamStoragePress}
+            onTeamNoticePress={handleTeamNoticePress}
+          />
+          <TeamMemberSection
+            members={memberList}
+            onInvite={handleInvitePress}
+            onLeave={handleLeavePress}
+          />
         </ScrollView>
-        <TeamBottomActions />
       </SafeAreaView>
       <ChatComposer
         visible={chatVisible}
         value={chatDraft}
         onChange={setChatDraft}
         onClose={() => setChatVisible(false)}
+      />
+      <LeaveTeamModal
+        visible={leaveModalVisible}
+        onCancel={() => setLeaveModalVisible(false)}
+        onConfirm={confirmLeaveTeam}
       />
     </View>
   );
@@ -66,12 +124,12 @@ export const TeamScreen = () => {
 const TeamHeaderCard = ({ onPressChat }: { onPressChat: () => void }) => {
   const { team } = teamSummary;
   const expRemaining = Math.max(team.next - team.exp, 0);
-  const progressText = `Lv.${team.level}  距上一级还差 ${expRemaining} / ${team.next}`;
+  const progressText = `Lv.${team.level}  距上一级还有 ${expRemaining} / ${team.next}`;
   const membersText = `队员 ${team.online} / ${team.cap}`;
   const progressRatio = team.exp / team.next;
 
   return (
-    <View style={styles.headerCard}>
+    <View style={[styles.headerCard, styles.horizontalMargin]}>
       <View style={styles.headerTopRow}>
         <View style={styles.teamAvatar}>
           <Text style={styles.teamAvatarText}>{team.name.charAt(0).toUpperCase()}</Text>
@@ -81,9 +139,9 @@ const TeamHeaderCard = ({ onPressChat }: { onPressChat: () => void }) => {
           <Text style={styles.headerSubtitle}>{progressText}</Text>
           <Text style={styles.headerSubtitle}>{membersText}</Text>
         </View>
-        <Pressable style={styles.chatButton} onPress={onPressChat}>
+        <TouchableOpacity style={styles.chatButton} onPress={onPressChat}>
           <Text style={styles.chatButtonText}>团队聊天</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
       <View style={styles.progressRow}>
         <Text style={styles.progressLabel}>当前进度</Text>
@@ -98,79 +156,105 @@ const TeamHeaderCard = ({ onPressChat }: { onPressChat: () => void }) => {
   );
 };
 
-const quickActions = [
-  {
-    key: 'map',
-    title: '团队地图',
-    subtitle: `今日 ${teamSummary.maps.opened} / ${teamSummary.maps.quota}`,
-  },
-  {
-    key: 'dungeon',
-    title: '团队副本',
-    subtitle: `剩余 ${teamSummary.raid.attemptsLeft} / ${teamSummary.raid.total}`,
-  },
-  { key: 'storage', title: '团队仓库', subtitle: '查看物资' },
-  { key: 'notice', title: '团队公告', subtitle: '查看 / 发布' },
-];
+type TeamFunctionCardProps = {
+  title: string;
+  subtitle?: string;
+  onPress: () => void;
+};
 
-const TeamQuickActions = () => (
-  <View style={styles.section}>
+const TeamFunctionCard = ({ title, subtitle, onPress }: TeamFunctionCardProps) => (
+  <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.teamFuncCard}>
+    <View style={styles.teamFuncHeader}>
+      <Text style={styles.teamFuncTitle}>{title}</Text>
+      <Text style={styles.teamFuncArrow}>›</Text>
+    </View>
+    {subtitle ? <Text style={styles.teamFuncSubtitle}>{subtitle}</Text> : null}
+  </TouchableOpacity>
+);
+
+type TeamFunctionSectionProps = {
+  onTeamMapPress: () => void;
+  onTeamDungeonPress: () => void;
+  onTeamStoragePress: () => void;
+  onTeamNoticePress: () => void;
+};
+
+const TeamFunctionSection = ({
+  onTeamMapPress,
+  onTeamDungeonPress,
+  onTeamStoragePress,
+  onTeamNoticePress,
+}: TeamFunctionSectionProps) => (
+  <View style={styles.teamFuncSection}>
     <Text style={styles.sectionTitle}>团队功能</Text>
-    <View style={styles.quickGrid}>
-      {quickActions.map((action) => (
-        <Pressable key={action.key} style={styles.quickCard}>
-          <Text style={styles.quickTitle}>{action.title}</Text>
-          <Text style={styles.quickSubtitle}>{action.subtitle}</Text>
-        </Pressable>
-      ))}
+    <View style={styles.teamFuncRow}>
+      <TeamFunctionCard
+        title="团队地图"
+        subtitle={`今日 ${teamSummary.maps.opened} / ${teamSummary.maps.quota}`}
+        onPress={onTeamMapPress}
+      />
+      <TeamFunctionCard
+        title="团队副本"
+        subtitle={`剩余 ${teamSummary.raid.attemptsLeft} / ${teamSummary.raid.total}`}
+        onPress={onTeamDungeonPress}
+      />
+    </View>
+    <View style={styles.teamFuncRow}>
+      <TeamFunctionCard title="团队仓库" subtitle="查看物资" onPress={onTeamStoragePress} />
+      <TeamFunctionCard title="团队公告" subtitle="查看 / 发布" onPress={onTeamNoticePress} />
     </View>
   </View>
 );
 
-const TeamMembersCard = ({ members }: { members: Array<Member & { initials: string }> }) => (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>成员列表</Text>
-    <Text style={styles.sectionHint}>头像 · 名字 · 职务 · 情报</Text>
-    <View style={styles.membersWrapper}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+type TeamMemberSectionProps = {
+  members: DisplayMember[];
+  onInvite: () => void;
+  onLeave: () => void;
+};
+
+const TeamMemberSection = ({ members, onInvite, onLeave }: TeamMemberSectionProps) => (
+  <View style={styles.memberSection}>
+    <View style={styles.memberHeader}>
+      <Text style={styles.sectionTitle}>成员列表</Text>
+      <Text style={styles.memberSubtitle}>头像 · 名字 · 职务 · 情报</Text>
+    </View>
+    <View style={styles.memberCard}>
+      <ScrollView style={styles.memberListScroll} showsVerticalScrollIndicator={false}>
         {members.map((member) => (
-          <View key={member.id} style={styles.memberRow}>
-            <View style={styles.memberAvatar}>
-              <Text style={styles.memberAvatarText}>{member.initials}</Text>
-            </View>
-            <View style={styles.memberInfo}>
-              <Text style={styles.memberName}>{member.name}</Text>
-              <Text style={styles.memberRole}>
-                {member.role === 'leader' ? '队长' : member.role === 'officer' ? '副官' : '成员'} ·{' '}
-                {member.online ? '在线' : `离线 ${member.lastSeen}`}
-              </Text>
-            </View>
-            <View style={styles.memberStatus}>
-              <View
-                style={[
-                  styles.statusDot,
-                  { backgroundColor: member.online ? '#33F5FF' : 'rgba(255,255,255,0.3)' },
-                ]}
-              />
-              <View style={styles.intelBadge}>
-                <Text style={styles.intelBadgeText}>情报 {member.contribWeek ?? 0}</Text>
-              </View>
-            </View>
-          </View>
+          <TeamMemberRow key={member.id} member={member} />
         ))}
       </ScrollView>
+      <View style={styles.memberActionsRow}>
+        <TouchableOpacity style={styles.inviteButton} activeOpacity={0.9} onPress={onInvite}>
+          <Text style={styles.inviteButtonText}>邀请</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.leaveButton} activeOpacity={0.9} onPress={onLeave}>
+          <Text style={styles.leaveButtonText}>离队</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   </View>
 );
 
-const TeamBottomActions = () => (
-  <View style={styles.bottomActions}>
-    <Pressable style={[styles.bottomButton, styles.bottomPrimary]}>
-      <Text style={styles.bottomPrimaryText}>邀请</Text>
-    </Pressable>
-    <Pressable style={[styles.bottomButton, styles.bottomDanger]}>
-      <Text style={styles.bottomDangerText}>离队</Text>
-    </Pressable>
+const TeamMemberRow = ({ member }: { member: DisplayMember }) => (
+  <View style={styles.memberRow}>
+    <View style={styles.memberAvatar}>
+      <Text style={styles.memberAvatarText}>{member.name.charAt(0).toUpperCase()}</Text>
+    </View>
+    <View style={styles.memberInfo}>
+      <Text style={styles.memberName}>{member.name}</Text>
+      <View style={styles.memberMetaRow}>
+        <View style={styles.roleTag}>
+          <Text style={styles.roleTagText}>{member.roleLabel}</Text>
+        </View>
+        <View style={styles.onlineDot(member.onlineStatus)} />
+        <Text style={styles.onlineText}>{member.onlineStatus === 'online' ? '在线' : '离线'}</Text>
+      </View>
+    </View>
+    <View style={styles.intelPill}>
+      <Text style={styles.intelLabel}>情报</Text>
+      <Text style={styles.intelValue}>{member.intel}</Text>
+    </View>
   </View>
 );
 
@@ -199,14 +283,41 @@ const ChatComposer = ({ visible, value, onChange, onClose }: ComposerProps) => (
           onChangeText={onChange}
         />
         <View style={styles.modalActions}>
-          <Pressable style={[styles.modalButton, styles.modalGhost]} onPress={onClose}>
+          <TouchableOpacity style={[styles.modalButton, styles.modalGhost]} onPress={onClose}>
             <Text style={styles.modalGhostText}>取消</Text>
-          </Pressable>
-          <Pressable style={[styles.modalButton, styles.modalPrimary]} onPress={onClose}>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.modalButton, styles.modalPrimary]} onPress={onClose}>
             <Text style={styles.modalPrimaryText}>发送</Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+    </View>
+  </Modal>
+);
+
+type LeaveTeamModalProps = {
+  visible: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+};
+
+const LeaveTeamModal = ({ visible, onCancel, onConfirm }: LeaveTeamModalProps) => (
+  <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
+    <View style={styles.modalMask}>
+      <View style={styles.modalCardAlt}>
+        <Text style={styles.modalTitleAlt}>确认离开团队？</Text>
+        <Text style={styles.modalDesc}>
+          离队需要支付赎身券，确认后将从当前团队中移除，团队收益与权限将同时失效。
+        </Text>
+        <View style={styles.modalActionsAlt}>
+          <TouchableOpacity style={styles.modalCancel} onPress={onCancel}>
+            <Text style={styles.modalCancelText}>取消</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.modalConfirm} onPress={onConfirm}>
+            <Text style={styles.modalConfirmText}>确认离队</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   </Modal>
 );
@@ -215,10 +326,19 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    gap: 20,
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#020617',
+  },
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingTop: 16,
+    gap: 24,
+  },
+  horizontalMargin: {
+    marginHorizontal: 16,
   },
   headerCard: {
     borderRadius: 24,
@@ -300,148 +420,190 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#33F5FF',
   },
-  section: {
-    gap: 10,
-  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#E5F2FF',
+    marginHorizontal: 16,
+    marginTop: 8,
   },
-  sectionHint: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.65)',
+  teamFuncSection: {
+    gap: 4,
   },
-  quickGrid: {
+  teamFuncRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    rowGap: 12,
+    marginHorizontal: 16,
+    marginTop: 12,
   },
-  quickCard: {
-    width: '48%',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(0,255,255,0.18)',
-    backgroundColor: 'rgba(5,8,18,0.78)',
+  teamFuncCard: {
+    flex: 1,
+    borderRadius: 20,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    shadowColor: '#00FFFF',
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
+    marginHorizontal: 4,
+    backgroundColor: 'rgba(15,23,42,0.96)',
+    borderWidth: 1,
+    borderColor: 'rgba(56,189,248,0.35)',
+    shadowColor: '#38bdf8',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
     shadowOffset: { width: 0, height: 0 },
-    elevation: 6,
   },
-  quickTitle: {
+  teamFuncHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  teamFuncTitle: {
+    color: '#E5F2FF',
     fontSize: 15,
-    color: '#FFFFFF',
     fontWeight: '600',
   },
-  quickSubtitle: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.72)',
-    marginTop: 6,
+  teamFuncArrow: {
+    color: '#38BDF8',
+    fontSize: 18,
+    fontWeight: '500',
   },
-  membersWrapper: {
-    height: 300,
-    borderRadius: 20,
+  teamFuncSubtitle: {
+    color: 'rgba(148,163,184,0.9)',
+    fontSize: 12,
+  },
+  memberSection: {
+    marginTop: 8,
+  },
+  memberHeader: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+  },
+  memberSubtitle: {
+    fontSize: 12,
+    color: 'rgba(148,163,184,0.9)',
+  },
+  memberCard: {
+    marginHorizontal: 16,
+    borderRadius: 24,
+    paddingTop: 12,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    backgroundColor: 'rgba(15,23,42,0.98)',
     borderWidth: 1,
-    borderColor: 'rgba(0,255,255,0.18)',
-    backgroundColor: 'rgba(5,8,18,0.78)',
-    padding: 12,
-    shadowColor: '#00FFFF',
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 6,
+    borderColor: 'rgba(56,189,248,0.3)',
+  },
+  memberListScroll: {
+    maxHeight: 320,
+    marginBottom: 12,
   },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
     paddingVertical: 10,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    marginBottom: 8,
+    paddingHorizontal: 4,
   },
   memberAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(56,189,248,0.7)',
     justifyContent: 'center',
-    backgroundColor: 'rgba(51,245,255,0.15)',
+    alignItems: 'center',
+    marginRight: 12,
   },
   memberAvatarText: {
-    ...typography.subtitle,
-    color: '#FFFFFF',
+    color: '#E5F2FF',
+    fontWeight: '600',
+    fontSize: 16,
   },
   memberInfo: {
     flex: 1,
-    marginLeft: 12,
   },
   memberName: {
-    fontSize: 15,
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: '#E5F2FF',
+    fontSize: 14,
+    fontWeight: '500',
   },
-  memberRole: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.65)',
+  memberMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 4,
   },
-  memberStatus: {
+  roleTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(129,140,248,0.6)',
+    marginRight: 8,
+  },
+  roleTagText: {
+    color: 'rgba(199,210,254,0.9)',
+    fontSize: 10,
+  },
+  onlineDot: (status: 'online' | 'offline') => ({
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 4,
+    backgroundColor: status === 'online' ? '#22c55e' : 'rgba(148,163,184,0.7)',
+  }),
+  onlineText: {
+    color: 'rgba(148,163,184,0.9)',
+    fontSize: 11,
+  },
+  intelPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  intelBadge: {
-    borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(0,255,255,0.3)',
-    backgroundColor: 'rgba(0,255,255,0.08)',
-  },
-  intelBadgeText: {
-    fontSize: 12,
-    color: '#33F5FF',
-  },
-  bottomActions: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 16,
-    flexDirection: 'row',
-    gap: 12,
-  },
-  bottomButton: {
-    flex: 1,
-    height: 52,
     borderRadius: 999,
-    alignItems: 'center',
+    backgroundColor: 'rgba(15,118,110,0.9)',
+  },
+  intelLabel: {
+    color: 'rgba(226,252,236,0.9)',
+    fontSize: 11,
+    marginRight: 4,
+  },
+  intelValue: {
+    color: '#ECFEFF',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  memberActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  inviteButton: {
+    flex: 1,
+    height: 44,
+    borderRadius: 999,
     justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+    backgroundColor: '#0ea5e9',
   },
-  bottomPrimary: {
-    backgroundColor: '#33F5FF',
+  inviteButtonText: {
+    color: '#F9FAFB',
+    fontSize: 15,
+    fontWeight: '600',
   },
-  bottomPrimaryText: {
-    color: '#041024',
-    fontWeight: '700',
-  },
-  bottomDanger: {
+  leaveButton: {
+    flex: 1,
+    height: 44,
+    borderRadius: 999,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,92,92,0.8)',
-    backgroundColor: 'rgba(255,92,92,0.08)',
+    borderColor: '#f97373',
+    backgroundColor: 'transparent',
   },
-  bottomDangerText: {
-    color: '#FF5C5C',
-    fontWeight: '700',
+  leaveButtonText: {
+    color: '#fca5a5',
+    fontSize: 15,
+    fontWeight: '500',
   },
   modalBackdrop: {
     flex: 1,
@@ -498,10 +660,57 @@ const styles = StyleSheet.create({
     ...typography.subtitle,
     color: '#00E5FF',
   },
-  center: {
+  modalMask: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: 'rgba(15,23,42,0.8)',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCardAlt: {
+    width: '80%',
+    borderRadius: 20,
+    padding: 20,
+    backgroundColor: 'rgba(15,23,42,0.98)',
+  },
+  modalTitleAlt: {
+    color: '#E5F2FF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  modalDesc: {
+    color: 'rgba(148,163,184,0.95)',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  modalActionsAlt: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 16,
+  },
+  modalCancel: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    marginRight: 8,
+    backgroundColor: 'rgba(15,23,42,0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(148,163,184,0.7)',
+  },
+  modalCancelText: {
+    color: 'rgba(148,163,184,0.95)',
+    fontSize: 13,
+  },
+  modalConfirm: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: '#f97373',
+  },
+  modalConfirmText: {
+    color: '#FEF2F2',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
 
