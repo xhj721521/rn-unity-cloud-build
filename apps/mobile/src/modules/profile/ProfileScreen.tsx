@@ -1,487 +1,39 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import {
-  Alert,
-  Animated,
-  Image,
-  ImageSourcePropType,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ScreenContainer } from '@components/ScreenContainer';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import NeonCard from '@components/NeonCard';
-import NeonButton from '@components/NeonButton';
-import RipplePressable from '@components/RipplePressable';
-import QuickGlyph, { QuickGlyphId } from '@components/QuickGlyph';
-import HomeBackground from '../../ui/HomeBackground';
-import HomeSkeleton from '@modules/home/HomeSkeleton';
+import QuickGlyph from '@components/QuickGlyph';
+import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 import { ErrorState } from '@components/ErrorState';
 import { useAccountSummary } from '@services/web3/hooks';
+import { ChainAsset } from '@services/web3/types';
 import { useAppDispatch, useAppSelector } from '@state/hooks';
 import { loadAccountSummary } from '@state/account/accountSlice';
 import { ProfileStackParamList, RootTabParamList } from '@app/navigation/types';
 import { palette } from '@theme/colors';
 import { spacing, shape } from '@theme/tokens';
 import { typography } from '@theme/typography';
-import { translate as t } from '@locale/strings';
+import HomeSkeleton from '@modules/home/HomeSkeleton';
 
 const cardCommandCenter = require('../../assets/cards/card_command_center.webp');
 const avatarPlaceholder = require('../../assets/profile/ph_avatar.png');
-const tileA = require('../../assets/profile/ph_tile_a.png');
-const tileB = require('../../assets/profile/ph_tile_b.png');
-const tileC = require('../../assets/profile/ph_tile_c.png');
-const tileD = require('../../assets/profile/ph_tile_d.png');
-const tileE = require('../../assets/profile/ph_tile_e.png');
-const tileF = require('../../assets/profile/ph_tile_f.png');
 
 const ARC_TOKEN_ID = 'tok-energy';
 const ORE_TOKEN_ID = 'tok-neon';
 
-type EntryConfig = {
+type EntryTile = {
   key: string;
-  titleKey: string;
-  descKey: string;
-  background: ImageSourcePropType;
-  glyph: QuickGlyphId;
-  route?: keyof ProfileStackParamList;
-  badgeKey?: string;
-};
-
-const entryConfigs: EntryConfig[] = [
-  {
-    key: 'team',
-    titleKey: 'my.entry.team.title',
-    descKey: 'my.entry.team.desc',
-    background: tileA,
-    glyph: 'team',
-    route: 'MyTeam',
-  },
-  {
-    key: 'storage',
-    titleKey: 'my.entry.storage.title',
-    descKey: 'my.entry.storage.desc',
-    background: tileB,
-    glyph: 'storage',
-    route: 'MyInventory',
-  },
-  {
-    key: 'invite',
-    titleKey: 'my.entry.invite.title',
-    descKey: 'my.entry.invite.desc',
-    background: tileC,
-    glyph: 'invite',
-    route: 'MyInvites',
-  },
-  {
-    key: 'member',
-    titleKey: 'my.entry.member.title',
-    descKey: 'my.entry.member.desc',
-    background: tileD,
-    glyph: 'member',
-    route: 'Member',
-    badgeKey: 'my.entry.member.badge.inactive',
-  },
-  {
-    key: 'reports',
-    titleKey: 'my.entry.reports.title',
-    descKey: 'my.entry.reports.desc',
-    background: tileE,
-    glyph: 'reports',
-    route: 'Reports',
-  },
-  {
-    key: 'highlights',
-    titleKey: 'my.entry.highlights.title',
-    descKey: 'my.entry.highlights.desc',
-    background: tileF,
-    glyph: 'highlights',
-    route: 'Highlights',
-  },
-];
-
-const highlightCards = [
-  {
-    id: 'hl-1',
-    titleKey: 'my.highlights.mock1',
-    tagKey: 'my.highlights.tag.collect',
-    level: 'Lv.3',
-    image: tileC,
-  },
-  {
-    id: 'hl-2',
-    titleKey: 'my.highlights.mock2',
-    tagKey: 'my.highlights.tag.report',
-    level: 'Lv.2',
-    image: tileD,
-  },
-  {
-    id: 'hl-3',
-    titleKey: 'my.highlights.mock3',
-    tagKey: 'my.highlights.tag.reward',
-    level: 'Rare',
-    image: tileE,
-  },
-];
-
-const AnimatedText = Animated.createAnimatedComponent(Text);
-
-export const ProfileScreen = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
-  const parentNavigation = navigation.getParent() as NavigationProp<RootTabParamList> | undefined;
-  const dispatch = useAppDispatch();
-  const { data, loading, error } = useAccountSummary();
-  const teamMembers = useAppSelector((state) => state.team?.members) ?? [];
-
-  const displayName = data?.displayName ?? 'Pilot Zero';
-  const arcAmount = useMemo(() => formatAssetAmount(data?.tokens, ARC_TOKEN_ID), [data?.tokens]);
-  const oreAmount = useMemo(() => formatAssetAmount(data?.tokens, ORE_TOKEN_ID), [data?.tokens]);
-  const minersTotal = teamMembers.length || 14;
-  const minersActive = Math.max(1, Math.floor(minersTotal * 0.7));
-  const background = useMemo(() => <HomeBackground showVaporLayers />, []);
-  const statsTiles = useMemo(
-    () => [
-      {
-        key: 'miners',
-        title: t('my.stats.miners'),
-        value: formatNumber(minersTotal),
-        subtitle: t('my.stats.miners.active', { active: minersActive, total: minersTotal }),
-        glyph: 'miner' as QuickGlyphId,
-        onPress: () => parentNavigation?.navigate('Home', { screen: 'BlindBox' } as never),
-      },
-      {
-        key: 'chain',
-        title: t('my.stats.chain'),
-        value: t('my.stats.chain.subtitle'),
-        subtitle: t('my.stats.chain.subtitle'),
-        glyph: 'chain' as QuickGlyphId,
-        onPress: () => Alert.alert(t('common.notice'), t('my.placeholder.entrySoon')),
-      },
-    ],
-    [minersActive, minersTotal, parentNavigation],
-  );
-
-  const entryTiles = useMemo(
-    () =>
-      entryConfigs.map((entry) => {
-        const badgeKey =
-          entry.key === 'member'
-            ? data?.membershipTier === 'vip'
-              ? 'my.entry.member.badge.active'
-              : 'my.entry.member.badge.inactive'
-            : entry.badgeKey;
-        return {
-          ...entry,
-          title: t(entry.titleKey),
-          desc: t(entry.descKey),
-          badgeLabel: badgeKey ? t(badgeKey) : undefined,
-        };
-      }),
-    [data?.membershipTier],
-  );
-
-  const handleEntryPress = (entry: EntryConfig) => {
-    if (entry.route) {
-      navigation.navigate(entry.route);
-      return;
-    }
-    Alert.alert(t('common.notice'), t('my.placeholder.entrySoon'));
-  };
-
-  const handleSettings = () => {
-    navigation.navigate('Settings');
-  };
-
-  if (loading) {
-    return (
-      <ScreenContainer variant="plain" edgeVignette background={background}>
-        <HomeSkeleton />
-      </ScreenContainer>
-    );
-  }
-
-  if (error) {
-    return (
-      <ScreenContainer variant="plain" edgeVignette background={background}>
-        <View style={styles.centerBox}>
-          <ErrorState
-            title={t('my.error.title')}
-            description={error}
-            onRetry={() => dispatch(loadAccountSummary())}
-          />
-        </View>
-      </ScreenContainer>
-    );
-  }
-
-  return (
-    <ScreenContainer scrollable variant="plain" edgeVignette background={background}>
-      <NeonCard
-        backgroundSource={cardCommandCenter}
-        backgroundResizeMode="cover"
-        backgroundStyle={styles.commandCenterBg}
-        borderRadius={shape.blockRadius + 4}
-        overlayColor="rgba(8, 12, 30, 0.42)"
-        borderColors={['#FF5AE0', '#7DD3FC']}
-        glowColor="#7DD3FC"
-        contentPadding={20}
-        style={styles.heroCard}
-      >
-        <View pointerEvents="none" style={styles.commandOverlay} />
-        <LinearGradient
-          colors={['rgba(4,5,12,0.85)', 'transparent']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 0.45 }}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-        <View style={styles.heroHeader}>
-          <View style={styles.identityRow}>
-            <Image source={avatarPlaceholder} style={styles.avatar} />
-            <View>
-              <Text style={styles.heroTitle}>{t('my.hero.title', { name: displayName })}</Text>
-              <Text style={styles.heroSubtitle}>{t('my.hero.subtitle')}</Text>
-            </View>
-          </View>
-          <View style={styles.heroMeta}>
-            <RipplePressable style={styles.iconGhostButton} onPress={handleSettings}>
-              <QuickGlyph id="settings" size={28} />
-            </RipplePressable>
-          </View>
-        </View>
-        <View style={styles.resourceRow}>
-          <ResourceChip
-            label={t('my.hero.asset.arc')}
-            glyph="arc"
-            value={arcAmount}
-            unit="枚"
-            accent={palette.primary}
-            onPress={() => navigation.navigate('Wallet')}
-          />
-          <ResourceChip
-            label={t('my.hero.asset.ore')}
-            glyph="ore"
-            value={oreAmount}
-            unit="颗"
-            accent={palette.accent}
-            onPress={() => navigation.navigate('Wallet')}
-          />
-        </View>
-        <View style={styles.heroActions}>
-          <NeonButton title={t('my.cta.invite')} onPress={() => navigation.navigate('MyInvites')} />
-          <RipplePressable
-            style={styles.ghostButton}
-            onPress={() => navigation.navigate('Reports')}
-          >
-            <Text style={styles.ghostButtonText}>{t('my.cta.export')}</Text>
-          </RipplePressable>
-        </View>
-      </NeonCard>
-
-      <SectionHeading
-        title={t('my.highlights.section')}
-        actionLabel={t('my.highlights.viewAll')}
-        onAction={() => navigation.navigate('Highlights')}
-      />
-      <View style={styles.highlightContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.highlightRow}
-        >
-          {highlightCards.map((item) => (
-            <NeonCard
-              key={item.id}
-              borderRadius={shape.cardRadius}
-              overlayColor="rgba(6,8,16,0.5)"
-              backgroundSource={item.image}
-              contentPadding={14}
-              style={styles.highlightCard}
-            >
-              <Text style={styles.highlightTitle}>{t(item.titleKey)}</Text>
-              <View style={styles.highlightFooter}>
-                <Text style={styles.highlightTag}>{t(item.tagKey)}</Text>
-                <Text style={styles.highlightLevel}>{item.level}</Text>
-              </View>
-            </NeonCard>
-          ))}
-        </ScrollView>
-      </View>
-
-      <SectionHeading title={t('my.stats.section')} />
-      <View style={styles.statsGrid}>
-        {statsTiles.map((tile) => (
-          <RipplePressable
-            key={tile.key}
-            style={styles.statPressable}
-            onPress={tile.onPress}
-            disabled={!tile.onPress}
-          >
-            <NeonCard
-              borderRadius={shape.cardRadius}
-              overlayColor="rgba(9,11,22,0.78)"
-              contentPadding={16}
-              style={styles.statCard}
-            >
-              <View style={styles.statRow}>
-                <QuickGlyph id={tile.glyph} size={26} />
-                <View style={styles.statValueBlock}>
-                  <Text style={styles.statLabel}>{tile.title}</Text>
-                  <AnimatedText style={styles.statValue}>{tile.value}</AnimatedText>
-                  <Text style={styles.statSubtitle}>{tile.subtitle}</Text>
-                </View>
-              </View>
-            </NeonCard>
-          </RipplePressable>
-        ))}
-      </View>
-
-      <SectionHeading title={t('my.matrix.section')} />
-      <View style={styles.entryGrid}>
-        {entryTiles.map((entry) => (
-          <RipplePressable
-            key={entry.key}
-            style={styles.entryPressable}
-            onPress={() => handleEntryPress(entry)}
-          >
-            <NeonCard
-              borderRadius={shape.cardRadius}
-              overlayColor="rgba(8,10,20,0.6)"
-              backgroundSource={entry.background}
-              contentPadding={18}
-              style={styles.entryCard}
-            >
-              <View style={styles.entryTopRow}>
-                <QuickGlyph id={entry.glyph} size={24} />
-                {entry.badgeLabel ? (
-                  <View style={styles.entryBadge}>
-                    <Text style={styles.entryBadgeText}>{entry.badgeLabel}</Text>
-                  </View>
-                ) : null}
-              </View>
-              <Text style={styles.entryTitle}>{entry.title}</Text>
-              <Text style={styles.entryDesc} numberOfLines={2}>
-                {entry.desc}
-              </Text>
-            </NeonCard>
-          </RipplePressable>
-        ))}
-      </View>
-    </ScreenContainer>
-  );
-};
-
-const ResourceChip = ({
-  label,
-  glyph,
-  value,
-  unit,
-  accent,
-  onPress,
-}: {
-  label: string;
-  glyph: QuickGlyphId;
-  value: string;
-  unit: string;
-  accent: string;
-  onPress?: () => void;
-}) => {
-  const secondary = lightenHex(accent, 0.3);
-  const pulse = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 4000, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0, duration: 4000, useNativeDriver: true }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
-
-  const valueAnimStyle = {
-    opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }),
-    transform: [
-      {
-        scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.02] }),
-      },
-    ],
-  };
-
-  const content = (
-    <View style={[styles.resourceChip, { borderColor: accent, shadowColor: accent }]}>
-      <View style={styles.resourceInfo}>
-        <QuickGlyph id={glyph} size={18} strokeWidth={1.8} colors={[accent, secondary]} />
-        <Text style={[styles.resourceLabel, { color: accent }]}>{label}</Text>
-      </View>
-      <View style={styles.resourceValueRow}>
-        <Animated.View style={[styles.resourceValueWrapper, valueAnimStyle]}>
-          <Text style={styles.resourceValue} numberOfLines={1}>
-            {value}
-          </Text>
-        </Animated.View>
-        <Text style={styles.resourceUnit}>{unit}</Text>
-      </View>
-    </View>
-  );
-
-  if (onPress) {
-    return (
-      <RipplePressable style={styles.resourceChipPressable} onPress={onPress}>
-        {content}
-      </RipplePressable>
-    );
-  }
-
-  return content;
-};
-
-const lightenHex = (hex: string, amount = 0.2) => {
-  const normalized = hex.replace('#', '');
-  const rgb = [0, 1, 2].map((index) => parseInt(normalized.slice(index * 2, index * 2 + 2), 16));
-  const lightened = rgb.map((channel) => Math.min(255, Math.round(channel * (1 + amount))));
-  return `#${lightened.map((val) => val.toString(16).padStart(2, '0')).join('')}`;
-};
-
-const SectionHeading = ({
-  title,
-  actionLabel,
-  onAction,
-  iconId,
-}: {
   title: string;
-  actionLabel?: string;
-  onAction?: () => void;
-  iconId?: QuickGlyphId;
-}) => (
-  <View style={styles.sectionHeader}>
-    <View style={styles.sectionTitleRow}>
-      {iconId ? (
-        <View style={styles.sectionIcon}>
-          <QuickGlyph id={iconId} size={22} />
-        </View>
-      ) : null}
-      <Text style={styles.sectionTitle}>{title}</Text>
-    </View>
-    {actionLabel && onAction ? (
-      <RipplePressable style={styles.viewAllBtn} onPress={onAction}>
-        <Text style={styles.viewAllText}>{actionLabel}</Text>
-      </RipplePressable>
-    ) : null}
-  </View>
-);
+  desc: string;
+  glyph: Parameters<typeof QuickGlyph>[0]['id'];
+  onPress: () => void;
+};
 
-const formatNumber = (value: number) => new Intl.NumberFormat('zh-CN').format(value);
-
-const formatAssetAmount = (
-  tokens: { id: string; amount: string }[] | undefined,
-  tokenId: string,
-) => {
-  const raw = tokens?.find((token) => token.id === tokenId)?.amount;
+const formatAssetAmount = (assets: ChainAsset[] | undefined, id: string): string => {
+  const raw = assets?.find((asset) => asset.id === id)?.amount;
   if (!raw) {
     return '--';
   }
@@ -492,35 +44,240 @@ const formatAssetAmount = (
   return new Intl.NumberFormat('zh-CN').format(numeric);
 };
 
+export const ProfileScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
+  const parentNavigation = navigation.getParent() as NavigationProp<RootTabParamList> | undefined;
+  const dispatch = useAppDispatch();
+  const { data, loading, error } = useAccountSummary();
+  const teamMembers = useAppSelector((state) => state.team?.members) ?? [];
+
+  useEffect(() => {
+    parentNavigation?.setOptions?.({ title: '我的' });
+  }, [parentNavigation]);
+
+  const displayName = data?.displayName ?? 'Pilot Zero';
+  const arcAmount = useMemo(() => formatAssetAmount(data?.tokens, ARC_TOKEN_ID), [data?.tokens]);
+  const oreAmount = useMemo(() => formatAssetAmount(data?.tokens, ORE_TOKEN_ID), [data?.tokens]);
+  const minersTotal = teamMembers.length || 14;
+  const minersActive = Math.max(1, Math.floor(minersTotal * 0.7));
+
+  const entryTiles: EntryTile[] = useMemo(
+    () => [
+      {
+        key: 'team',
+        title: '我的团队',
+        desc: '查看队伍、成员与权限',
+        glyph: 'team',
+        onPress: () => navigation.navigate('MyTeam'),
+      },
+      {
+        key: 'storage',
+        title: '我的仓库',
+        desc: '矿石、地图碎片、NFT',
+        glyph: 'storage',
+        onPress: () => navigation.navigate('MyInventory'),
+      },
+      {
+        key: 'invite',
+        title: '我的邀请',
+        desc: '邀请记录与奖励',
+        glyph: 'invite',
+        onPress: () => navigation.navigate('MyInvites'),
+      },
+      {
+        key: 'member',
+        title: '会员中心',
+        desc: '身份与权益',
+        glyph: 'member',
+        onPress: () => navigation.navigate('Member'),
+      },
+      {
+        key: 'reports',
+        title: '战报中心',
+        desc: '数据与战报',
+        glyph: 'reports',
+        onPress: () => navigation.navigate('Reports'),
+      },
+      {
+        key: 'highlights',
+        title: '收藏亮点',
+        desc: '高光收藏',
+        glyph: 'highlights',
+        onPress: () => navigation.navigate('Highlights'),
+      },
+    ],
+    [navigation],
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.root}>
+        <LinearGradient colors={['#050814', '#08152F', '#042D4A']} style={StyleSheet.absoluteFill} />
+        <HomeSkeleton />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.root}>
+        <LinearGradient colors={['#050814', '#08152F', '#042D4A']} style={StyleSheet.absoluteFill} />
+        <View style={styles.center}>
+          <ErrorState
+            title="暂时无法连接指挥官档案"
+            description={error}
+            onRetry={() => dispatch(loadAccountSummary())}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.root}>
+      <LinearGradient colors={['#050814', '#08152F', '#042D4A']} style={StyleSheet.absoluteFill} />
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+        >
+          <NeonCard
+            backgroundSource={cardCommandCenter}
+            overlayColor="rgba(5,8,20,0.45)"
+            borderColors={['#33F5FF', '#7DB1FF']}
+            glowColor="#33F5FF"
+            contentPadding={18}
+            style={styles.heroCard}
+          >
+            <View style={styles.heroTop}>
+              <Image source={avatarPlaceholder} style={styles.avatar} />
+              <View style={styles.heroIdentity}>
+                <Text style={styles.heroLabel}>指挥官档案</Text>
+                <Text style={styles.heroName} numberOfLines={1}>
+                  {displayName}
+                </Text>
+              </View>
+              <QuickGlyph id="settings" size={22} colors={['#33F5FF', '#7DB1FF']} />
+            </View>
+            <View style={styles.assetRow}>
+              <AssetPill label="ARC" value={arcAmount} accent="#33F5FF" />
+              <AssetPill label="矿石" value={oreAmount} accent="#7DB1FF" />
+            </View>
+          </NeonCard>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>作战指标</Text>
+            </View>
+            <View style={styles.statGrid}>
+              <StatCard
+                title="矿工"
+                value={`${minersActive}/${minersTotal}`}
+                subtitle="活跃矿工 / 总矿工"
+                glyph="miner"
+              />
+              <StatCard
+                title="链上数据中枢"
+                value="同步中"
+                subtitle="链上资产与身份快照"
+                glyph="chain"
+              />
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>功能矩阵</Text>
+            </View>
+            <View style={styles.entryGrid}>
+              {entryTiles.map((entry) => (
+                <NeonCard
+                  key={entry.key}
+                  overlayColor="rgba(5,8,18,0.78)"
+                  borderColors={['#33F5FF', '#7DB1FF']}
+                  glowColor="#33F5FF"
+                  contentPadding={14}
+                  style={styles.entryCard}
+                  onPress={entry.onPress}
+                >
+                  <View style={styles.entryTopRow}>
+                    <View style={styles.entryIcon}>
+                      <QuickGlyph id={entry.glyph} size={22} colors={['#33F5FF', '#7DB1FF']} />
+                    </View>
+                  </View>
+                  <Text style={styles.entryTitle}>{entry.title}</Text>
+                  <Text style={styles.entryDesc}>{entry.desc}</Text>
+                </NeonCard>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
+  );
+};
+
+const AssetPill = ({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent: string;
+}) => (
+  <View style={[styles.assetPill, { borderColor: accent }]}>
+    <Text style={[styles.assetLabel, { color: accent }]}>{label}</Text>
+    <Text style={styles.assetValue} numberOfLines={1}>
+      {value}
+    </Text>
+  </View>
+);
+
+const StatCard = ({
+  title,
+  value,
+  subtitle,
+  glyph,
+}: {
+  title: string;
+  value: string;
+  subtitle: string;
+  glyph: Parameters<typeof QuickGlyph>[0]['id'];
+}) => (
+  <NeonCard
+    overlayColor="rgba(5,8,18,0.82)"
+    borderColors={['#33F5FF', '#7DB1FF']}
+    glowColor="#33F5FF"
+    contentPadding={16}
+    style={styles.statCard}
+  >
+    <View style={styles.statHeader}>
+      <QuickGlyph id={glyph} size={22} colors={['#33F5FF', '#7DB1FF']} />
+      <Text style={styles.statTitle}>{title}</Text>
+    </View>
+    <Text style={styles.statValue}>{value}</Text>
+    <Text style={styles.statSubtitle}>{subtitle}</Text>
+  </NeonCard>
+);
+
 const styles = StyleSheet.create({
-  centerBox: {
-    paddingVertical: spacing.section * 4,
+  root: {
+    flex: 1,
+  },
+  scroll: {
+    paddingHorizontal: spacing.pageHorizontal,
+    paddingTop: spacing.cardGap,
+    paddingBottom: spacing.section + 88,
+    gap: spacing.section,
   },
   heroCard: {
-    minHeight: 220,
-    marginBottom: spacing.section,
+    minHeight: 180,
   },
-  commandCenterBg: {
-    transform: [{ translateY: -10 }, { scale: 1.1 }],
-  },
-  commandOverlay: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    height: '45%',
-    backgroundColor: 'rgba(5, 8, 18, 0.68)',
-  },
-  heroHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing.cardGap,
-  },
-  identityRow: {
+  heroTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
   },
   avatar: {
     width: 56,
@@ -529,236 +286,116 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.18)',
   },
-  heroTitle: {
+  heroIdentity: {
+    flex: 1,
+  },
+  heroLabel: {
+    ...typography.captionCaps,
+    color: 'rgba(255,255,255,0.65)',
+  },
+  heroName: {
     ...typography.heading,
-    fontSize: 18,
-    textShadowRadius: 10,
+    color: '#FFFFFF',
+    marginTop: 4,
   },
-  heroSubtitle: {
-    ...typography.body,
-    marginTop: 2,
+  assetRow: {
+    flexDirection: 'row',
+    gap: spacing.cardGap,
+    marginTop: 16,
   },
-  heroMeta: {
+  assetPill: {
+    flex: 1,
+    borderRadius: shape.capsuleRadius,
+    borderWidth: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  assetLabel: {
+    ...typography.captionCaps,
+    letterSpacing: 0.6,
+  },
+  assetValue: {
+    ...typography.subtitle,
+    color: '#FFFFFF',
+    marginTop: 4,
+  },
+  section: {
+    gap: spacing.cardGap,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sectionTitle: {
+    ...typography.subtitle,
+    color: '#FFFFFF',
+  },
+  statGrid: {
+    flexDirection: 'row',
+    gap: spacing.cardGap,
+  },
+  statCard: {
+    flex: 1,
+    minHeight: 120,
+  },
+  statHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  iconGhostButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
-    backgroundColor: 'rgba(6,8,18,0.65)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  resourceRow: {
-    flexDirection: 'row',
-    gap: spacing.cardGap,
-    marginTop: 6,
-  },
-  resourceChipPressable: {
-    flex: 1,
-  },
-  resourceChip: {
-    flex: 1,
-    borderRadius: 32,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: 'rgba(8, 10, 24, 0.55)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowOpacity: 0.16,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  resourceInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  resourceLabel: {
-    ...typography.captionCaps,
-    letterSpacing: 0.4,
-  },
-  resourceValueRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 4,
-  },
-  resourceValueWrapper: {
-    minWidth: 0,
-  },
-  resourceValue: {
-    ...typography.numeric,
-    color: palette.text,
-    maxWidth: 110,
-    textAlign: 'right',
-  },
-  resourceUnit: {
-    ...typography.captionCaps,
-    color: palette.sub,
-  },
-  heroActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: spacing.cardGap,
-    gap: spacing.cardGap,
-  },
-  ghostButton: {
-    borderRadius: shape.capsuleRadius,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
-    backgroundColor: 'rgba(9,11,22,0.55)',
-    flex: 1,
-    alignItems: 'center',
-  },
-  ghostButtonText: {
-    ...typography.captionCaps,
-    color: palette.text,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    columnGap: spacing.cardGap,
-    rowGap: spacing.cardGap,
-  },
-  statPressable: {
-    width: '48%',
-  },
-  statCard: {
-    minHeight: 120,
-  },
-  statRow: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  statValueBlock: {
-    flex: 1,
-  },
-  statLabel: {
-    ...typography.captionCaps,
-    color: palette.sub,
+  statTitle: {
+    ...typography.subtitle,
+    color: '#FFFFFF',
   },
   statValue: {
-    ...typography.numeric,
-    color: palette.text,
-    marginTop: 2,
+    ...typography.heading,
+    color: '#FFFFFF',
+    marginTop: 8,
   },
   statSubtitle: {
     ...typography.body,
-    fontSize: 12,
-    color: palette.muted,
-    marginTop: 2,
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 6,
   },
   entryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     columnGap: spacing.cardGap,
     rowGap: spacing.cardGap,
-    marginTop: spacing.cardGap,
-  },
-  entryPressable: {
-    width: '48%',
   },
   entryCard: {
-    minHeight: 132,
+    width: '48%',
+    minHeight: 140,
   },
   entryTopRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'flex-start',
     marginBottom: 12,
   },
-  entryBadge: {
-    borderRadius: shape.capsuleRadius,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    backgroundColor: 'rgba(5,7,18,0.6)',
-  },
-  entryBadgeText: {
-    ...typography.captionCaps,
-    color: palette.muted,
-  },
-  entryTitle: {
-    ...typography.subtitle,
-    color: palette.text,
-    marginBottom: 4,
-  },
-  entryDesc: {
-    ...typography.body,
-    color: palette.sub,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.section,
-    marginBottom: spacing.cardGap / 2,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  sectionIcon: {
-    width: 28,
-    height: 28,
+  entryIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(51,245,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sectionTitle: {
+  entryTitle: {
     ...typography.subtitle,
-    color: palette.text,
+    color: '#FFFFFF',
+    marginBottom: 6,
   },
-  viewAllBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  viewAllText: {
-    ...typography.captionCaps,
-    color: palette.primary,
-  },
-  highlightContainer: {
-    marginTop: spacing.cardGap,
-    marginBottom: spacing.section,
-  },
-  highlightRow: {
-    flexDirection: 'row',
-    gap: spacing.cardGap,
-    paddingHorizontal: spacing.pageHorizontal,
-  },
-  highlightCard: {
-    width: 140,
-    height: 180,
-  },
-  highlightTitle: {
+  entryDesc: {
     ...typography.body,
-    color: palette.text,
+    color: 'rgba(255,255,255,0.72)',
+    lineHeight: 18,
   },
-  highlightFooter: {
-    marginTop: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  highlightTag: {
-    ...typography.captionCaps,
-    color: palette.primary,
-  },
-  highlightLevel: {
-    ...typography.captionCaps,
-    color: palette.sub,
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
