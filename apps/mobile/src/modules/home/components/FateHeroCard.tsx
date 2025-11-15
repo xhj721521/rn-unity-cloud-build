@@ -88,6 +88,8 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: fateRadius.hero,
     minHeight: 196,
+     borderWidth: 1,
+     borderColor: fateColors.borderSoft,
   },
   content: {
     paddingHorizontal: 20,

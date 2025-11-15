@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { fateColors, fateRadius } from '../fateTheme';
 import BlindboxIcon from '@components/icons/BlindboxIcon';
@@ -8,6 +8,8 @@ type Props = {
   width: number;
   onPress: () => void;
 };
+
+const cardIllustration = require('../../../assets/cards/card_blindbox.webp');
 
 const FateBlindboxCard = ({ width, onPress }: Props) => (
   <Pressable
@@ -18,12 +20,18 @@ const FateBlindboxCard = ({ width, onPress }: Props) => (
       pressed && { transform: [{ scale: 0.97 }] },
     ]}
   >
-    <LinearGradient
-      colors={['#08142A', '#040713']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+    <ImageBackground
+      source={cardIllustration}
+      resizeMode="cover"
       style={[styles.card, { width }]}
+      imageStyle={styles.cardImage}
     >
+      <LinearGradient
+        colors={['rgba(5,8,20,0.92)', 'rgba(5,8,20,0.3)']}
+        start={{ x: 0.5, y: 1 }}
+        end={{ x: 0.5, y: 0 }}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.copy}>
         <Text style={styles.label}>命运盲盒 & 矿工</Text>
         <Text style={styles.title}>管理矿工 · 开启命运盲盒</Text>
@@ -43,7 +51,7 @@ const FateBlindboxCard = ({ width, onPress }: Props) => (
           <Text style={styles.priceText}>单次 200 ARC</Text>
         </View>
       </View>
-    </LinearGradient>
+    </ImageBackground>
   </Pressable>
 );
 
@@ -60,6 +68,9 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 18,
     alignItems: 'center',
+  },
+  cardImage: {
+    borderRadius: fateRadius.bigCard,
   },
   copy: {
     flex: 1,
