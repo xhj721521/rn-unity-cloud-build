@@ -87,15 +87,14 @@ export const InviteHomeScreen = () => {
 
       <GlassCard style={styles.statsCard} padding={18}>
         <View style={styles.statsRow}>
-          {statItems.map((item, index) => (
+          {statItems.map((item) => (
             <Pressable
               key={item.label}
-              style={[styles.statCell, activeTab === item.tab && styles.statCellActive]}
+              style={[styles.statPill, activeTab === item.tab && styles.statPillActive]}
               onPress={() => handleStatPress(item.tab)}
             >
               <Text style={styles.statLabel}>{item.label}</Text>
               <Text style={styles.statValue}>{item.value}</Text>
-              {index < statItems.length - 1 ? <View style={styles.statDivider} /> : null}
             </Pressable>
           ))}
         </View>
@@ -208,36 +207,31 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    gap: 12,
+    alignItems: 'stretch',
+    columnGap: 10,
   },
-  statCell: {
+  statPill: {
     flex: 1,
     borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(0,229,255,0.15)',
+    backgroundColor: 'rgba(5,8,18,0.6)',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.02)',
   },
-  statCellActive: {
-    borderWidth: 1,
+  statPillActive: {
     borderColor: '#00E5FF',
-    backgroundColor: 'rgba(0,229,255,0.1)',
+    backgroundColor: 'rgba(0,229,255,0.12)',
   },
   statLabel: {
     ...typography.captionCaps,
-    color: palette.sub,
+    color: 'rgba(255,255,255,0.65)',
     marginBottom: 4,
   },
   statValue: {
-    ...typography.subtitle,
-    color: palette.text,
-  },
-  statDivider: {
-    position: 'absolute',
-    right: -6,
-    top: 12,
-    bottom: 12,
-    width: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    ...typography.heading,
+    fontSize: 18,
+    color: '#FFFFFF',
   },
   rewardCard: {
     gap: 12,
