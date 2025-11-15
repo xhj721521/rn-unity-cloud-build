@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, Easing, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -51,37 +51,10 @@ export const HomeScreen = () => {
   const navigation = useNavigation<HomeNavigation>();
   const { width: windowWidth } = useWindowDimensions();
   const { data, loading, error } = useAccountSummary();
-  const pulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     console.log('[fate-home-debug] HomeScreen mounted');
   }, []);
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 20000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }),
-        Animated.timing(pulse, {
-          toValue: 0,
-          duration: 20000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
-
-  const pulseOpacity = pulse.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.35, 0.75],
-  });
 
   const displayName = data?.displayName ?? 'Pilot Zero';
   const arcAmount = useMemo(() => formatAssetAmount(data?.tokens, ARC_TOKEN_ID), [data?.tokens]);
@@ -194,18 +167,12 @@ export const HomeScreen = () => {
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={['#030711', '#050814']} style={StyleSheet.absoluteFill} />
-      <Animated.View
-        pointerEvents="none"
-        style={[StyleSheet.absoluteFill, styles.pulseLayer, { opacity: pulseOpacity }]}
-      >
-        <LinearGradient
-          colors={['rgba(12,24,48,0.45)', 'rgba(3,5,12,0.05)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
+      <LinearGradient
+        colors={['#050814', '#08152F', '#042D4A']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       {body}
     </View>
   );
@@ -214,7 +181,6 @@ export const HomeScreen = () => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: fateColors.bg,
   },
   safeArea: {
     flex: 1,
@@ -230,9 +196,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  pulseLayer: {
-    backgroundColor: 'transparent',
   },
 });
 
