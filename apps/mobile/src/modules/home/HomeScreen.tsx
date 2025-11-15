@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Animated, Easing, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useWindowDimensions } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { LoadingPlaceholder } from '@components/LoadingPlaceholder';
 import { ErrorState } from '@components/ErrorState';
 import { useAccountSummary } from '@services/web3/hooks';
@@ -50,18 +51,43 @@ export const HomeScreen = () => {
   const navigation = useNavigation<HomeNavigation>();
   const { width: windowWidth } = useWindowDimensions();
   const { data, loading, error } = useAccountSummary();
+  const pulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     console.log('[fate-home-debug] HomeScreen mounted');
   }, []);
 
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 20000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0,
+          duration: 20000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  const pulseOpacity = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.35, 0.75],
+  });
+
   const displayName = data?.displayName ?? 'Pilot Zero';
   const arcAmount = useMemo(() => formatAssetAmount(data?.tokens, ARC_TOKEN_ID), [data?.tokens]);
   const oreAmount = useMemo(() => formatAssetAmount(data?.tokens, ORE_TOKEN_ID), [data?.tokens]);
   const heroWidth = Math.max(320, windowWidth - fateSpacing.pageHorizontal * 2);
-  const featureWidth = Math.floor(
-    (heroWidth - fateSpacing.featureGap) / 2,
-  );
+  const featureWidth = Math.floor((heroWidth - fateSpacing.featureGap) / 2);
 
   const modeActions = useMemo(
     () => [
@@ -127,55 +153,72 @@ export const HomeScreen = () => {
     [navigation],
   );
 
+  let body: React.ReactNode;
   if (loading) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.center}>
-          <LoadingPlaceholder label="命运矿场正在加载…" />
-        </View>
-      </SafeAreaView>
+    body = (
+      <View style={styles.center}>
+        <LoadingPlaceholder label="命运矿场正在加载…" />
+      </View>
     );
-  }
-
-  if (error) {
-    return (
+  } else if (error) {
+    body = (
+      <View style={styles.center}>
+        <ErrorState
+          title="暂时无法连接命运网络"
+          description={error}
+          onRetry={() => dispatch(loadAccountSummary())}
+        />
+      </View>
+    );
+  } else {
+    body = (
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.center}>
-          <ErrorState
-            title="暂时无法连接命运网络"
-            description={error}
-            onRetry={() => dispatch(loadAccountSummary())}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <FateHeroCard
+            width={heroWidth}
+            displayName={displayName}
+            arcAmount={arcAmount}
+            oreAmount={oreAmount}
+            backgroundSource={cardCommandCenter}
           />
-        </View>
+          <FateModePills actions={modeActions} />
+          <FateFeatureGrid features={featureCards} cardWidth={featureWidth} />
+          <FateBlindboxCard width={heroWidth} onPress={() => navigation.navigate('BlindBox')} />
+        </ScrollView>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+    <View style={styles.root}>
+      <LinearGradient colors={['#030711', '#050814']} style={StyleSheet.absoluteFill} />
+      <Animated.View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, styles.pulseLayer, { opacity: pulseOpacity }]}
       >
-        <FateHeroCard
-          width={heroWidth}
-          displayName={displayName}
-          arcAmount={arcAmount}
-          oreAmount={oreAmount}
-          backgroundSource={cardCommandCenter}
+        <LinearGradient
+          colors={['rgba(12,24,48,0.45)', 'rgba(3,5,12,0.05)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
         />
-        <FateModePills actions={modeActions} />
-        <FateFeatureGrid features={featureCards} cardWidth={featureWidth} />
-        <FateBlindboxCard width={heroWidth} onPress={() => navigation.navigate('BlindBox')} />
-      </ScrollView>
-    </SafeAreaView>
+      </Animated.View>
+      {body}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  root: {
     flex: 1,
     backgroundColor: fateColors.bg,
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   scrollContent: {
     paddingHorizontal: fateSpacing.pageHorizontal,
@@ -187,6 +230,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  pulseLayer: {
+    backgroundColor: 'transparent',
   },
 });
 
