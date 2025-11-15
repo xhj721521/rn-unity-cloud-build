@@ -28,6 +28,14 @@ export const RootNavigator = () => (
     tabBar={(props) => <FateTabBar {...props} />}
     screenOptions={{
       headerShown: false,
+      tabBarStyle: {
+        position: 'absolute',
+        backgroundColor: 'transparent',
+        elevation: 0,
+        borderTopWidth: 0,
+        shadowOpacity: 0,
+        height: 70,
+      },
     }}
   >
     {TAB_ITEMS.map((item) => (

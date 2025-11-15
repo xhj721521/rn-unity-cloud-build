@@ -35,8 +35,11 @@ const FateTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
   );
 
   return (
-    <View pointerEvents="box-none" style={styles.wrapper}>
-      <View style={[styles.pill, { width: pillWidth, marginBottom: insets.bottom + 8 }]}>
+    <View
+      pointerEvents="box-none"
+      style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom - 4, 0) }]}
+    >
+      <View style={[styles.pill, { width: pillWidth }]}>
         {routes.map((route, index) => {
           const focused = state.index === state.routes.indexOf(route);
           const Icon = ICONS[route.name as keyof typeof ICONS];
@@ -78,23 +81,29 @@ const FateTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
 
 const styles = StyleSheet.create({
   wrapper: {
+    position: 'absolute',
+    left: H_PADDING,
+    right: H_PADDING,
+    bottom: 16,
     backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pill: {
     height: 52,
     borderRadius: 999,
-    backgroundColor: 'rgba(10,16,32,0.88)',
+    backgroundColor: 'rgba(5,10,25,0.9)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(0,255,255,0.2)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     alignSelf: 'center',
     paddingHorizontal: 12,
-    shadowColor: '#33F5FF',
+    shadowColor: '#00ffff',
     shadowOpacity: 0.25,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 0 },
     elevation: 8,
   },
   item: {
