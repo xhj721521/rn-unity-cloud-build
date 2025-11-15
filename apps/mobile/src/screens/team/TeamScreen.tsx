@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -18,6 +19,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import teamSummary from '@mock/team.summary.json';
 import membersData from '@mock/team.members.json';
 import { Member } from '@mock/team.members';
+import { teamWarehouseItems } from '@mock/teamWarehouse';
 import { typography } from '@theme/typography';
 import { ProfileStackParamList } from '@app/navigation/types';
 
@@ -37,6 +39,8 @@ export const TeamScreen = () => {
   const [chatVisible, setChatVisible] = useState(false);
   const [chatDraft, setChatDraft] = useState('');
   const [leaveModalVisible, setLeaveModalVisible] = useState(false);
+  const [warehouseVisible, setWarehouseVisible] = useState(false);
+  const [noticeVisible, setNoticeVisible] = useState(false);
   const members = membersData.members as Member[];
 
   const memberList = useMemo<DisplayMember[]>(
@@ -52,19 +56,19 @@ export const TeamScreen = () => {
   );
 
   const handleTeamMapPress = () => {
-    console.log('navigate to team map');
+    navigation.getParent()?.navigate('Explore' as never);
   };
 
   const handleTeamDungeonPress = () => {
-    console.log('navigate to team dungeon');
+    navigation.getParent()?.navigate('Trials' as never);
   };
 
   const handleTeamStoragePress = () => {
-    console.log('open team storage');
+    setWarehouseVisible(true);
   };
 
   const handleTeamNoticePress = () => {
-    console.log('open team notice');
+    setNoticeVisible(true);
   };
 
   const handleInvitePress = () => {
@@ -116,6 +120,16 @@ export const TeamScreen = () => {
         visible={leaveModalVisible}
         onCancel={() => setLeaveModalVisible(false)}
         onConfirm={confirmLeaveTeam}
+      />
+      <WarehouseModal
+        visible={warehouseVisible}
+        onClose={() => setWarehouseVisible(false)}
+        wallet={teamSummary.wallet}
+      />
+      <NoticeModal
+        visible={noticeVisible}
+        notice={teamSummary.notice}
+        onClose={() => setNoticeVisible(false)}
       />
     </View>
   );
@@ -322,24 +336,78 @@ const LeaveTeamModal = ({ visible, onCancel, onConfirm }: LeaveTeamModalProps) =
   </Modal>
 );
 
+type WarehouseModalProps = {
+  visible: boolean;
+  onClose: () => void;
+  wallet: typeof teamSummary.wallet;
+};
+
+const WarehouseModal = ({ visible, onClose, wallet }: WarehouseModalProps) => (
+  <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <View style={styles.modalMask}>
+      <View style={styles.warehouseCard}>
+        <Text style={styles.modalTitleAlt}>团队仓库</Text>
+        <View style={styles.walletRow}>
+          <View style={styles.walletChip}>
+            <Text style={styles.walletLabel}>ARC</Text>
+            <Text style={styles.walletValue}>{wallet.arc}</Text>
+          </View>
+          <View style={styles.walletChip}>
+            <Text style={styles.walletLabel}>矿石</Text>
+            <Text style={styles.walletValue}>{wallet.stones}</Text>
+          </View>
+        </View>
+        <ScrollView style={styles.warehouseList} showsVerticalScrollIndicator={false}>
+          <View style={styles.warehouseGrid}>
+            {teamWarehouseItems.map((item, index) => (
+              <View key={item?.id ?? `slot-${index}`} style={styles.warehouseCell}>
+                {item ? (
+                  <>
+                    <Image source={item.icon} style={styles.warehouseIcon} />
+                    <Text style={styles.warehouseName}>{item.name}</Text>
+                    <Text style={styles.warehouseQty}>x{item.qty}</Text>
+                  </>
+                ) : (
+                  <Text style={styles.warehouseEmpty}>空槽</Text>
+                )}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+        <TouchableOpacity style={styles.modalConfirm} onPress={onClose}>
+          <Text style={styles.modalConfirmText}>关闭</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </Modal>
+);
+
+type NoticeModalProps = {
+  visible: boolean;
+  notice: string;
+  onClose: () => void;
+};
+
+const NoticeModal = ({ visible, notice, onClose }: NoticeModalProps) => (
+  <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <View style={styles.modalMask}>
+      <View style={styles.noticeCard}>
+        <Text style={styles.modalTitleAlt}>团队公告</Text>
+        <Text style={styles.noticeText}>{notice || '暂无公告'}</Text>
+        <TouchableOpacity style={styles.modalConfirm} onPress={onClose}>
+          <Text style={styles.modalConfirmText}>我知道了</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </Modal>
+);
+
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#020617',
-  },
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingTop: 16,
-    gap: 24,
-  },
-  horizontalMargin: {
-    marginHorizontal: 16,
-  },
+  root: { flex: 1 },
+  safeArea: { flex: 1, backgroundColor: '#020617' },
+  container: { flex: 1 },
+  contentContainer: { paddingTop: 16, gap: 24 },
+  horizontalMargin: { marginHorizontal: 16 },
   headerCard: {
     borderRadius: 24,
     backgroundColor: 'rgba(5,9,15,0.9)',
@@ -367,22 +435,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(0,0,0,0.3)',
   },
-  teamAvatarText: {
-    ...typography.heading,
-    color: '#FFFFFF',
-  },
-  headerTextBlock: {
-    flex: 1,
-    gap: 4,
-  },
-  headerTitle: {
-    ...typography.heading,
-    color: '#FFFFFF',
-  },
-  headerSubtitle: {
-    ...typography.body,
-    color: 'rgba(255,255,255,0.75)',
-  },
+  teamAvatarText: { ...typography.heading, color: '#FFFFFF' },
+  headerTextBlock: { flex: 1, gap: 4 },
+  headerTitle: { ...typography.heading, color: '#FFFFFF' },
+  headerSubtitle: { ...typography.body, color: 'rgba(255,255,255,0.75)' },
   chatButton: {
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -391,23 +447,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,255,255,0.5)',
     backgroundColor: 'rgba(0,255,255,0.12)',
   },
-  chatButtonText: {
-    color: '#33F5FF',
-    fontWeight: '600',
-  },
-  progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  progressLabel: {
-    ...typography.caption,
-    color: 'rgba(255,255,255,0.7)',
-  },
-  progressValue: {
-    ...typography.caption,
-    color: '#FFFFFF',
-  },
+  chatButtonText: { color: '#33F5FF', fontWeight: '600' },
+  progressRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 },
+  progressLabel: { ...typography.caption, color: 'rgba(255,255,255,0.7)' },
+  progressValue: { ...typography.caption, color: '#FFFFFF' },
   progressTrack: {
     marginTop: 6,
     height: 8,
@@ -415,11 +458,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.1)',
     overflow: 'hidden',
   },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-    backgroundColor: '#33F5FF',
-  },
+  progressFill: { height: '100%', borderRadius: 4, backgroundColor: '#33F5FF' },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
@@ -427,9 +466,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 8,
   },
-  teamFuncSection: {
-    gap: 4,
-  },
+  teamFuncSection: { marginTop: 16, gap: 4 },
   teamFuncRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -456,31 +493,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 6,
   },
-  teamFuncTitle: {
-    color: '#E5F2FF',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  teamFuncArrow: {
-    color: '#38BDF8',
-    fontSize: 18,
-    fontWeight: '500',
-  },
-  teamFuncSubtitle: {
-    color: 'rgba(148,163,184,0.9)',
-    fontSize: 12,
-  },
-  memberSection: {
-    marginTop: 8,
-  },
-  memberHeader: {
-    marginHorizontal: 16,
-    marginBottom: 8,
-  },
-  memberSubtitle: {
-    fontSize: 12,
-    color: 'rgba(148,163,184,0.9)',
-  },
+  teamFuncTitle: { color: '#E5F2FF', fontSize: 15, fontWeight: '600' },
+  teamFuncArrow: { color: '#38BDF8', fontSize: 18, fontWeight: '500' },
+  teamFuncSubtitle: { color: 'rgba(148,163,184,0.9)', fontSize: 12 },
+  memberSection: { marginTop: 24 },
+  memberHeader: { marginHorizontal: 16, marginBottom: 8 },
+  memberSubtitle: { fontSize: 12, color: 'rgba(148,163,184,0.9)' },
   memberCard: {
     marginHorizontal: 16,
     borderRadius: 24,
@@ -491,16 +509,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(56,189,248,0.3)',
   },
-  memberListScroll: {
-    maxHeight: 320,
-    marginBottom: 12,
-  },
-  memberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-  },
+  memberListScroll: { maxHeight: 320, marginBottom: 12 },
+  memberRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 4 },
   memberAvatar: {
     width: 40,
     height: 40,
@@ -511,24 +521,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  memberAvatarText: {
-    color: '#E5F2FF',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  memberInfo: {
-    flex: 1,
-  },
-  memberName: {
-    color: '#E5F2FF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  memberMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
+  memberAvatarText: { color: '#E5F2FF', fontWeight: '600', fontSize: 16 },
+  memberInfo: { flex: 1 },
+  memberName: { color: '#E5F2FF', fontSize: 14, fontWeight: '500' },
+  memberMetaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   roleTag: {
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -537,10 +533,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(129,140,248,0.6)',
     marginRight: 8,
   },
-  roleTagText: {
-    color: 'rgba(199,210,254,0.9)',
-    fontSize: 10,
-  },
+  roleTagText: { color: 'rgba(199,210,254,0.9)', fontSize: 10 },
   onlineDot: (status: 'online' | 'offline') => ({
     width: 6,
     height: 6,
@@ -548,10 +541,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
     backgroundColor: status === 'online' ? '#22c55e' : 'rgba(148,163,184,0.7)',
   }),
-  onlineText: {
-    color: 'rgba(148,163,184,0.9)',
-    fontSize: 11,
-  },
+  onlineText: { color: 'rgba(148,163,184,0.9)', fontSize: 11 },
   intelPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -560,21 +550,9 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: 'rgba(15,118,110,0.9)',
   },
-  intelLabel: {
-    color: 'rgba(226,252,236,0.9)',
-    fontSize: 11,
-    marginRight: 4,
-  },
-  intelValue: {
-    color: '#ECFEFF',
-    fontWeight: '600',
-    fontSize: 12,
-  },
-  memberActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 4,
-  },
+  intelLabel: { color: 'rgba(226,252,236,0.9)', fontSize: 11, marginRight: 4 },
+  intelValue: { color: '#ECFEFF', fontWeight: '600', fontSize: 12 },
+  memberActionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
   inviteButton: {
     flex: 1,
     height: 44,
@@ -584,11 +562,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     backgroundColor: '#0ea5e9',
   },
-  inviteButtonText: {
-    color: '#F9FAFB',
-    fontSize: 15,
-    fontWeight: '600',
-  },
+  inviteButtonText: { color: '#F9FAFB', fontSize: 15, fontWeight: '600' },
   leaveButton: {
     flex: 1,
     height: 44,
@@ -600,11 +574,7 @@ const styles = StyleSheet.create({
     borderColor: '#f97373',
     backgroundColor: 'transparent',
   },
-  leaveButtonText: {
-    color: '#fca5a5',
-    fontSize: 15,
-    fontWeight: '500',
-  },
+  leaveButtonText: { color: '#fca5a5', fontSize: 15, fontWeight: '500' },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
@@ -621,10 +591,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(3,8,16,0.95)',
     gap: 16,
   },
-  modalTitle: {
-    ...typography.subtitle,
-    color: '#FFFFFF',
-  },
+  modalTitle: { ...typography.subtitle, color: '#FFFFFF' },
   modalInput: {
     minHeight: 120,
     borderRadius: 12,
@@ -634,60 +601,17 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlignVertical: 'top',
   },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-  },
-  modalButton: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  modalGhost: {
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
-  modalPrimary: {
-    borderColor: '#00E5FF',
-    backgroundColor: 'rgba(0,229,255,0.1)',
-  },
-  modalGhostText: {
-    ...typography.subtitle,
-    color: '#FFFFFF',
-  },
-  modalPrimaryText: {
-    ...typography.subtitle,
-    color: '#00E5FF',
-  },
-  modalMask: {
-    flex: 1,
-    backgroundColor: 'rgba(15,23,42,0.8)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalCardAlt: {
-    width: '80%',
-    borderRadius: 20,
-    padding: 20,
-    backgroundColor: 'rgba(15,23,42,0.98)',
-  },
-  modalTitleAlt: {
-    color: '#E5F2FF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  modalDesc: {
-    color: 'rgba(148,163,184,0.95)',
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  modalActionsAlt: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 16,
-  },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  modalButton: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 999, borderWidth: 1 },
+  modalGhost: { borderColor: 'rgba(255,255,255,0.3)' },
+  modalPrimary: { borderColor: '#00E5FF', backgroundColor: 'rgba(0,229,255,0.1)' },
+  modalGhostText: { ...typography.subtitle, color: '#FFFFFF' },
+  modalPrimaryText: { ...typography.subtitle, color: '#00E5FF' },
+  modalMask: { flex: 1, backgroundColor: 'rgba(15,23,42,0.8)', alignItems: 'center', justifyContent: 'center' },
+  modalCardAlt: { width: '80%', borderRadius: 20, padding: 20, backgroundColor: 'rgba(15,23,42,0.98)' },
+  modalTitleAlt: { color: '#E5F2FF', fontSize: 16, fontWeight: '600', marginBottom: 8 },
+  modalDesc: { color: 'rgba(148,163,184,0.95)', fontSize: 13, lineHeight: 18 },
+  modalActionsAlt: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 },
   modalCancel: {
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -697,21 +621,64 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(148,163,184,0.7)',
   },
-  modalCancelText: {
-    color: 'rgba(148,163,184,0.95)',
-    fontSize: 13,
+  modalCancelText: { color: 'rgba(148,163,184,0.95)', fontSize: 13 },
+  modalConfirm: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: '#f97373' },
+  modalConfirmText: { color: '#FEF2F2', fontSize: 13, fontWeight: '600' },
+  walletRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    marginTop: 8,
   },
-  modalConfirm: {
-    paddingHorizontal: 14,
+  walletChip: {
+    flex: 1,
+    marginHorizontal: 4,
+    borderRadius: 16,
     paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: '#f97373',
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(2,6,23,0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(56,189,248,0.35)',
   },
-  modalConfirmText: {
-    color: '#FEF2F2',
-    fontSize: 13,
-    fontWeight: '600',
+  walletLabel: { color: 'rgba(148,163,184,0.9)', fontSize: 12 },
+  walletValue: { color: '#E5F2FF', fontSize: 16, fontWeight: '600' },
+  warehouseCard: {
+    width: '88%',
+    borderRadius: 24,
+    padding: 20,
+    backgroundColor: 'rgba(15,23,42,0.98)',
+    borderWidth: 1,
+    borderColor: 'rgba(56,189,248,0.4)',
   },
+  warehouseList: { maxHeight: 280, marginVertical: 8 },
+  warehouseGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 12,
+  },
+  warehouseCell: {
+    width: '48%',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(56,189,248,0.25)',
+    padding: 12,
+    alignItems: 'center',
+    backgroundColor: 'rgba(5,8,18,0.85)',
+  },
+  warehouseIcon: { width: 48, height: 48, marginBottom: 8 },
+  warehouseName: { color: '#E5F2FF', fontSize: 13, textAlign: 'center' },
+  warehouseQty: { color: '#38BDF8', fontSize: 12, marginTop: 4 },
+  warehouseEmpty: { color: 'rgba(148,163,184,0.6)', fontSize: 12 },
+  noticeCard: {
+    width: '80%',
+    borderRadius: 20,
+    padding: 20,
+    backgroundColor: 'rgba(15,23,42,0.98)',
+    borderWidth: 1,
+    borderColor: 'rgba(56,189,248,0.35)',
+  },
+  noticeText: { color: 'rgba(229,242,255,0.9)', fontSize: 14, lineHeight: 20, marginVertical: 8 },
 });
 
 export default TeamScreen;
