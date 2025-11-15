@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { ScreenContainer } from '@components/ScreenContainer';
 import GlassCard from '@components/shared/GlassCard';
 import RewardProgress from '@components/invite/RewardProgress';
@@ -47,6 +48,7 @@ export const InviteHomeScreen = () => {
   const [selectedFilter, setSelectedFilter] = useState(FILTER_TABS[0].key);
   const [searchValue, setSearchValue] = useState('');
   const [rewardExpanded, setRewardExpanded] = useState(false);
+  const tabBarHeight = useBottomTabBarHeight?.() ?? 0;
 
   const statItems = useMemo(
     () => [
@@ -78,7 +80,12 @@ export const InviteHomeScreen = () => {
 
   return (
     <ScreenContainer variant="plain" scrollable>
-      <View style={styles.pageContent}>
+      <View
+        style={[
+          styles.pageContent,
+          { paddingBottom: tabBarHeight ? tabBarHeight + 24 : 120 },
+        ]}
+      >
         <View style={styles.headerRow}>
         <Text style={styles.title}>我的邀请</Text>
         <Pressable style={styles.helpButton} onPress={() => console.log('help')}>
@@ -236,6 +243,7 @@ const styles = StyleSheet.create({
   },
   rewardCard: {
     gap: 12,
+    marginBottom: 16,
   },
   rewardHeader: {
     flexDirection: 'row',
@@ -286,27 +294,33 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   memberCard: {
-    marginTop: 24,
+    marginTop: 8,
     gap: 12,
   },
   filterChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
     marginTop: 8,
+    marginBottom: 8,
   },
   filterChipsContent: {
-    columnGap: 10,
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    alignItems: 'center',
     paddingRight: 6,
   },
   filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 999,
+    marginRight: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.14)',
     backgroundColor: 'rgba(5,8,20,0.4)',
   },
   filterChipActive: {
     borderColor: '#33F5FF',
-    backgroundColor: 'rgba(51,245,255,0.22)',
+    backgroundColor: 'rgba(51,245,255,0.16)',
     shadowColor: '#33F5FF',
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 8,

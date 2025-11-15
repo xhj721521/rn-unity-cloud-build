@@ -45,19 +45,21 @@ export const InviteeItem = ({ data, onPress, onPressMenu }: InviteeItemProps) =>
       style={({ pressed }) => [styles.container, pressed && styles.pressed]}
       onPress={onPress}
     >
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{data.nickname.charAt(0).toUpperCase()}</Text>
-      </View>
-      <View style={styles.detail}>
-        <Text style={styles.name} numberOfLines={1}>
-          {data.nickname}
-        </Text>
-        <Text style={styles.contrib} numberOfLines={1}>
-          今日贡献 {data.contrib.today} · 累计 {data.contrib.total}
-        </Text>
-        <Text style={styles.meta} numberOfLines={1}>
-          邀请 {formatTime(data.invitedAt)} · 活跃 {formatTime(data.lastActiveAt)}
-        </Text>
+      <View style={styles.leftBlock}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{data.nickname.charAt(0).toUpperCase()}</Text>
+        </View>
+        <View style={styles.detail}>
+          <Text style={styles.name} numberOfLines={1}>
+            {data.nickname}
+          </Text>
+          <Text style={styles.contrib} numberOfLines={1}>
+            今日贡献 {data.contrib.today} · 累计 {data.contrib.total}
+          </Text>
+          <Text style={styles.meta} numberOfLines={1}>
+            邀请 {formatTime(data.invitedAt)} · 活跃 {formatTime(data.lastActiveAt)}
+          </Text>
+        </View>
       </View>
       <View style={styles.actions}>
         <View style={[styles.statusPill, { borderColor: statusColor }]}>
@@ -91,17 +93,23 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: 'rgba(4,10,20,0.75)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
-    gap: 14,
     marginBottom: 10,
   },
   pressed: {
     opacity: 0.9,
+  },
+  leftBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    marginRight: 12,
   },
   avatar: {
     width: 48,
@@ -112,6 +120,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.03)',
+    marginRight: 12,
   },
   avatarText: {
     ...typography.subtitle,
@@ -140,9 +149,11 @@ const styles = StyleSheet.create({
   statusPill: {
     borderRadius: 999,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    height: 28,
+    paddingHorizontal: 16,
     backgroundColor: 'rgba(5, 10, 25, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   statusText: {
     ...typography.captionCaps,
