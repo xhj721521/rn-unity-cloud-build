@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View, Image } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, Image, Pressable } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationProp, NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -157,11 +157,23 @@ export const ProfileScreen = () => {
                   {displayName}
                 </Text>
               </View>
-              <QuickGlyph id="settings" size={22} colors={['#33F5FF', '#7DB1FF']} />
+              <Pressable onPress={() => navigation.navigate('Settings')}>
+                <QuickGlyph id='settings' size={22} colors={['#33F5FF', '#7DB1FF']} />
+              </Pressable>
             </View>
             <View style={styles.assetRow}>
-              <AssetPill label="ARC" value={arcAmount} accent="#33F5FF" />
-              <AssetPill label="矿石" value={oreAmount} accent="#7DB1FF" />
+              <AssetPill
+                label="ARC"
+                value={arcAmount}
+                accent="#33F5FF"
+                onPress={() => navigation.navigate('Wallet')}
+              />
+              <AssetPill
+                label="矿石"
+                value={oreAmount}
+                accent="#7DB1FF"
+                onPress={() => navigation.navigate('Wallet')}
+              />
             </View>
           </NeonCard>
 
@@ -191,23 +203,27 @@ export const ProfileScreen = () => {
             </View>
             <View style={styles.entryGrid}>
               {entryTiles.map((entry) => (
-                <NeonCard
+                <Pressable
                   key={entry.key}
-                  overlayColor="rgba(5,8,18,0.78)"
-                  borderColors={['#33F5FF', '#7DB1FF']}
-                  glowColor="#33F5FF"
-                  contentPadding={14}
                   style={styles.entryCard}
                   onPress={entry.onPress}
+                  android_ripple={{ color: 'rgba(255,255,255,0.08)', borderless: true }}
                 >
-                  <View style={styles.entryTopRow}>
-                    <View style={styles.entryIcon}>
-                      <QuickGlyph id={entry.glyph} size={22} colors={['#33F5FF', '#7DB1FF']} />
+                  <NeonCard
+                    overlayColor="rgba(5,8,18,0.78)"
+                    borderColors={['#33F5FF', '#7DB1FF']}
+                    glowColor="#33F5FF"
+                    contentPadding={14}
+                  >
+                    <View style={styles.entryTopRow}>
+                      <View style={styles.entryIcon}>
+                        <QuickGlyph id={entry.glyph} size={22} colors={['#33F5FF', '#7DB1FF']} />
+                      </View>
                     </View>
-                  </View>
-                  <Text style={styles.entryTitle}>{entry.title}</Text>
-                  <Text style={styles.entryDesc}>{entry.desc}</Text>
-                </NeonCard>
+                    <Text style={styles.entryTitle}>{entry.title}</Text>
+                    <Text style={styles.entryDesc}>{entry.desc}</Text>
+                  </NeonCard>
+                </Pressable>
               ))}
             </View>
           </View>
@@ -221,17 +237,19 @@ const AssetPill = ({
   label,
   value,
   accent,
+  onPress,
 }: {
   label: string;
   value: string;
   accent: string;
+  onPress: () => void;
 }) => (
-  <View style={[styles.assetPill, { borderColor: accent }]}>
+  <Pressable onPress={onPress} style={[styles.assetPill, { borderColor: accent }]}>
     <Text style={[styles.assetLabel, { color: accent }]}>{label}</Text>
     <Text style={styles.assetValue} numberOfLines={1}>
       {value}
     </Text>
-  </View>
+  </Pressable>
 );
 
 const StatCard = ({
