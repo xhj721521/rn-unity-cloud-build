@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   rankCard: {
-    width: (SCREEN_WIDTH - 16 * 2 - 8 * 2) / 3,
+    width: (SCREEN_WIDTH - 16 * 2) / 3,
     height: 110,
     borderRadius: 16,
     paddingHorizontal: 10,
