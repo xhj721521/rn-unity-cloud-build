@@ -2,7 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MarketStackParamList } from './types';
 import { MarketHomeScreen } from '@modules/market/MarketHomeScreen';
-import { MarketListingsScreen } from '@modules/market/MarketListingsScreen';
+import { MarketListScreen } from '@modules/market/MarketListScreen';
 import { MarketHistoryScreen } from '@modules/market/MarketHistoryScreen';
 import { MarketNewOrderScreen } from '@modules/market/MarketNewOrderScreen';
 import { MarketNewAuctionScreen } from '@modules/market/MarketNewAuctionScreen';
@@ -16,7 +16,7 @@ export const MarketNavigator = () => (
     }}
   >
     <Stack.Screen name="MarketHome" component={MarketHomeScreen} />
-    <Stack.Screen name="MarketListings" component={MarketListingsScreen} />
+    <Stack.Screen name="MarketListings" component={MarketListScreen} />
     <Stack.Screen name="MarketHistory" component={MarketHistoryScreen} />
     <Stack.Screen name="MarketNewOrder" component={MarketNewOrderScreen} />
     <Stack.Screen name="MarketNewAuction" component={MarketNewAuctionScreen} />

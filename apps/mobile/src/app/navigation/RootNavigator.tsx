@@ -5,12 +5,12 @@ import { HomeNavigator } from './HomeNavigator';
 import { TrialsScreen } from '@modules/trials/TrialsScreen';
 import { ExploreScreen } from '@modules/explore/ExploreScreen';
 import { ProfileNavigator } from './ProfileNavigator';
-import { MarketNavigator } from './MarketNavigator';
 import FateTabBar from '@components/FateTabBar';
 import { RootStackParamList, RootTabParamList } from './types';
 import { ActivityHubScreen } from '@modules/activity/ActivityHubScreen';
 import { ActivityDetailScreen } from '@modules/activity/ActivityDetailScreen';
 import { MyActivitiesScreen } from '@modules/activity/MyActivitiesScreen';
+import { MarketNavigator } from './MarketNavigator';
 
 type TabConfig = {
   name: keyof RootTabParamList;

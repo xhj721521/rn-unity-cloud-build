@@ -1,136 +1,127 @@
 import React, { useMemo, useState } from 'react';
-import {
-  FlatList,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import { MarketStackParamList } from '@app/navigation/types';
+import { FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { marketHistory, MarketAssetCategory } from '@data/marketMock';
 
-type TradeRecord = {
-  id: string;
-  buyer: string;
-  seller: string;
-  price: number;
-  qty: number;
-  total: number;
-  timeAgo: string;
-};
-
-const mockHistory: TradeRecord[] = Array.from({ length: 20 }).map((_, index) => ({
-  id: `trade-${index}`,
-  buyer: `Aria_${index}`,
-  seller: `Pilot_${120 + index}`,
-  price: 12 + index * 0.2,
-  qty: 60 + index * 2,
-  total: (12 + index * 0.2) * (60 + index * 2),
-  timeAgo: `${index + 1} 分钟前`,
-}));
+const FILTERS: { key: MarketAssetCategory | 'all'; label: string }[] = [
+  { key: 'all', label: '全部' },
+  { key: 'ore', label: '矿石' },
+  { key: 'fragment', label: '碎片' },
+  { key: 'nft', label: '地图 NFT' },
+];
 
 export const MarketHistoryScreen = () => {
-  const route = useRoute<RouteProp<MarketStackParamList, 'MarketHistory'>>();
-  const [range, setRange] = useState<'4h' | '7d' | '30d'>('4h');
+  const [filter, setFilter] = useState<MarketAssetCategory | 'all'>('all');
 
-  const records = useMemo(() => mockHistory, [range]);
-  const title = route.params.type === 'ore' ? '命运矿石成交记录' : '命运碎片成交记录';
+  const data = useMemo(
+    () => (filter === 'all' ? marketHistory : marketHistory.filter((item) => item.category === filter)),
+    [filter],
+  );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>最近 24 小时内的成交明细，用于参考市场真实价格。</Text>
-      </View>
-      <View style={styles.rangeRow}>
-        {(['4h', '7d', '30d'] as const).map((key) => (
-          <TouchableOpacity
-            key={key}
-            style={[styles.rangePill, range === key && styles.rangePillActive]}
-            onPress={() => setRange(key)}
-          >
-            <Text style={[styles.rangeText, range === key && styles.rangeTextActive]}>{key}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <FlatList
-        data={records}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.recordCard}>
-            <View style={styles.recordColumn}>
-              <Text style={styles.recordLabel}>买家：{maskName(item.buyer)}</Text>
-              <Text style={styles.recordLabel}>卖家：{maskName(item.seller)}</Text>
+    <View style={{ flex: 1 }}>
+      <LinearGradient colors={['#050814', '#08152F', '#042D4A']} style={StyleSheet.absoluteFill} />
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={styles.header}>
+          <Text style={styles.title}>成交与历史</Text>
+          <Text style={styles.subtitle}>查看近期成交记录</Text>
+        </View>
+
+        <View style={styles.filterRow}>
+          {FILTERS.map((item) => (
+            <TouchableOpacity
+              key={item.key}
+              style={[styles.chip, filter === item.key && styles.chipActive]}
+              onPress={() => setFilter(item.key)}
+            >
+              <Text style={[styles.chipText, filter === item.key && styles.chipTextActive]}>{item.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <View style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rowTitle}>{item.title}</Text>
+                <Text style={styles.rowSubtitle}>{item.time}</Text>
+              </View>
+              <View style={styles.rowRight}>
+                <Text style={styles.rowPrice}>{item.price} ARC</Text>
+                <Text style={styles.rowAmount}>数量 {item.amount}</Text>
+                <View style={[styles.status, item.status === 'success' ? styles.ok : item.status === 'pending' ? styles.pending : styles.failed]}>
+                  <Text style={styles.statusText}>
+                    {item.status === 'success' ? '成功' : item.status === 'pending' ? '审核中' : '失败'}
+                  </Text>
+                </View>
+              </View>
             </View>
-            <View style={styles.recordColumn}>
-              <Text style={styles.recordValue}>价格 {item.price.toFixed(2)} ARC</Text>
-              <Text style={styles.recordValue}>数量 {item.qty} 单位</Text>
+          )}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyText}>暂无记录</Text>
             </View>
-            <View style={styles.recordColumnRight}>
-              <Text style={styles.recordTotal}>{item.total.toFixed(2)} ARC</Text>
-              <Text style={styles.recordTime}>{item.timeAgo}</Text>
-            </View>
-          </View>
-        )}
-        ListEmptyComponent={
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>暂时没有成交记录</Text>
-            <Text style={styles.emptySubtitle}>市场还在酝酿期，耐心等等其他命运矿工出手。</Text>
-          </View>
-        }
-        contentContainerStyle={styles.listContent}
-      />
-    </SafeAreaView>
+          }
+        />
+      </SafeAreaView>
+    </View>
   );
 };
 
-const maskName = (name: string) => `${name.slice(0, 2)}***`;
-
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#020617', paddingHorizontal: 16, paddingTop: 16 },
-  header: { marginBottom: 16 },
+  header: { paddingHorizontal: 16, paddingTop: 12 },
   title: { color: '#F9FAFB', fontSize: 20, fontWeight: '700' },
-  subtitle: { color: 'rgba(148,163,184,0.9)', fontSize: 12, marginTop: 4 },
-  rangeRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  rangePill: {
-    flex: 1,
+  subtitle: { color: 'rgba(148,163,184,0.85)', fontSize: 13, marginTop: 4 },
+  filterRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginTop: 12 },
+  chip: {
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: 'rgba(56,189,248,0.25)',
-    alignItems: 'center',
+    backgroundColor: 'rgba(5,8,18,0.65)',
   },
-  rangePillActive: { borderColor: 'rgba(56,189,248,0.7)', backgroundColor: 'rgba(14,165,233,0.18)' },
-  rangeText: { color: 'rgba(148,163,184,0.9)', fontSize: 12 },
-  rangeTextActive: { color: '#F9FAFB', fontWeight: '600' },
-  listContent: { paddingBottom: 80, gap: 10 },
-  recordCard: {
+  chipActive: { borderColor: 'rgba(56,189,248,0.7)', backgroundColor: 'rgba(14,165,233,0.18)' },
+  chipText: { color: 'rgba(229,242,255,0.78)', fontSize: 13 },
+  chipTextActive: { color: '#F9FAFB', fontWeight: '700' },
+  list: { paddingHorizontal: 16, paddingBottom: 120, paddingTop: 12, gap: 12 },
+  row: {
     borderRadius: 16,
+    padding: 12,
     borderWidth: 1,
     borderColor: 'rgba(56,189,248,0.25)',
     backgroundColor: 'rgba(8,18,40,0.92)',
-    padding: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
-  },
-  recordColumn: { gap: 4 },
-  recordColumnRight: { alignItems: 'flex-end', gap: 4 },
-  recordLabel: { color: 'rgba(148,163,184,0.85)', fontSize: 12 },
-  recordValue: { color: '#E5F2FF', fontSize: 13, fontWeight: '500' },
-  recordTotal: { color: '#7FFBFF', fontSize: 14, fontWeight: '700' },
-  recordTime: { color: 'rgba(148,163,184,0.85)', fontSize: 11 },
-  emptyCard: {
-    borderRadius: 18,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(56,189,248,0.2)',
-    backgroundColor: 'rgba(5,8,18,0.85)',
     alignItems: 'center',
   },
-  emptyTitle: { color: '#F9FAFB', fontSize: 15, fontWeight: '600' },
-  emptySubtitle: { color: 'rgba(148,163,184,0.9)', fontSize: 12, marginTop: 6, textAlign: 'center' },
+  rowTitle: { color: '#F9FAFB', fontSize: 15, fontWeight: '600' },
+  rowSubtitle: { color: 'rgba(148,163,184,0.85)', fontSize: 12, marginTop: 2 },
+  rowRight: { alignItems: 'flex-end', gap: 4 },
+  rowPrice: { color: '#7FFBFF', fontSize: 15, fontWeight: '700' },
+  rowAmount: { color: 'rgba(229,242,255,0.8)', fontSize: 12 },
+  status: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  ok: { borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,0.12)' },
+  pending: { borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.12)' },
+  failed: { borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.12)' },
+  statusText: { color: '#F9FAFB', fontSize: 11, fontWeight: '600' },
+  empty: {
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(56,189,248,0.25)',
+    backgroundColor: 'rgba(5,8,18,0.85)',
+  },
+  emptyText: { color: 'rgba(229,242,255,0.8)', fontSize: 13 },
 });
 
 export default MarketHistoryScreen;
