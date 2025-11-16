@@ -9,6 +9,7 @@ import { MyInvitesScreen } from '@modules/profile/MyInvitesScreen';
 import { WalletScreen } from '@modules/profile/WalletScreen';
 import { MemberScreen } from '@modules/profile/MemberScreen';
 import { HighlightsScreen } from '@modules/profile/HighlightsScreen';
+import { ReportsScreen } from '@modules/profile/ReportsScreen';
 import { KYCScreen } from '@modules/profile/KYCScreen';
 import { SettingsScreen } from '@modules/profile/SettingsScreen';
 import { LanguageScreen } from '@screens/settings/LanguageScreen';
@@ -35,6 +36,7 @@ export const ProfileNavigator = () => {
       <Stack.Screen name="Wallet" component={WalletScreen} />
       <Stack.Screen name="Member" component={MemberScreen} />
       <Stack.Screen name="Highlights" component={HighlightsScreen} />
+      <Stack.Screen name="Reports" component={ReportsScreen} />
       <Stack.Screen name="KYC" component={KYCScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="LanguageSettings" component={LanguageScreen} />

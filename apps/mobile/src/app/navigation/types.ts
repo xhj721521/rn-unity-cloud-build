@@ -31,6 +31,7 @@ export type ProfileStackParamList = {
   PosterWorkshop: undefined;
   Wallet: undefined;
   Member: undefined;
+  Reports: undefined;
   Highlights: undefined;
   KYC: undefined;
   Settings: undefined;

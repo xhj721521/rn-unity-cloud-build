@@ -56,6 +56,14 @@ const functionEntries = [
     route: 'Member',
   },
   {
+    key: 'battle',
+    title: '战报中心',
+    subtitle: '数据与战报',
+    glyph: 'reports' as const,
+    badgeText: '3 条未读',
+    route: 'Reports',
+  },
+  {
     key: 'highlights',
     title: '收藏亮点',
     subtitle: '高光收藏',

@@ -58,7 +58,7 @@ const chunkEntries = (list: LeaderboardEntry[]): LeaderboardEntry[][] => {
 
 const formatScore = (score: number) => `${score.toLocaleString()} 积分`;
 
-const LeaderboardScreen = () => {
+export const LeaderboardScreen = () => {
   const tabBarHeight = useBottomTabBarHeight?.() ?? 0;
   const [category, setCategory] = useState<LeaderboardCategory>('inviter');
   const [period, setPeriod] = useState<LeaderboardPeriod>('daily');

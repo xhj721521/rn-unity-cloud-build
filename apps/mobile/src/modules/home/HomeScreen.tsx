@@ -49,7 +49,7 @@ const formatAssetAmount = (assets: ChainAsset[] | undefined, id: string): string
 export const HomeScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<HomeNavigation>();
-  const tabNavigation = navigation.getParent()?.getParent() as NavigationProp<RootTabParamList> | undefined;
+  const tabNavigation = navigation.getParent() as NavigationProp<RootTabParamList> | undefined;
   const { width: windowWidth } = useWindowDimensions();
   const { data, loading, error } = useAccountSummary();
 
