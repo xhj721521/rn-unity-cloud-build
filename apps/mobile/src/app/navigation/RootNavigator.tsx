@@ -1,11 +1,16 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { HomeNavigator } from './HomeNavigator';
 import { TrialsScreen } from '@modules/trials/TrialsScreen';
 import { ExploreScreen } from '@modules/explore/ExploreScreen';
 import { ProfileNavigator } from './ProfileNavigator';
-import { RootTabParamList } from './types';
+import { MarketNavigator } from './MarketNavigator';
 import FateTabBar from '@components/FateTabBar';
+import { RootStackParamList, RootTabParamList } from './types';
+import { ActivityHubScreen } from '@modules/activity/ActivityHubScreen';
+import { ActivityDetailScreen } from '@modules/activity/ActivityDetailScreen';
+import { MyActivitiesScreen } from '@modules/activity/MyActivitiesScreen';
 
 type TabConfig = {
   name: keyof RootTabParamList;
@@ -22,8 +27,9 @@ const TAB_ITEMS: TabConfig[] = [
 ];
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export const RootNavigator = () => (
+const Tabs = () => (
   <Tab.Navigator
     tabBar={(props) => <FateTabBar {...props} />}
     screenOptions={{
@@ -47,4 +53,18 @@ export const RootNavigator = () => (
       />
     ))}
   </Tab.Navigator>
+);
+
+export const RootNavigator = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name="Tabs" component={Tabs} />
+    <Stack.Screen name="ActivityHub" component={ActivityHubScreen} />
+    <Stack.Screen name="ActivityDetail" component={ActivityDetailScreen} />
+    <Stack.Screen name="MyActivities" component={MyActivitiesScreen} />
+    <Stack.Screen name="FateMarket" component={MarketNavigator} />
+  </Stack.Navigator>
 );

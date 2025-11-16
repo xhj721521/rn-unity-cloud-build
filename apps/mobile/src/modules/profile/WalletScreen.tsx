@@ -125,8 +125,9 @@ const AssetHistoryCard = ({ records }: { records: AssetRecord[] }) => (
 export const WalletScreen = () => {
   const { data } = useAccountSummary();
   const stackNavigation = useNavigation();
-  const tabNavigation = stackNavigation.getParent()?.getParent() as
-    | NavigationProp<RootTabParamList>
+  const tabNavigation = stackNavigation.getParent() as NavigationProp<RootTabParamList> | undefined;
+  const rootNavigation = stackNavigation.getParent()?.getParent() as
+    | NavigationProp<RootStackParamList>
     | undefined;
   const tabBarHeight = useBottomTabBarHeight?.() ?? 0;
   const tokens = useMemo(() => data?.tokens ?? [], [data?.tokens]);
@@ -144,9 +145,9 @@ export const WalletScreen = () => {
   };
 
   const handleOreGoToMarket = () => {
-    tabNavigation?.navigate?.('Home', {
-      screen: 'MarketStack',
-      params: { screen: 'MarketListings', params: { type: 'ore', side: 'sell' } },
+    rootNavigation?.navigate?.('FateMarket', {
+      screen: 'MarketListings',
+      params: { type: 'ore', side: 'sell' },
     });
   };
 

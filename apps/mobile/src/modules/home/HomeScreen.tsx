@@ -11,7 +11,7 @@ import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
 import { useAppDispatch } from '@state/hooks';
 import { loadAccountSummary } from '@state/account/accountSlice';
-import { HomeStackParamList, RootTabParamList } from '@app/navigation/types';
+import { HomeStackParamList, RootStackParamList, RootTabParamList } from '@app/navigation/types';
 import FateHeroCard from './components/FateHeroCard';
 import FateModePills from './components/FateModePills';
 import FateFeatureGrid from './components/FateFeatureGrid';
@@ -50,6 +50,7 @@ export const HomeScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<HomeNavigation>();
   const tabNavigation = navigation.getParent() as NavigationProp<RootTabParamList> | undefined;
+  const rootNavigation = navigation.getParent()?.getParent() as NavigationProp<RootStackParamList> | undefined;
   const { width: windowWidth } = useWindowDimensions();
   const { data, loading, error } = useAccountSummary();
 
@@ -114,7 +115,7 @@ export const HomeScreen = () => {
         title: '命运集市',
         subtitle: '交易矿石、NFT 与命运道具',
         icon: <MarketIcon />,
-        onPress: () => navigation.navigate('MarketStack'),
+        onPress: () => rootNavigation?.navigate('FateMarket', { screen: 'MarketHome' }),
       },
       {
         key: 'event',
@@ -122,6 +123,13 @@ export const HomeScreen = () => {
         subtitle: '限时增益与补给兑换',
         icon: <EventIcon />,
         onPress: () => navigation.navigate('EventShop'),
+      },
+      {
+        key: 'activity',
+        title: '活动指挥部',
+        subtitle: '挑战、抽签与秘矿兑换',
+        icon: <EventIcon />,
+        onPress: () => rootNavigation?.navigate('ActivityHub'),
       },
     ],
     [navigation],

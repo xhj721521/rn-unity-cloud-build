@@ -6,20 +6,12 @@ export type MarketStackParamList = {
   MarketNewAuction: undefined;
 };
 
-export type RootTabParamList = {
-  Home: { screen?: keyof HomeStackParamList } | undefined;
-  Trials: undefined;
-  Explore: undefined;
-  Profile: { screen?: keyof ProfileStackParamList } | undefined;
-};
-
 export type HomeStackParamList = {
   HomeMain: undefined;
   Leaderboard: undefined;
   Forge: undefined;
   EventShop: undefined;
   BlindBox: undefined;
-  MarketStack: { screen?: keyof MarketStackParamList } | undefined;
 };
 
 export type ProfileStackParamList = {
@@ -39,4 +31,19 @@ export type ProfileStackParamList = {
   NotificationsSettings: undefined;
   FundsRecord: undefined;
   RaidLobby: undefined;
+};
+
+export type RootTabParamList = {
+  Home: { screen?: keyof HomeStackParamList } | undefined;
+  Explore: undefined;
+  Trials: undefined;
+  Profile: { screen?: keyof ProfileStackParamList } | undefined;
+};
+
+export type RootStackParamList = {
+  Tabs: undefined;
+  ActivityHub: undefined;
+  ActivityDetail: { id: string; type?: 'raffle' | 'detail' } | undefined;
+  MyActivities: undefined;
+  FateMarket: { screen?: keyof MarketStackParamList; params?: Record<string, unknown> } | undefined;
 };
