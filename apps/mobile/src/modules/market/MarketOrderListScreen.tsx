@@ -16,6 +16,7 @@ import {
 import PillTabs from '@components/market/PillTabs';
 import MarketOrderCard from '@components/market/MarketOrderCard';
 import { personalMapLabels, teamMapLabels } from '@types/market';
+import MarketOrderFormSheet from '@components/market/MarketOrderFormSheet';
 
 type RouteProps = RouteProp<MarketStackParamList, 'MarketListings'>;
 
@@ -54,6 +55,10 @@ export const MarketOrderListScreen = () => {
   const [oreFilter, setOreFilter] = useState<OreTier | 'all'>('all');
   const [mapKind, setMapKind] = useState<MapKind>('personal');
   const [mapFilter, setMapFilter] = useState<PersonalMapId | TeamMapId | 'all'>('all');
+  const [sheetVisible, setSheetVisible] = useState(false);
+  const [sheetSide, setSheetSide] = useState<OrderSide>('sell');
+  const [sheetCategory, setSheetCategory] = useState<MarketCategory>('ore');
+  const [sheetAsset, setSheetAsset] = useState<MarketAsset | undefined>(undefined);
 
   const mapLabels = mapKind === 'personal' ? personalMapLabels : teamMapLabels;
   const mapFilterKeys = Object.keys(mapLabels) as (PersonalMapId | TeamMapId)[];
@@ -102,7 +107,13 @@ export const MarketOrderListScreen = () => {
   };
 
   const handleOpenForm = (asset?: MarketAsset, sideOverride?: OrderSide) => {
-    console.log('open form', asset, sideOverride); // placeholder for sheet opening
+    setSheetSide(sideOverride ?? 'sell');
+    const cat =
+      asset?.category ??
+      (category === 'all' ? 'ore' : (category as MarketCategory));
+    setSheetCategory(cat);
+    setSheetAsset(asset);
+    setSheetVisible(true);
   };
 
   return (
@@ -173,6 +184,14 @@ export const MarketOrderListScreen = () => {
         <TouchableOpacity style={styles.fab} onPress={() => handleOpenForm()}>
           <Text style={styles.fabText}>+</Text>
         </TouchableOpacity>
+
+        <MarketOrderFormSheet
+          visible={sheetVisible}
+          side={sheetSide}
+          defaultCategory={sheetCategory}
+          defaultAsset={sheetAsset}
+          onClose={() => setSheetVisible(false)}
+        />
       </SafeAreaView>
     </View>
   );
