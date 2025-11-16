@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { marketHistory, MarketAssetCategory } from '@data/marketMock';
+import { marketHistory, MarketAssetCategory } from '@data/marketOrders';
 
 const FILTERS: { key: MarketAssetCategory | 'all'; label: string }[] = [
   { key: 'all', label: '全部' },

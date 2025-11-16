@@ -11,24 +11,27 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MarketStackParamList } from '@app/navigation/types';
-import { marketAssets } from '@data/marketMock';
+import { mockOrders, marketCategories, metrics } from '@data/marketOrders';
+import MarketOrderCard from '@components/market/MarketOrderCard';
+import { MarketCategory, OrderSide } from '@types/market';
+import PillTabs from '@components/market/PillTabs';
 
-const CATEGORY_TABS = [
-  { key: 'all', label: '全部' },
+const CATEGORY_TABS: ({ key: MarketCategory; label: string } | { key: 'all'; label: string })[] = [
   { key: 'ore', label: '矿石' },
   { key: 'fragment', label: '碎片' },
-  { key: 'nft', label: '地图 NFT' },
-] as const;
+  { key: 'mapNft', label: '地图 NFT' },
+  { key: 'all', label: '全部' },
+];
 
 const SORT_OPTIONS = ['价格', '数量', '最新'] as const;
 
 export const MarketHomeScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<MarketStackParamList>>();
-  const [category, setCategory] = useState<(typeof CATEGORY_TABS)[number]['key']>('all');
+  const [category, setCategory] = useState<MarketCategory | 'all'>('all');
   const [sortKey, setSortKey] = useState<(typeof SORT_OPTIONS)[number]>('价格');
 
   const filtered = useMemo(() => {
-    const list = category === 'all' ? marketAssets : marketAssets.filter((a) => a.category === category);
+    const list = category === 'all' ? mockOrders : mockOrders.filter((a) => a.asset.category === category);
     switch (sortKey) {
       case '数量':
         return [...list].sort((a, b) => b.quantity - a.quantity);
@@ -61,19 +64,7 @@ export const MarketHomeScreen = () => {
             <Text style={styles.pageSubtitle}>浏览挂单 · 交易矿石 / 地图碎片 / 地图 NFT</Text>
           </View>
 
-          <View style={styles.tabRow}>
-            {CATEGORY_TABS.map((tab) => (
-              <TouchableOpacity
-                key={tab.key}
-                style={[styles.tabPill, category === tab.key && styles.tabPillActive]}
-                onPress={() => setCategory(tab.key)}
-              >
-                <Text style={[styles.tabLabel, category === tab.key && styles.tabLabelActive]}>
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+        <PillTabs tabs={CATEGORY_TABS as any} value={category} onChange={(v) => setCategory(v)} />
 
           <View style={styles.sortRow}>
             <View style={styles.sortGroup}>
@@ -105,11 +96,7 @@ export const MarketHomeScreen = () => {
           </View>
 
           <View style={styles.metricRow}>
-            {[
-              { label: '24h 成交额', value: '3,240,000 ARC' },
-              { label: '挂单总数', value: '1,128 笔' },
-              { label: '活跃买家', value: '8,420 人' },
-            ].map((metric) => (
+            {metrics.map((metric) => (
               <View key={metric.label} style={styles.metricCard}>
                 <Text style={styles.metricLabel}>{metric.label}</Text>
                 <Text style={styles.metricValue}>{metric.value}</Text>
@@ -124,60 +111,14 @@ export const MarketHomeScreen = () => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.grid}>
+          <View style={styles.orderGrid}>
             {filtered.slice(0, 6).map((item) => (
-              <TouchableOpacity
+              <MarketOrderCard
                 key={item.id}
-                style={styles.card}
-                onPress={() => navigation.navigate('MarketListings', { type: item.category, side: item.side })}
-              >
-                <View style={styles.cardHeader}>
-                  <Text style={styles.cardTitle}>{item.name}</Text>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{item.seller.name.charAt(0).toUpperCase()}</Text>
-                  </View>
-                </View>
-                <Text style={styles.cardPrice}>{item.price} ARC</Text>
-                <Text style={styles.cardSubtitle}>数量 {item.quantity}</Text>
-                {item.depth ? <Text style={styles.cardSubtitle}>{item.depth}</Text> : null}
-                {item.change ? <Text style={styles.cardChange}>{item.change}</Text> : null}
-              </TouchableOpacity>
+                order={item}
+                onPressAction={(order) => navigation.navigate('MarketListings', { type: order.asset.category, side: 'all' })}
+              />
             ))}
-          </View>
-
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>地图 NFT 热门竞拍</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('MarketListings', { type: 'nft', side: 'all' })}>
-              <Text style={styles.linkText}>全部竞拍</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.grid}>
-            {filtered
-              .filter((i) => i.category === 'nft')
-              .slice(0, 4)
-              .map((item) => (
-                <TouchableOpacity
-                  key={item.id}
-                  style={styles.card}
-                  onPress={() => navigation.navigate('MarketListings', { type: 'nft', side: 'all' })}
-                >
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle}>{item.name}</Text>
-                    <View style={styles.avatar}>
-                      <Text style={styles.avatarText}>{item.seller.name.charAt(0).toUpperCase()}</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.cardPrice}>{item.price} ARC</Text>
-                  <Text style={styles.cardSubtitle}>{item.depth ?? '出价 0'}</Text>
-                  <TouchableOpacity
-                    style={styles.ghostButton}
-                    onPress={() => navigation.navigate('MarketNewAuction')}
-                  >
-                    <Text style={styles.ghostButtonText}>参与竞拍</Text>
-                  </TouchableOpacity>
-                </TouchableOpacity>
-              ))}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -240,40 +181,7 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 },
   sectionLabel: { color: '#F9FAFB', fontSize: 15, fontWeight: '600' },
   linkText: { color: '#7FFBFF', fontSize: 12 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12, marginTop: 8 },
-  card: {
-    width: '48%',
-    borderRadius: 18,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(56,189,248,0.3)',
-    backgroundColor: 'rgba(8,18,40,0.92)',
-  },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardTitle: { color: '#F9FAFB', fontSize: 14, fontWeight: '600' },
-  cardPrice: { color: '#7FFBFF', fontSize: 18, fontWeight: '700', marginTop: 6 },
-  cardSubtitle: { color: 'rgba(148,163,184,0.85)', fontSize: 12, marginTop: 4 },
-  cardChange: { color: '#34D399', fontSize: 11, marginTop: 2 },
-  avatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(56,189,248,0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(56,189,248,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: { color: '#7FFBFF', fontSize: 13, fontWeight: '700' },
-  ghostButton: {
-    marginTop: 10,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.5)',
-    paddingVertical: 8,
-    alignItems: 'center',
-  },
-  ghostButtonText: { color: '#E5F2FF', fontSize: 12 },
+  orderGrid: { gap: 12, marginTop: 8 },
 });
 
 export default MarketHomeScreen;

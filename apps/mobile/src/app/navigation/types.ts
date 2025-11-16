@@ -1,9 +1,7 @@
 export type MarketStackParamList = {
   MarketHome: undefined;
-  MarketListings: { type?: 'ore' | 'fragment' | 'nft' | 'all'; side?: 'sell' | 'buy' | 'all' } | undefined;
-  MarketHistory: { type?: 'ore' | 'fragment' | 'nft' } | undefined;
-  MarketNewOrder: { type: 'ore' | 'fragment'; mode: 'buy' | 'sell' };
-  MarketNewAuction: undefined;
+  MarketListings: { type?: 'ore' | 'fragment' | 'mapNft' | 'all'; side?: 'sell' | 'buy' | 'all' } | undefined;
+  MarketHistory: { type?: 'ore' | 'fragment' | 'mapNft' } | undefined;
 };
 
 export type HomeStackParamList = {

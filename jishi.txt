@@ -1,85 +1,203 @@
-一、模块总览（给 Copilot）
+0. 说明
 
-模块名：命运集市（Market）
+保持现有底部导航：首页 / 探索 / 试炼 / 我的，不要新增「集市」tab。
 
-需要实现 5 个页面 / Screen：
+「命运集市」入口继续在首页（或活动/资产中心）里，点击后进入下面的 MarketHomeScreen。
 
-MarketHomeScreen
-集市首页（你现在截图里的那个页面），包含矿石市场、碎片市场、NFT 拍卖区等概览。
+所有页面统一科技+霓虹风格，和你现在的试炼、活动风格一致。
 
-MarketListingsScreen
-某一种资源的「全部挂单列表」页（比如命运矿石全部挂单、命运碎片全部挂单）。
+要实现 3 个主要页面：
 
-MarketHistoryScreen
-某一种资源的「成交记录」页。
+MarketHomeScreen：命运集市首页
 
-MarketNewOrderScreen
-发布买单/卖单（发布求购 / 我要上架）的表单页。
+MarketOrderListScreen：挂单列表页（浏览全部挂单，带筛选）
 
-MarketNewAuctionScreen
-NFT「发起拍卖」表单页。
+MarketOrderFormSheet：我要卖 / 我要求购的弹层（简单版，先做 UI 框架）
 
-当前阶段重点：① 首页 + ② 全部挂单 + ③ 成交记录。
-新挂单 / 新拍卖可以先做简单表单，占位即可。
+另外实现一批通用组件和数据类型。
 
-二、路由与文件结构（任务）
+1. 通用数据结构（TypeScript interface）
 
-在集市所在的 Tab（比如 HomeTab）里，新建一个 Stack：
+在 types/market.ts 里定义：
 
-MarketStack:
-  - MarketHomeScreen        // 集市首页
-  - MarketListingsScreen    // 全部挂单
-  - MarketHistoryScreen     // 成交记录
-  - MarketNewOrderScreen    // 发布挂单
-  - MarketNewAuctionScreen  // 发起拍卖
+// 交易品类
+export type MarketCategory = 'ore' | 'fragment' | 'mapNft';
 
+// 矿石等级
+export type OreTier = 'T1' | 'T2' | 'T3' | 'T4' | 'T5';
 
-底部导航里「集市」Tab 点击时，默认进入 MarketHomeScreen。
+// 地图类型
+export type MapKind = 'personal' | 'team';
 
-所有从其它页面（例如资产中心、矿石卡片上的“去交易”）进入集市挂单页时，都通过：
+// 个人地图枚举
+export type PersonalMapId =
+  | 'ember_pit'      // 余烬坑
+  | 'neon_cave'      // 霓虹洞
+  | 'rune_well'      // 符文井
+  | 'starlight_grotto' // 星辉窟
+  | 'abyss_gate'     // 深渊口
+  | 'fate_core';     // 命运核
 
-navigation.navigate('MarketStack', {
-  screen: 'MarketListings',
-  params: { type: 'ore', side: 'sell' }
-})
+// 团队地图枚举
+export type TeamMapId =
+  | 'alliance_front' // 联盟前线
+  | 'magma_field'    // 熔火矿场
+  | 'storm_mine'     // 风暴矿区
+  | 'sanctuary_hall' // 圣所矿厅
+  | 'abyss_trench'   // 深渊矿沟
+  | 'central_core';  // 中枢矿核
 
+// NFT 类型（复用地图 Id）
+export type MapNftTarget =
+  | { kind: 'personal'; mapId: PersonalMapId }
+  | { kind: 'team'; mapId: TeamMapId };
 
-type: 'ore' | 'shard' | 'nft'
+// 订单方向
+export type OrderSide = 'sell' | 'buy'; // 卖单 / 求购单
 
-side: 'sell' | 'buy' | 'all'
+// 通用玩家信息（头像+昵称）
+export interface PlayerInfo {
+  id: string;
+  nickname: string;
+  avatarUrl?: string; // 没有时用首字母占位
+}
 
-三、集市首页：MarketHomeScreen
-1. 页面整体结构
+// 市场资产类型
+export type MarketAsset =
+  | { category: 'ore'; tier: OreTier } // 矿石
+  | {
+      category: 'fragment';
+      kind: MapKind;
+      mapId: PersonalMapId | TeamMapId;
+    } // 地图碎片
+  | {
+      category: 'mapNft';
+      kind: MapKind;
+      mapId: PersonalMapId | TeamMapId;
+    }; // 地图 NFT
 
-外层：SafeAreaView + ScrollView
+// 单条挂单 / 求购
+export interface MarketOrder {
+  id: string;
+  side: OrderSide;      // 'sell' 卖单 | 'buy' 求购
+  asset: MarketAsset;   // 交易的东西
+  price: number;        // 单价（ARC）
+  quantity: number;     // 数量（单位：矿石=单位，碎片=片，NFT=张）
+  owner: PlayerInfo;    // 卖家或求购方（头像+昵称）
+  change24h?: number;   // 24h 涨跌（可选）
+  ordersCount?: number; // “卖盘 X 手” 或 “求购 X 手”（可选）
+}
 
-内容从上到下：
+2. 通用 UI 组件
+2.1 PlayerBadge（玩家徽章）
 
-标题 + 副标题
+用途：所有出现“谁在卖/谁在求购”的地方。
 
-一级分类 Tab（全部 / 矿石 / 碎片 / NFT）
+效果：
 
-二级操作区（价格 / 数量 / 最新 / 流动性 + 发布求购/发起拍卖）
+左：圆形头像占位，默认用首字母+渐变底，如果有 avatarUrl 用图片。
 
-核心指标 3 小卡片
+右：两行文字：
 
-（全部 Tab）NFT 焦点区
+上：昵称 nickname
 
-矿石市场卡片
+下：小字：卖家 或 求购方（根据 order.side 决定）
 
-碎片市场卡片
+Props：
 
-（NFT Tab）NFT 拍卖网格
+type PlayerBadgeProps = {
+  player: PlayerInfo;
+  sideLabel: '卖家' | '求购方';
+  size?: 'sm' | 'md';
+};
 
-2. 顶部标题
+2.2 AssetBadge（资产徽章）
 
-标题：集市
+用途：展示“卖的是什么东西”。
 
-文案：链上实时价格脉冲 · 交易命运矿石 / 命运碎片 / 命运 NFT
+效果：
 
-3. 一级分类 Tab（资源类型）
+左：圆形图标（后面接真实图标，现在用占位色块+首字母）。
 
-一行 4 个 pill，支持切换状态：
+右：两行文字：
+
+上：物品名（带类型）
+
+下：小字描述（可交易、可合成、个人地图/团队地图等）
+
+命名逻辑：
+
+矿石：
+
+T1：T1 矿石 · 基础矿
+
+T2：T2 矿石 · 碎片矿
+
+T3：T3 矿石 · 星晶矿
+
+T4：T4 矿石 · 核晶矿
+
+T5：T5 矿石 · 命运矿
+
+地图碎片（个人）示例：个人地图碎片 · 霓虹洞
+
+地图碎片（团队）示例：团队地图碎片 · 联盟前线
+
+地图 NFT：个人地图 NFT · 命运核 / 团队地图 NFT · 中枢矿核
+
+Props：
+
+type AssetBadgeProps = {
+  asset: MarketAsset;
+  size?: 'sm' | 'md';
+};
+
+2.3 MarketOrderCard（订单卡片）
+
+用途：首页热门挂单 + 挂单列表统一用这张卡。
+
+布局：
+
+第一行：左 PlayerBadge，右侧大号价格 120.6 ARC（右对齐）。
+
+第二行：AssetBadge，在价格下面占一行。
+
+第三行（小字信息行）：
+
+左：数量 1200 单位 / 数量 12 片 / 数量 1 张
+
+中：卖盘 82 手 或 求购 44 手（如果有 ordersCount）
+
+右：涨跌 %（绿色 +x.x%，红色 -x.x%，没数据就不显示）
+
+右下角悬浮一个按钮：
+
+卖单：按钮文案 买入
+
+求购：按钮文案 卖给 TA
+
+Props：
+
+type MarketOrderCardProps = {
+  order: MarketOrder;
+  onPressAction: (order: MarketOrder) => void; // 点击“买入/卖给TA”
+  onPressCard?: (order: MarketOrder) => void;  // 点击卡片查看详情（可选）
+};
+
+3. 命运集市首页 MarketHomeScreen
+3.1 顶部区域
+
+标题：命运集市
+
+副标题：浏览挂单 · 交易矿石 / 地图碎片 / 地图 NFT
+
+右上角：描边按钮：我的订单（先空实现，只需跳到占位页即可）。
+
+3.2 顶部 Tab 与按钮
+
+类别 Tab（第一行）
+
+四个 pill：
 
 全部
 
@@ -87,445 +205,365 @@ side: 'sell' | 'buy' | 'all'
 
 碎片
 
-NFT
+地图 NFT
 
-行为：
+选中状态：霓虹渐变描边 + 高亮文字。
 
-切到 全部：显示所有概览模块（矿石市场 + 碎片市场 + NFT 焦点 + 拍卖区简略）。
+排序行（第二行）
 
-切到 矿石：只显示矿石相关模块（核心指标 + 矿石市场卡片）。
+左侧三个小按钮（互斥）：
 
-切到 碎片：只显示碎片相关模块。
-
-切到 NFT：主要显示 NFT 焦点和 NFT 拍卖网格。
-
-4. 二级操作区（排序与操作按钮）
-
-位于一级 Tab 下方，一行布局：
-
-左侧：四个排序 pill
-
-价格（按价格排序）
+价格（再次点击时在升序/降序中切换，小箭头↑↓）
 
 数量
 
 最新
 
-流动性
+右侧主按钮：浏览全部挂单
 
-右侧：主操作按钮
+点击：navigate('MarketOrderList', { category: 当前Tab, defaultSort: 当前排序 })
 
-当 Tab 为 全部 / 矿石 / 碎片：按钮文案 发布求购
+操作行（第三行）
 
-当 Tab 为 NFT：按钮文案 发起拍卖
+左侧描边按钮：我要卖
 
-行为：
+右侧实心按钮：我要求购
 
-点任意排序 pill：更新当前资源列表的 sort 字段（首页展示仅影响下方矿石/碎片市场里显示的两条数据）。
+点击都弹出 MarketOrderFormSheet：
 
-点击 发布求购 →
+openOrderForm({
+  side: 'sell' | 'buy',
+  defaultCategory: 当前Tab(全部时默认矿石),
+})
 
-如果当前 Tab 为 全部：弹出资源选择（矿石/碎片）；选择后跳到 MarketNewOrderScreen。
-
-如果是 矿石/碎片：直接跳 MarketNewOrderScreen，默认 type 为当前资源。
-
-点击 发起拍卖 → 跳到 MarketNewAuctionScreen。
-
-5. 核心指标 3 小卡片
-
-三列紧挨着的卡片，通用样式：
-
-卡 1：
-
-标题：今日新增挂单（NFT Tab 改为 今日新增拍卖）
-
-数值：+18
-
-副文案：相较昨日 +4.8%
-
-卡 2：
-
-标题：均价涨跌
-
-数值：+2.1%
-
-副文案：命运市场平均价格变动
-
-卡 3：
-
-标题：即时成交（NFT Tab 改为 已成交 NFT）
-
-数值：12 单
-
-副文案：24h 成交笔数 +1.8%
-
-数据规则：
-
-全部 Tab：聚合矿石 + 碎片。
-
-矿石 Tab：只显示矿石相关指标。
-
-碎片 Tab：只显示碎片相关。
-
-NFT Tab：指标换为 NFT 的拍卖数据。
-
-6. 命运 NFT 焦点区（全部 / NFT Tab 显示）
-
-卡片样式接近你现在的 “NFT 焦点”：
-
-标题：命运 NFT 焦点
-
-右上角小文案：热度脉冲
-
-每个焦点卡片内容：
-
-名称：巡航机兵核心
-
-当前价：610 ARC
-
-涨跌：+8.2%
-
-至少 2 张卡片横向排列或纵向两列网格。
-
-点击卡片 → 跳到某个 NftDetailScreen（可以先 TODO）。
-
-7. 矿石市场卡片
-
-标题行：
-
-左侧图标（小镐头）+ 标题：命运矿石市场
-
-副标题：原矿与精炼原料集中交易区，适合 Arc 提炼与基础铸造。
-
-右上：今日新增 12 条求购 + 折线图图标（可以只是占位 SVG 或图片）
-
-表格区：
-
-表头：卖家 | 价格 (ARC) | 数量 | 更新时间
-
-至少展示前 2 条挂单：
-
-例：
-
-Pilot_207 | 12.4 | 120 | 2 分钟前
-
-NanoForge | 11.9 | 300 | 7 分钟前
-
-底部按钮行：
-
-左按钮：浏览全部挂单
-
-行为：navigation.navigate('MarketListings', { type: 'ore', side: 'sell' })
-
-右按钮：查看成交记录
-
-行为：navigation.navigate('MarketHistory', { type: 'ore' })
-
-8. 碎片市场卡片
-
-结构完全与矿石市场一致，只是文案和数据不同：
-
-标题：命运碎片市场
-
-副标题：高阶命运碎片与模块在此集散，可直接用于锻造中级装备。
-
-右上标签：稀有碎片均价 +6.5%
-
-按钮行为：
-
-浏览全部挂单 → type: 'shard'
-
-查看成交记录 → type: 'shard'
-
-9. NFT 拍卖网格（NFT Tab 下方）
-
-标题：命运 NFT 拍卖厅
-副标题：限时拍卖 · 一切由出价与命运决定。
+3.3 Tab：全部 内容
 
 结构：
 
-顶部大卡：本周焦点拍品
+顶部 3 张统计卡片（横向滑动即可）：
 
-左：NFT 横图
+矿石市场 · 24h 成交额
 
-右：当前竞价 820 ARC + 剩余 00:23:27 + CTA 立即出价
+碎片市场 · 有效挂单数
 
-下方 2 列网格卡片（和你截图类似）：
+地图 NFT · 活跃竞拍场次
 
-单卡内容：
+区块一：矿石 · 热门挂单
 
-左上：稀有度标签：史诗 / 传奇 / 稀有
+标题行：左 矿石 · 热门挂单；右 查看全部 → 跳 MarketOrderList，参数 { category: 'ore' }
 
-右上：小标签：HOT / NEW / ENDING
+下方用 2×2 网格呈现 4 条热门矿石订单：使用 MarketOrderCard。
 
-中间：名称：巡航机兵核心
+区块二：碎片 · 热门挂单
 
-下方：当前竞价 610 ARC
+同上，参数 { category: 'fragment' }；订单是碎片类型。
 
-底部左：倒计时：00:35:27
+区块三：地图 NFT · 热门竞拍
 
-底部右按钮：立即出价
+卡片结构使用大卡+小卡两种（你原来 NFT 区域那种）。
 
-点击任意卡片/按钮 → NftDetailScreen（预留）。
+这里只要布局即可，点击 立即出价 跳到 NFT 竞拍列表 / 详情。
 
-四、全部挂单列表：MarketListingsScreen
-1. 路由参数
+3.4 Tab：矿石 内容
 
-MarketListingsScreen 接收：
+顶部统计卡片三张：
 
-type: 'ore' | 'shard' | 'nft'
-side: 'sell' | 'buy' | 'all'
+24h 成交额
 
+挂单总数
 
-用于决定标题和默认筛选。
+活跃买家
 
-2. 顶部标题 & 说明
+二级筛选 chips：
 
-标题根据 type 决定：
+全部
 
-命运矿石挂单
+T1 基础矿
 
-命运碎片挂单
+T2 碎片矿
 
-命运 NFT 挂单（以后可以拆成卖单+拍卖）
+T3 星晶矿
 
-右上按钮：
+T4 核晶矿
 
-非 NFT：快速上架 → MarketNewOrderScreen，附带 type。
+T5 命运矿
 
-NFT：发起拍卖 → MarketNewAuctionScreen。
+热门区块 + 卖单/求购切换：
 
-标题下方一行说明条，动态文案示例：
+顶部有一个小开关：热门卖单 | 热门求购（二选一）
 
-展示所有命运矿石卖单 · 已按价格从低到高排序
+下方用 2×2 网格渲染 MarketOrderCard：
 
-文案由当前筛选和排序组合生成。
+当选“热门卖单”：side = 'sell'
 
-3. 筛选与排序区域
+当选“热门求购”：side = 'buy'
 
-一行简洁操作 + 一个按钮打开高级筛选。
+每个卡片点击按钮：打开 MarketOrderFormSheet 的简化确认（如买入数量确认弹窗）。
 
-左侧 SegmentedControl：交易方向
+底部按钮：浏览全部矿石挂单 → MarketOrderList，参数 { category: 'ore' }
 
-全部（side='all'）
+3.5 Tab：碎片 内容
 
-卖单
+顶部统计卡片（类似矿石）：
 
-求购
+碎片在售总量 / 平均价格 / 活跃卖家
 
-中间：排序状态按钮
+二级筛选：
 
-文案示例：排序：价格从低到高
+第一排：全部 | 个人地图碎片 | 团队地图碎片
 
-点击弹出 ActionSheet：
+选“全部”：第二排不显示地图名字，只按热门展示。
 
-价格从低到高
+选“个人地图碎片”：第二排 chips：
 
-价格从高到低
+全部 / 余烬坑 / 霓虹洞 / 符文井 / 星辉窟 / 深渊口 / 命运核
 
-数量从高到低
+选“团队地图碎片”：第二排 chips：
 
-最新挂单
+全部 / 联盟前线 / 熔火矿场 / 风暴矿区 / 圣所矿厅 / 深渊矿沟 / 中枢矿核
 
-流动性优先
+热门区块：
 
-右侧：筛选 按钮
+同样 热门卖单 | 热门求购 二选一。
 
-点击后弹出 Modal / BottomSheet，包含：
+卡片用 MarketOrderCard，asset 为 fragment 类型。
 
-两列输入：
+底部按钮：浏览全部碎片挂单 → MarketOrderList，参数 { category: 'fragment' }
 
-最低价格
+3.6 Tab：地图 NFT 内容
 
-最高价格
+顶部统计：正在竞拍 X 场 / 总估值 X 等。
 
-一列输入：
+焦点大卡：一个正在竞拍的地图 NFT（你原来那张大图的升级版）。
 
-最低数量
-
-复选项：
-
-只看玩家挂单
-
-只看我买得起的
+下方 2 列瀑布流卡片：每个 NFT 的当前价 + 倒计时 + 立即出价 / 立即购买。
 
 底部两个按钮：
 
-重置
+全部竞拍 → 跳转 NFT 竞拍列表。
 
-应用筛选
+发布拍卖 → 打开 NFT 挂单 / 拍卖表单（可以和 MarketOrderFormSheet 共用逻辑）。
 
-4. 统计条（可选）
+4. 挂单列表页 MarketOrderListScreen
 
-如果有数据，显示一条灰色小条：
+这个页面是「浏览全部挂单」的统一实现，支持矿石 / 碎片 / 地图 NFT + 卖单 / 求购 全部筛选。
 
-当前平均价：12.4 ARC · 24h 成交：320 单
+4.1 路由参数
+type MarketOrderListParams = {
+  category: MarketCategory | 'all'; // 默认 'all'
+  defaultSide?: OrderSide;          // 默认 'sell'
+  defaultSort?: 'price' | 'quantity' | 'latest';
+};
 
-没有数据时隐藏。
+4.2 页面结构
 
-5. 挂单列表项样式
+标题栏
 
-每条挂单是一张深色圆角卡，左右三列布局：
+标题：挂单列表
 
-左列：用户信息
+副标题：查看全部命运集市挂单
 
-圆形头像（首字母或图标）
+左侧返回按钮沿用 App 现有样式。
 
-昵称：Pilot_207
+筛选区域
 
-第二行小字：
+分三行：
 
-卖单：卖家 · 玩家
+第 1 行：类别 Tab
 
-求购：求购 · 玩家
+全部 | 矿石 | 碎片 | 地图 NFT
 
-系统单：卖家 · 系统
+切换时重置对应的子筛选但保留 side（卖/买）。
 
-中列：挂单信息
+第 2 行：订单方向 + 排序
 
-行 1：价格：价格 12.4 ARC
+左：卖单 | 求购（segment control，互斥）
 
-行 2：数量：数量 120 单位
+右：价格 | 数量 | 最新 单选排序，同集市首页逻辑。
 
-行 3（可选）：资源说明：
+第 3 行：二级筛选（根据类别变化）
 
-资源：命运矿石 / 资源：命运碎片
+如果类别 = 矿石：
 
-右列：时间 + 操作
+chips：全部 | T1 基础矿 | T2 碎片矿 | T3 星晶矿 | T4 核晶矿 | T5 命运矿
 
-行 1：2 分钟前
+如果类别 = 碎片：
 
-行 2：主按钮：
+第一排 chips：全部 | 个人地图碎片 | 团队地图碎片
 
-如果是卖单：立即购买
+第二排根据第一排显示：
 
-如果是求购：出售给 TA
+个人地图：全部 / 余烬坑 / 霓虹洞 / 符文井 / 星辉窟 / 深渊口 / 命运核
 
-右上角：··· 图标（更多操作，下阶段接：查看详情/复制挂单 ID/举报等）
+团队地图：全部 / 联盟前线 / 熔火矿场 / 风暴矿区 / 圣所矿厅 / 深渊矿沟 / 中枢矿核
 
-行为：
+如果类别 = 地图 NFT：
 
-点击整卡或主按钮：打开简单确认弹窗，先 TODO，不必接真实支付。
+第一排 chips：全部 | 个人 NFT | 团队 NFT
 
-支持下拉刷新、翻页加载。
+第二排同上，用地图名字 chips。
 
-6. 空状态文案
+如果类别 = 全部：
 
-当列表为空时，显示一块状态卡：
+只显示一个简单 chips：全部 | 矿石 | 碎片 | 地图 NFT（作为快速过滤）。
 
-标题：暂时没有符合条件的挂单
+4.3 列表展示
 
-副文案（根据模式）：
+使用 FlatList 垂直滚动。
 
-卖单模式：你可以成为第一个挂单的人。
+每个 item 用 MarketOrderCard：
 
-求购模式：目前还没有人发出求购，试试挂个卖单吧。
+左边 PlayerBadge，显示圆头像+昵称。
 
-CTA：去快速上架 → MarketNewOrderScreen。
+中部 AssetBadge 显示物品信息。
 
-五、成交记录列表：MarketHistoryScreen
-1. 路由参数
-type: 'ore' | 'shard'
+右侧价格大字。
 
+底部显示数量、卖盘/求购手数、涨跌。
 
-NFT 成交可以后面再做。
+按当前筛选条件排序（价格/数量/最新）。
 
-2. 顶部
+4.4 交互行为
 
-标题：
+点击卡片整体：打开挂单详情页（可以先用简单的 Alert 或占位页）。
 
-命运矿石成交记录
+点击卡片按钮：
 
-命运碎片成交记录
+如果当前 side = 'sell'（卖单列表）：
 
-副文案：最近 24 小时内的成交明细，用于参考市场真实价格。
+按钮文案 买入 → 打开下单确认弹窗（输入购买数量）。
 
-可选筛选：
+如果当前 side = 'buy'（求购列表）：
 
-时间维度 pill：24h / 7天 / 30天
+按钮文案 卖给 TA → 打开卖出确认弹窗（输入卖出数量）。
 
-排序按钮：按时间倒序（可切换为价格等）
+顶部筛选变化时自动刷新列表。
 
-3. 成交记录行样式
+下拉刷新 / 滚动到底部加载更多可选做。
 
-每条一行卡片，内容：
+4.5 「我要卖 / 我要求购」入口
 
-左列：
+在列表页的右下角悬浮一个圆按钮：
 
-上：买家：Aria_x（可以部分脱敏，如 Ar***）
+默认展示 + 图标。
 
-下：卖家：Pilot_207
+点击弹出一个小菜单：我要卖 / 我要求购。
 
-中列：
+选择后打开 MarketOrderFormSheet，并带入当前类别和子筛选（例如当前是“个人地图碎片-霓虹洞”，表单默认选中这个品类）。
 
-行 1：价格 12.4 ARC
+5. 我要卖 / 我要求购表单 MarketOrderFormSheet
 
-行 2：数量 80 单位
+这里只要一个统一的底部弹层，不用做所有逻辑，先把结构搭好。
 
-右列：
+5.1 打开参数
+type MarketOrderFormProps = {
+  side: OrderSide;            // 'sell' or 'buy'
+  defaultCategory: MarketCategory;
+  defaultAsset?: MarketAsset; // 从列表/首页带入时有
+};
 
-行 1：总额 992 ARC
+5.2 表单内容
 
-行 2：2 分钟前成交
+顶部：标题
 
-点击行可以打开详情弹窗（可先不做）。
+发布卖单 或 发布求购（根据 side）。
 
-4. 空状态
+下拉选择品类（三级联动）：
 
-标题：暂时没有成交记录
+第一列：矿石 / 碎片 / 地图 NFT
 
-文案：市场还在酝酿期，耐心等等其他命运矿工出手。
+第二列（根据第一列）：
 
-六、发布挂单：MarketNewOrderScreen（简版）
+矿石：T1 基础矿 / T2 碎片矿 / T3 星晶矿 / T4 核晶矿 / T5 命运矿
 
-这个阶段不用做特别复杂，先保证从「发布求购 / 我要上架」能进入此页并提交表单。
+碎片：个人地图碎片 / 团队地图碎片
 
-1. 路由参数
-type: 'ore' | 'shard'
-mode: 'buy' | 'sell'   // 发布求购/我要上架 由入口决定
+地图 NFT：个人 NFT / 团队 NFT
 
-2. 表单字段
+第三列（根据第二列）：
 
-资源类型（只读）：命运矿石 / 命运碎片
+个人地图：余烬坑 / 霓虹洞 / 符文井 / 星辉窟 / 深渊口 / 命运核
 
-交易方向（只读）：发布卖单 / 发布求购
+团队地图：联盟前线 / 熔火矿场 / 风暴矿区 / 圣所矿厅 / 深渊矿沟 / 中枢矿核
 
-单价输入：单价（ARC）
+输入框：
 
-数量输入：数量
+数量（数字）
 
-合计金额（自动计算，仅展示）
+单价（ARC）
 
-备注（可选）
+底部按钮：确认发布（先只做关闭+Toast 占位）。
 
-底部按钮：
+6. 验收标准（前端）
 
-主按钮：确认发布
+给 Copilot 的硬性检查点，避免实现跑偏：
 
-副文案：发布后将进入命运集市，其他玩家可以直接与你成交。
+6.1 功能行为
 
-点击确认后：
+类别联动正确
 
-先模拟成功，Toast：挂单已发布，稍后即可在集市中看到。
+在集市首页任意 Tab 点击「浏览全部挂单」，能正确跳到 MarketOrderListScreen，并自动选中对应类别。
 
-返回 MarketListingsScreen。
+挂单列表顶部类别切换，子筛选栏实时变化，不出现错位的菜单。
 
-七、发起拍卖：MarketNewAuctionScreen（简版）
+卖单 / 求购切换
 
-字段：
+列表页 卖单 / 求购 切换时，卡片右下角按钮文案必须随之变成 买入 / 卖给 TA。
 
-NFT 选择：下拉或占位按钮 选择要拍卖的命运 NFT
+PlayerBadge 下方文案分别是 卖家 / 求购方。
 
-起拍价：起拍价（ARC）
+筛选逻辑完整
 
-加价幅度：最小加价幅度
+矿石 Tab 下：能按 全部/T1/T2/T3/T4/T5 正确过滤。
 
-拍卖时长：24h / 48h / 72h
+碎片 Tab 下：
 
-按钮：
+能切到 个人地图碎片 / 团队地图碎片；
 
-发起拍卖
+对应地图 chips（余烬坑/霓虹洞…；联盟前线/熔火矿场…）可以正确过滤。
 
-文案：拍卖期间，你可以随时查看出价情况，拍卖结束后系统会自动结算。
+NFT Tab 下：同样按个人/团队+地图名称过滤。
 
-成功后 Toast 并返回 MarketHomeScreen NFT Tab。
+排序正常
+
+价格排序：点击一次升序、第二次降序，箭头方向与列表结果一致。
+
+数量/最新排序：至少支持倒序（多到少 / 新到旧）。
+
+我要卖 / 我要求购 表单预填
+
+在列表页、集市首页点击 我要卖/我要求购 时，弹出的表单 默认选中当前类别；
+
+如果用户是在某条订单卡片上点击，表单要预填该资产（默认品类与地图/矿石等级）。
+
+6.2 UI / 视觉
+
+统一头像 + 物品圆框
+
+所有有玩家的地方都使用 PlayerBadge，头像为圆形。
+
+所有物品名左边有圆形图标（占位），风格一致。
+
+卡片风格一致
+
+MarketOrderCard 在首页和列表页看起来是同一套组件（圆角、阴影、发光边）。
+
+文案布局：左头像+昵称，中部物品信息，右侧价格，底部小字信息 + 按钮，不要东倒西歪。
+
+文本不溢出
+
+昵称过长要截断加 ...。
+
+地图名和类型在小屏上不能挤到一起，要预留最小宽度。
+
+底部导航不遮挡
+
+列表页和集市首页的最后一条卡片不会被底部导航遮挡，留出足够 padding。
+
+6.3 代码结构
+
+通用组件（PlayerBadge / AssetBadge / MarketOrderCard / PillTab 等）放在 components/market/，不要重复写在每个页面。
+
+所有枚举（矿石、地图名）用 TypeScript 类型+常量统一管理，不要在 JSX 里写死多份中文字符串。
+
+列表使用 FlatList，支持下拉刷新，后续对接接口时只需替换数据源。
