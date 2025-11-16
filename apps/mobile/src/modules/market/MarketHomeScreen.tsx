@@ -8,7 +8,6 @@ import {
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MarketStackParamList } from '@app/navigation/types';
@@ -24,7 +23,6 @@ const CATEGORY_TABS = [
 const SORT_OPTIONS = ['价格', '数量', '最新'] as const;
 
 export const MarketHomeScreen = () => {
-  const tabBarHeight = useBottomTabBarHeight?.() ?? 0;
   const navigation = useNavigation<NativeStackNavigationProp<MarketStackParamList>>();
   const [category, setCategory] = useState<(typeof CATEGORY_TABS)[number]['key']>('all');
   const [sortKey, setSortKey] = useState<(typeof SORT_OPTIONS)[number]>('价格');
@@ -52,10 +50,10 @@ export const MarketHomeScreen = () => {
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView
           style={styles.container}
-          contentContainerStyle={[
-            styles.contentContainer,
-            { paddingBottom: tabBarHeight ? tabBarHeight + 32 : 120 },
-          ]}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingBottom: 120 },
+        ]}
           showsVerticalScrollIndicator={false}
         >
           <View>
