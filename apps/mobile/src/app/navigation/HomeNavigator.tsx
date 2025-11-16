@@ -6,6 +6,7 @@ import { LeaderboardScreen } from '@modules/home/LeaderboardScreen';
 import { ForgeScreen } from '@modules/home/ForgeScreen';
 import { EventShopScreen } from '@modules/home/EventShopScreen';
 import { BlindBoxScreen } from '@modules/home/BlindBoxScreen';
+import { MarketNavigator } from './MarketNavigator';
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
@@ -21,6 +22,7 @@ export const HomeNavigator = () => {
       <Stack.Screen name="Forge" component={ForgeScreen} />
       <Stack.Screen name="EventShop" component={EventShopScreen} />
       <Stack.Screen name="BlindBox" component={BlindBoxScreen} />
+      <Stack.Screen name="MarketStack" component={MarketNavigator} />
     </Stack.Navigator>
   );
 };

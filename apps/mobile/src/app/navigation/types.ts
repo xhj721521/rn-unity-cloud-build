@@ -8,7 +8,6 @@ export type MarketStackParamList = {
 
 export type RootTabParamList = {
   Home: { screen?: keyof HomeStackParamList } | undefined;
-  Market: { screen?: keyof MarketStackParamList } | undefined;
   Trials: undefined;
   Explore: undefined;
   Profile: { screen?: keyof ProfileStackParamList } | undefined;
@@ -20,6 +19,7 @@ export type HomeStackParamList = {
   Forge: undefined;
   EventShop: undefined;
   BlindBox: undefined;
+  MarketStack: { screen?: keyof MarketStackParamList } | undefined;
 };
 
 export type ProfileStackParamList = {

@@ -144,9 +144,9 @@ export const WalletScreen = () => {
   };
 
   const handleOreGoToMarket = () => {
-    tabNavigation?.navigate?.('Market', {
-      screen: 'MarketListings',
-      params: { type: 'ore', side: 'sell' },
+    tabNavigation?.navigate?.('Home', {
+      screen: 'MarketStack',
+      params: { screen: 'MarketListings', params: { type: 'ore', side: 'sell' } },
     });
   };
 

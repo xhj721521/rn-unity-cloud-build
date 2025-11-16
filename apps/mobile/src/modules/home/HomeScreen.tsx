@@ -114,7 +114,7 @@ export const HomeScreen = () => {
         title: '命运集市',
         subtitle: '交易矿石、NFT 与命运道具',
         icon: <MarketIcon />,
-        onPress: () => tabNavigation?.navigate?.('Market' as never),
+        onPress: () => navigation.navigate('MarketStack'),
       },
       {
         key: 'event',
