@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   FateExploreIcon,
   FateHomeIcon,
+  FateMarketIcon,
   FateProfileIcon,
   FateTrialsIcon,
 } from '@components/icons';
@@ -14,6 +15,7 @@ const pillWidth = Dimensions.get('window').width - H_PADDING * 2;
 
 const LABELS: Record<string, string> = {
   Home: '首页',
+  Market: '集市',
   Trials: '试炼',
   Explore: '探索',
   Profile: '我的',
@@ -21,12 +23,13 @@ const LABELS: Record<string, string> = {
 
 const ICONS = {
   Home: FateHomeIcon,
+  Market: FateMarketIcon,
   Trials: FateTrialsIcon,
   Explore: FateExploreIcon,
   Profile: FateProfileIcon,
 };
 
-const ORDER: (keyof typeof ICONS)[] = ['Home', 'Explore', 'Trials', 'Profile'];
+const ORDER: (keyof typeof ICONS)[] = ['Home', 'Market', 'Explore', 'Trials', 'Profile'];
 
 const FateTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
   const insets = useSafeAreaInsets();

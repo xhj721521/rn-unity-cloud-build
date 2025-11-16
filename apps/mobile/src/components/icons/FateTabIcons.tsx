@@ -1,5 +1,5 @@
 import React from 'react';
-import Svg, { Circle, G, Path } from 'react-native-svg';
+import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 
 const strokeFor = (focused: boolean) => (focused ? '#33F5FF' : 'rgba(255,255,255,0.55)');
 
@@ -48,6 +48,22 @@ export const FateTrialsIcon = ({ focused }: TabIconProps) => (
       <Path d="M17 5l-4 4" />
       <Path d="M18 9.5l-3-1-1 1 1 3" />
       <Path d="M17.5 15.5L15.5 17.5" />
+    </G>
+  </Svg>
+);
+
+export const FateMarketIcon = ({ focused }: TabIconProps) => (
+  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+    <G
+      stroke={strokeFor(focused)}
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M5 9h14l-1.2 8.2c-.2 1.4-1.4 2.5-2.8 2.5H9c-1.4 0-2.6-1.1-2.8-2.5L5 9Z" />
+      <Rect x={7.5} y={5} width={9} height={4} rx={1.5} />
+      <Path d="M10 12v4" />
+      <Path d="M14 12v4" />
     </G>
   </Svg>
 );

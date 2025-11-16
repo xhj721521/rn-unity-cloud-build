@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -11,7 +11,7 @@ import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
 import { useAppDispatch } from '@state/hooks';
 import { loadAccountSummary } from '@state/account/accountSlice';
-import { HomeStackParamList } from '@app/navigation/types';
+import { HomeStackParamList, RootTabParamList } from '@app/navigation/types';
 import FateHeroCard from './components/FateHeroCard';
 import FateModePills from './components/FateModePills';
 import FateFeatureGrid from './components/FateFeatureGrid';
@@ -49,6 +49,7 @@ const formatAssetAmount = (assets: ChainAsset[] | undefined, id: string): string
 export const HomeScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<HomeNavigation>();
+  const tabNavigation = navigation.getParent()?.getParent() as NavigationProp<RootTabParamList> | undefined;
   const { width: windowWidth } = useWindowDimensions();
   const { data, loading, error } = useAccountSummary();
 
@@ -113,7 +114,7 @@ export const HomeScreen = () => {
         title: '命运集市',
         subtitle: '交易矿石、NFT 与命运道具',
         icon: <MarketIcon />,
-        onPress: () => navigation.navigate('Marketplace'),
+        onPress: () => tabNavigation?.navigate?.('Market' as never),
       },
       {
         key: 'event',

@@ -9,10 +9,11 @@ import {
   View,
 } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { translate as t } from '@locale/strings';
 import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
+import { RootTabParamList } from '@app/navigation/types';
 
 const ARC_TOKEN_ID = 'tok-energy';
 const ORE_TOKEN_ID = 'tok-neon';
@@ -123,7 +124,10 @@ const AssetHistoryCard = ({ records }: { records: AssetRecord[] }) => (
 
 export const WalletScreen = () => {
   const { data } = useAccountSummary();
-  const navigation = useNavigation();
+  const stackNavigation = useNavigation();
+  const tabNavigation = stackNavigation.getParent()?.getParent() as
+    | NavigationProp<RootTabParamList>
+    | undefined;
   const tabBarHeight = useBottomTabBarHeight?.() ?? 0;
   const tokens = useMemo(() => data?.tokens ?? [], [data?.tokens]);
   const arcAmount = useMemo(() => formatAmount(tokens, ARC_TOKEN_ID), [tokens]);
@@ -140,11 +144,14 @@ export const WalletScreen = () => {
   };
 
   const handleOreGoToMarket = () => {
-    navigation.navigate('Marketplace' as never);
+    tabNavigation?.navigate?.('Market', {
+      screen: 'MarketListings',
+      params: { type: 'ore', side: 'sell' },
+    });
   };
 
   const handleOreGoToForge = () => {
-    navigation.navigate('Forge' as never);
+    tabNavigation?.navigate?.('Home', { screen: 'Forge' });
   };
 
   return (

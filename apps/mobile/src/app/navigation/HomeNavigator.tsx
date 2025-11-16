@@ -4,7 +4,6 @@ import { HomeStackParamList } from './types';
 import { HomeScreen } from '@modules/home/HomeScreen';
 import { LeaderboardScreen } from '@modules/home/LeaderboardScreen';
 import { ForgeScreen } from '@modules/home/ForgeScreen';
-import { MarketplaceScreen } from '@modules/home/MarketplaceScreen';
 import { EventShopScreen } from '@modules/home/EventShopScreen';
 import { BlindBoxScreen } from '@modules/home/BlindBoxScreen';
 
@@ -20,7 +19,6 @@ export const HomeNavigator = () => {
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
       <Stack.Screen name="Forge" component={ForgeScreen} />
-      <Stack.Screen name="Marketplace" component={MarketplaceScreen} />
       <Stack.Screen name="EventShop" component={EventShopScreen} />
       <Stack.Screen name="BlindBox" component={BlindBoxScreen} />
     </Stack.Navigator>

@@ -6,4 +6,10 @@ export { default as BlindboxIcon } from './BlindboxIcon';
 export { default as FateTowerIcon } from './FateTowerIcon';
 export { default as TripleFateIcon } from './TripleFateIcon';
 export { default as WorldMineIcon } from './WorldMineIcon';
-export { FateHomeIcon, FateExploreIcon, FateTrialsIcon, FateProfileIcon } from './FateTabIcons';
+export {
+  FateHomeIcon,
+  FateExploreIcon,
+  FateTrialsIcon,
+  FateMarketIcon,
+  FateProfileIcon,
+} from './FateTabIcons';
