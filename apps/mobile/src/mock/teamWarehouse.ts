@@ -7,7 +7,7 @@ export const teamWarehouseItems: Array<UIItem | undefined> = [
     rarity: 'common',
     name: 'Ore Sample',
     qty: 12,
-    icon: require('../assets/items/ores/ore_1.png'),
+    icon: require('../assets/ores/ore_t1.webp'),
   },
   {
     id: 'w2',
@@ -15,7 +15,7 @@ export const teamWarehouseItems: Array<UIItem | undefined> = [
     rarity: 'rare',
     name: 'Ore Core',
     qty: 6,
-    icon: require('../assets/items/ores/ore_2.png'),
+    icon: require('../assets/ores/ore_t2.webp'),
   },
   {
     id: 'w3',

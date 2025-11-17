@@ -14,11 +14,11 @@ export type UIItem = {
 };
 
 const oreIcons = [
-  require('../assets/items/ores/ore_1.png'),
-  require('../assets/items/ores/ore_2.png'),
-  require('../assets/items/ores/ore_3.png'),
-  require('../assets/items/ores/ore_4.png'),
-  require('../assets/items/ores/ore_5.png'),
+  require('../assets/ores/ore_t1.webp'),
+  require('../assets/ores/ore_t2.webp'),
+  require('../assets/ores/ore_t3.webp'),
+  require('../assets/ores/ore_t4.webp'),
+  require('../assets/ores/ore_t5.webp'),
 ];
 
 const mapIcons = [
