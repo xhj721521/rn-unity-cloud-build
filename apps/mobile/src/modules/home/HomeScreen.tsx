@@ -118,13 +118,6 @@ export const HomeScreen = () => {
         onPress: () => rootNavigation?.navigate('FateMarket', { screen: 'MarketHome' }),
       },
       {
-        key: 'event',
-        title: '命运活动',
-        subtitle: '限时增益与补给兑换',
-        icon: <EventIcon />,
-        onPress: () => navigation.navigate('EventShop'),
-      },
-      {
         key: 'activity',
         title: '活动指挥部',
         subtitle: '挑战、抽签与秘矿兑换',

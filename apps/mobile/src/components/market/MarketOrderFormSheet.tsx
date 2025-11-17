@@ -35,10 +35,14 @@ export const MarketOrderFormSheet: React.FC<Props> = ({
   onClose,
 }) => {
   const [category, setCategory] = useState<MarketCategory>(defaultCategory);
-  const [kind, setKind] = useState<MapKind>(defaultAsset?.category === 'ore' ? 'personal' : (defaultAsset as any)?.kind ?? 'personal');
-  const [oreTier, setOreTier] = useState<OreTier>(defaultAsset?.category === 'ore' ? defaultAsset.tier : 'T1');
+  const [kind, setKind] = useState<MapKind>(
+    defaultAsset?.category === 'ore' ? 'personal' : (defaultAsset as any)?.kind ?? 'personal',
+  );
+  const [oreTier, setOreTier] = useState<OreTier>(
+    defaultAsset?.category === 'ore' ? defaultAsset.tier : 'T1',
+  );
   const [mapId, setMapId] = useState<PersonalMapId | TeamMapId>(
-    defaultAsset?.category !== 'ore' ? defaultAsset.mapId : 'ember_pit',
+    defaultAsset && defaultAsset.category !== 'ore' ? defaultAsset.mapId : 'ember_pit',
   );
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
