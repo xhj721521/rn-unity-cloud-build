@@ -18,6 +18,7 @@ module.exports = {
           '@state': './src/state',
           '@store': './src/store',
           '@theme': './src/theme',
+          '@types': './src/types',
           '@data': './src/data',
           '@locale': './src/locale',
         },
