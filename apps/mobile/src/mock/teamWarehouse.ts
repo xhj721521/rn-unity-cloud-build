@@ -1,4 +1,4 @@
-﻿import { UIItem } from '@mock/inventory';
+import { UIItem } from '@mock/inventory';
 
 export const teamWarehouseItems: Array<UIItem | undefined> = [
   {
@@ -25,10 +25,27 @@ export const teamWarehouseItems: Array<UIItem | undefined> = [
     qty: 3,
     icon: require('../assets/items/minershards/miner_1.png'),
   },
+  {
+    id: 'w4',
+    type: 'mapshard',
+    rarity: 'rare',
+    name: 'Ember 碎片',
+    qty: 2,
+    icon: require('../assets/mapshards/personal_ember.webp'),
+  },
+  {
+    id: 'w5',
+    type: 'nft',
+    rarity: 'legend',
+    name: 'Neon 地图 NFT',
+    qty: 1,
+    icon: require('../assets/mapnfts/personal_neon_nft.webp'),
+    badges: ['nft'],
+  },
   undefined,
   undefined,
   {
-    id: 'w4',
+    id: 'w6',
     type: 'nft',
     rarity: 'legend',
     name: 'Unity Relic',

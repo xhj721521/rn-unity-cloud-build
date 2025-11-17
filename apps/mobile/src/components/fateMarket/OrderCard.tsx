@@ -1,7 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { AssetCategory, MapId, OrderSide } from '@types/fateMarket';
+import oreIcons from '../../assets/ores';
+import mapShardIcons from '../../assets/mapshards';
+import mapNftIcons from '../../assets/mapnfts';
 
 export type OrderCardProps = {
   id: string;
@@ -19,7 +22,10 @@ export type OrderCardProps = {
 };
 
 export const OrderCard: React.FC<OrderCardProps> = ({
+  category,
   side,
+  tier,
+  mapId,
   itemName,
   description,
   unitPrice,
@@ -29,6 +35,14 @@ export const OrderCard: React.FC<OrderCardProps> = ({
   onPressBuy,
 }) => {
   const isSell = side === 'SELL';
+  const iconSource: ImageSourcePropType | undefined =
+    category === 'ORE' && tier
+      ? oreIcons[tier]
+      : category === 'MAP_SHARD' && mapId
+      ? mapShardIcons[mapId]
+      : category === 'MAP_NFT' && mapId
+      ? mapNftIcons[mapId]
+      : undefined;
 
   return (
     <LinearGradient
@@ -39,7 +53,11 @@ export const OrderCard: React.FC<OrderCardProps> = ({
     >
       <View style={styles.row}>
         <View style={styles.iconWrap}>
-          <Text style={styles.iconText}>{itemName.charAt(0)}</Text>
+          {iconSource ? (
+            <Image source={iconSource} style={styles.iconImage} resizeMode="contain" />
+          ) : (
+            <Text style={styles.iconText}>{itemName.charAt(0)}</Text>
+          )}
         </View>
 
         <View style={styles.midCol}>
@@ -104,6 +122,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
+  iconImage: { width: 40, height: 40 },
   iconText: { color: '#7FFBFF', fontSize: 20, fontWeight: '700' },
   midCol: { flex: 1, minWidth: 0 },
   title: { color: '#F9FAFB', fontSize: 16, fontWeight: '700' },

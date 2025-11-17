@@ -36,10 +36,10 @@ export interface Order {
 
 export const oreLabelMap: Record<OreTier, string> = {
   T1: 'T1 命运矿',
-  T2: 'T2 高能矿',
-  T3: 'T3 星晶矿',
+  T2: 'T2 高能晶',
+  T3: 'T3 星晶核',
   T4: 'T4 核晶矿',
-  T5: 'T5 命运矿',
+  T5: 'T5 命运核',
 };
 
 export const mapLabelMap: Record<MapId, string> = {

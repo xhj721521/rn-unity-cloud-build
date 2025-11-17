@@ -1,4 +1,6 @@
 import { ImageSourcePropType } from 'react-native';
+import { MapId, mapLabelMap } from '@types/fateMarket';
+import mapNftIcons from '../assets/mapnfts';
 
 export type ItemType = 'ore' | 'mapshard' | 'minershard' | 'nft' | 'other';
 export type Rarity = 'common' | 'rare' | 'epic' | 'legend' | 'mythic';
@@ -88,6 +90,8 @@ const otherIcons = [
   require('../assets/items/others/other_10.png'),
 ];
 
+const mapNftIconEntries = Object.entries(mapNftIcons) as [MapId, ImageSourcePropType][];
+
 export const inventoryItems: UIItem[] = [
   ...oreIcons.map((icon, index) => ({
     id: `ore-${index + 1}`,
@@ -105,6 +109,15 @@ export const inventoryItems: UIItem[] = [
     qty: 1 + (index % 4),
     icon,
     badges: index % 4 === 0 ? ['locked'] : undefined,
+  })),
+  ...mapNftIconEntries.map(([mapId, icon], index) => ({
+    id: `map-nft-${mapId.toLowerCase()}`,
+    type: 'nft' as ItemType,
+    rarity: (['epic', 'legend', 'mythic'] as Rarity[])[index % 3],
+    name: `${mapLabelMap[mapId]} 地图 NFT`,
+    qty: 1,
+    icon,
+    badges: ['nft'],
   })),
   ...minerIcons.map((icon, index) => ({
     id: `miner-${index + 1}`,

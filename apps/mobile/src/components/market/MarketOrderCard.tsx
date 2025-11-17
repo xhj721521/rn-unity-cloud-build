@@ -11,6 +11,7 @@ type Props = {
 
 export const MarketOrderCard: React.FC<Props> = ({ order, onPressAction }) => {
   const actionText = order.side === 'sell' ? '买入' : '卖给 TA';
+
   return (
     <View style={styles.card}>
       <View style={styles.topRow}>
@@ -36,7 +37,11 @@ export const MarketOrderCard: React.FC<Props> = ({ order, onPressAction }) => {
               {order.change24h}%
             </Text>
           ) : null}
-          {order.ordersCount ? <Text style={styles.subText}>{order.side === 'sell' ? '卖' : '求'} {order.ordersCount} 手</Text> : null}
+          {order.ordersCount ? (
+            <Text style={styles.subText}>
+              {order.side === 'sell' ? '挂单数' : '求购数'} {order.ordersCount} 笔
+            </Text>
+          ) : null}
         </View>
       </View>
 
