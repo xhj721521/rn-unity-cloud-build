@@ -16,7 +16,7 @@ const ore = (
   category: 'ORE',
   tier,
   itemName: `${tier} ore`,
-  description: 'Tradable ¡¤ Craftable ¡¤ Forgable',
+  description: 'Tradable / Craftable / Forgable',
   unitPrice: price,
   amount,
   sellerName: seller,
