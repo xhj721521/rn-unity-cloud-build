@@ -22,14 +22,18 @@ const oreIcons = [
 ];
 
 const mapIcons = [
-  require('../assets/items/mapshards/map_1.png'),
-  require('../assets/items/mapshards/map_2.png'),
-  require('../assets/items/mapshards/map_3.png'),
-  require('../assets/items/mapshards/map_4.png'),
-  require('../assets/items/mapshards/map_5.png'),
-  require('../assets/items/mapshards/map_6.png'),
-  require('../assets/items/mapshards/map_7.png'),
-  require('../assets/items/mapshards/map_8.png'),
+  require('../assets/mapshards/personal_ember.webp'),
+  require('../assets/mapshards/personal_neon.webp'),
+  require('../assets/mapshards/personal_rune.webp'),
+  require('../assets/mapshards/personal_star.webp'),
+  require('../assets/mapshards/personal_abyss.webp'),
+  require('../assets/mapshards/personal_core.webp'),
+  require('../assets/mapshards/team_front.webp'),
+  require('../assets/mapshards/team_lava.webp'),
+  require('../assets/mapshards/team_storm.webp'),
+  require('../assets/mapshards/team_sanct.webp'),
+  require('../assets/mapshards/team_rift.webp'),
+  require('../assets/mapshards/team_nexus.webp'),
 ];
 
 const minerIcons = [
