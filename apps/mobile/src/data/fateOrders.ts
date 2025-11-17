@@ -5,7 +5,7 @@ const now = () => new Date().toISOString();
 const ore = (
   id: string,
   side: OrderSide,
-  tier: Order['tier']!,
+  tier: Order['tier'],
   price: number,
   amount: number,
   seller: string,
