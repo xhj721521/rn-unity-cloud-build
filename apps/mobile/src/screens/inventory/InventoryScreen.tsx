@@ -5,7 +5,6 @@ import { CategoryChips } from "@components/inventory/CategoryChips";
 import { InventoryToolbar } from "@components/inventory/Toolbar";
 import InventorySlotCard from "@components/inventory/InventorySlotCard";
 import { inventoryItems as visualInventoryItems } from "@mock/inventory";
-import { ItemTier } from "@domain/items/itemVisualConfig";
 import { InventoryEntry, InventoryItem, InventoryKind } from "@types/inventory";
 import { typography } from "@theme/typography";
 import { palette } from "@theme/colors";
@@ -35,77 +34,6 @@ const kindMap: Record<Exclude<CategoryKey, "all">, InventoryKind> = {
   other: "other",
 };
 
-const decodeUnicode = (text?: string) => {
-  if (!text) return text;
-  try {
-    return JSON.parse(`"${text.replace(/"/g, '\\"')}"`);
-  } catch {
-    return text;
-  }
-};
-
-const personalKeyTier: Record<string, ItemTier> = {
-  core: 1,
-  neon: 2,
-  rune: 3,
-  star: 4,
-  ember: 5,
-  abyss: 6,
-};
-
-const teamKeyTier: Record<string, ItemTier> = {
-  front: 1,
-  lava: 2,
-  nexus: 3,
-  rift: 4,
-  sanct: 5,
-  storm: 6,
-};
-
-const guessKeyFromName = (name?: string) => {
-  if (!name) return undefined;
-  const lower = name.toLowerCase();
-  const keys = [...Object.keys(personalKeyTier), ...Object.keys(teamKeyTier)];
-  return keys.find((k) => lower.includes(k));
-};
-
-const inferVisual = (item: UIItem): { category?: ItemCategory; key?: string; tier?: ItemTier } => {
-  if (item.visualCategory && item.visualKey && item.tier) {
-    return { category: item.visualCategory, key: item.visualKey, tier: item.tier };
-  }
-
-  const key = (item.visualKey ?? (item as any).key ?? guessKeyFromName(item.name)) as string | undefined;
-  const tierCandidate = (item.tier ?? (item as any).level) as ItemTier | undefined;
-  const baseType = item.type;
-
-  if (baseType === "ore") {
-    const tier = tierCandidate && tierCandidate >= 1 && tierCandidate <= 6 ? tierCandidate : undefined;
-    return { category: ItemCategory.Ore, key: tier ? `t${tier}` : key, tier };
-  }
-
-  if (baseType === "mapshard") {
-    if (!key) return {};
-    const isTeam = item.isTeam ?? ["front", "lava", "nexus", "rift", "sanct", "storm"].includes(key);
-    const tier = (isTeam ? teamKeyTier[key] : personalKeyTier[key]) ?? tierCandidate;
-    return { category: isTeam ? ItemCategory.TeamMapShard : ItemCategory.PersonalMapShard, key, tier };
-  }
-
-  if (baseType === "nft") {
-    if (!key) return {};
-    const isTeam = item.isTeam ?? ["front", "lava", "nexus", "rift", "sanct", "storm"].includes(key);
-    const tier = (isTeam ? teamKeyTier[key] : personalKeyTier[key]) ?? tierCandidate;
-    return { category: isTeam ? ItemCategory.TeamMapNft : ItemCategory.PersonalMapNft, key, tier };
-  }
-
-  return {};
-};
-
-const deriveVisual = (item: UIItem): ItemVisualConfig | undefined => {
-  const inferred = inferVisual(item);
-  if (!inferred.category || !inferred.key || !inferred.tier) return undefined;
-  return getItemVisual(inferred.category, inferred.tier, inferred.key);
-};
-
 export const InventoryScreen = () => {
   const [category, setCategory] = useState<CategoryKey>("all");
   const [search, setSearch] = useState("");
@@ -113,14 +41,15 @@ export const InventoryScreen = () => {
   const { width } = useWindowDimensions();
 
   const normalized = useMemo(() => visualInventoryItems.map((item) => {
-    const kind = kindMap[item.type === "mapshard" ? "mapShard" : (item.type as CategoryKey)] ?? "other";
+    const typeKey = item.type === "mapshard" ? "mapShard" : (item.type as CategoryKey);
+    const kind = kindMap[typeKey] ?? "other";
     return {
       id: item.id,
-      name: decodeUnicode(item.name),
+      name: item.name,
       type: kind,
       isTeam: item.isTeam,
-      tier: item.tier as ItemTier | undefined,
-      visualCategory: item.visualCategory,
+      tier: item.tier,
+      visualCategory: item.visualCategory as any,
       visualKey: item.visualKey,
       visual: item.visual as any,
       icon: item.icon,
@@ -157,7 +86,7 @@ export const InventoryScreen = () => {
       entries.push({
         id: `empty-${category}`,
         kind: "emptySummary",
-        type: kindMap[category as ItemType],
+        type: currentKind ?? "other",
         freeSlots: free,
       });
     }
