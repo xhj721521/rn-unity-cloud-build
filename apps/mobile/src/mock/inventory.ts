@@ -105,7 +105,7 @@ const nftIcons = [
   require('../assets/items/nfts/nft_10.png'),
   require('../assets/items/nfts/nft_11.png'),
   require('../assets/items/nfts/nft_12.png'),
-  require('../assets/items/nfts/nft13.png'),
+  require('../assets/items/nfts/nft_13.png'),
   require('../assets/items/nfts/nft_14.png'),
   require('../assets/items/nfts/nft_15.png'),
   require('../assets/items/nfts/nft_16.png'),
