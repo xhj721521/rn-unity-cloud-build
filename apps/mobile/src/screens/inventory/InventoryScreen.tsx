@@ -4,35 +4,33 @@ import { ScreenContainer } from "@components/ScreenContainer";
 import { CategoryChips } from "@components/inventory/CategoryChips";
 import { InventoryToolbar } from "@components/inventory/Toolbar";
 import InventorySlotCard from "@components/inventory/InventorySlotCard";
-import { inventoryItems, ItemType, UIItem } from "@mock/inventory";
-import { getItemVisual, ItemVisualConfig } from "@domain/items/itemVisualConfig";
-import { resolveIconSource } from "@domain/items/itemIconResolver";
+import { inventoryItems as visualInventoryItems } from "@mock/inventory";
+import { ItemTier } from "@domain/items/itemVisualConfig";
 import { InventoryEntry, InventoryItem, InventoryKind } from "@types/inventory";
 import { typography } from "@theme/typography";
 import { palette } from "@theme/colors";
 
-const CATEGORY_OPTIONS: Array<{ key: ItemType | "all"; label: string }> = [
+type CategoryKey = "all" | "ore" | "mapShard" | "nft" | "other";
+
+const CATEGORY_OPTIONS: Array<{ key: CategoryKey; label: string }> = [
   { key: "all", label: "全部" },
   { key: "ore", label: "矿石" },
-  { key: "mapshard", label: "地图碎片" },
-  { key: "minershard", label: "矿工碎片" },
+  { key: "mapShard", label: "地图碎片" },
   { key: "nft", label: "NFT" },
   { key: "other", label: "其他" },
 ];
 
-const CAPACITY: Record<ItemType | "all", number> = {
+const CAPACITY: Record<CategoryKey, number> = {
   all: 120,
   ore: 60,
-  mapshard: 60,
-  minershard: 40,
+  mapShard: 60,
   nft: 80,
   other: 50,
 };
 
-const kindMap: Record<ItemType, InventoryKind> = {
+const kindMap: Record<Exclude<CategoryKey, "all">, InventoryKind> = {
   ore: "ore",
-  mapshard: "mapShard",
-  minershard: "workerShard",
+  mapShard: "mapShard",
   nft: "nft",
   other: "other",
 };
@@ -46,40 +44,93 @@ const decodeUnicode = (text?: string) => {
   }
 };
 
-const deriveVisual = (item: UIItem): ItemVisualConfig | undefined => {
-  if (!item.visualCategory || !item.visualKey || !item.tier) return undefined;
-  return getItemVisual(item.visualCategory, item.tier, item.visualKey);
+const personalKeyTier: Record<string, ItemTier> = {
+  core: 1,
+  neon: 2,
+  rune: 3,
+  star: 4,
+  ember: 5,
+  abyss: 6,
 };
 
-const normalizeItem = (item: UIItem): InventoryItem => {
-  const kind = kindMap[item.type];
-  const visual = deriveVisual(item);
-  const icon = visual ? resolveIconSource(visual) : item.icon;
-  return {
-    id: item.id,
-    name: decodeUnicode(visual?.displayName ?? item.name) ?? item.name,
-    type: kind,
-    isTeam: item.isTeam,
-    tier: visual?.tier ?? item.tier,
-    visualCategory: item.visualCategory,
-    visualKey: item.visualKey,
-    visual,
-    icon,
-    amount: item.qty,
-    rarity:
-      item.rarity === "legend" || item.rarity === "mythic"
-        ? "legendary"
-        : (item.rarity as InventoryItem["rarity"]),
-  };
+const teamKeyTier: Record<string, ItemTier> = {
+  front: 1,
+  lava: 2,
+  nexus: 3,
+  rift: 4,
+  sanct: 5,
+  storm: 6,
+};
+
+const guessKeyFromName = (name?: string) => {
+  if (!name) return undefined;
+  const lower = name.toLowerCase();
+  const keys = [...Object.keys(personalKeyTier), ...Object.keys(teamKeyTier)];
+  return keys.find((k) => lower.includes(k));
+};
+
+const inferVisual = (item: UIItem): { category?: ItemCategory; key?: string; tier?: ItemTier } => {
+  if (item.visualCategory && item.visualKey && item.tier) {
+    return { category: item.visualCategory, key: item.visualKey, tier: item.tier };
+  }
+
+  const key = (item.visualKey ?? (item as any).key ?? guessKeyFromName(item.name)) as string | undefined;
+  const tierCandidate = (item.tier ?? (item as any).level) as ItemTier | undefined;
+  const baseType = item.type;
+
+  if (baseType === "ore") {
+    const tier = tierCandidate && tierCandidate >= 1 && tierCandidate <= 6 ? tierCandidate : undefined;
+    return { category: ItemCategory.Ore, key: tier ? `t${tier}` : key, tier };
+  }
+
+  if (baseType === "mapshard") {
+    if (!key) return {};
+    const isTeam = item.isTeam ?? ["front", "lava", "nexus", "rift", "sanct", "storm"].includes(key);
+    const tier = (isTeam ? teamKeyTier[key] : personalKeyTier[key]) ?? tierCandidate;
+    return { category: isTeam ? ItemCategory.TeamMapShard : ItemCategory.PersonalMapShard, key, tier };
+  }
+
+  if (baseType === "nft") {
+    if (!key) return {};
+    const isTeam = item.isTeam ?? ["front", "lava", "nexus", "rift", "sanct", "storm"].includes(key);
+    const tier = (isTeam ? teamKeyTier[key] : personalKeyTier[key]) ?? tierCandidate;
+    return { category: isTeam ? ItemCategory.TeamMapNft : ItemCategory.PersonalMapNft, key, tier };
+  }
+
+  return {};
+};
+
+const deriveVisual = (item: UIItem): ItemVisualConfig | undefined => {
+  const inferred = inferVisual(item);
+  if (!inferred.category || !inferred.key || !inferred.tier) return undefined;
+  return getItemVisual(inferred.category, inferred.tier, inferred.key);
 };
 
 export const InventoryScreen = () => {
-  const [category, setCategory] = useState<ItemType | "all">("all");
+  const [category, setCategory] = useState<CategoryKey>("all");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<"amountDesc" | "amountAsc">("amountDesc");
   const { width } = useWindowDimensions();
 
-  const normalized = useMemo(() => inventoryItems.map(normalizeItem), []);
+  const normalized = useMemo(() => visualInventoryItems.map((item) => {
+    const kind = kindMap[item.type === "mapshard" ? "mapShard" : (item.type as CategoryKey)] ?? "other";
+    return {
+      id: item.id,
+      name: decodeUnicode(item.name),
+      type: kind,
+      isTeam: item.isTeam,
+      tier: item.tier as ItemTier | undefined,
+      visualCategory: item.visualCategory,
+      visualKey: item.visualKey,
+      visual: item.visual as any,
+      icon: item.icon,
+      amount: item.amount ?? 0,
+      rarity:
+        item.rarity === "legend" || item.rarity === "mythic"
+          ? "legendary"
+          : (item.rarity as InventoryItem["rarity"]),
+    } as InventoryItem;
+  }), []);
   const gap = 10;
   const columns = 4;
   const horizontalPadding = 32; // 16 * 2
@@ -87,7 +138,7 @@ export const InventoryScreen = () => {
 
   const { data, usedSlots, totalSlots } = useMemo(() => {
     const total = CAPACITY[category] ?? 100;
-    const currentKind = category === "all" ? undefined : kindMap[category as ItemType];
+    const currentKind = category === "all" ? undefined : kindMap[category];
     const filteredBase =
       category === "all" ? normalized : normalized.filter((item) => item.type === currentKind);
 

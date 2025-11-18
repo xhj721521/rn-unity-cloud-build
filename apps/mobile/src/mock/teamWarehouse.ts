@@ -1,96 +1,17 @@
-import { ImageSourcePropType } from 'react-native';
-import { ItemCategory, ItemTier, ItemVisualConfig, ITEM_VISUAL_CONFIG, getItemVisual } from '@domain/items/itemVisualConfig';
-import { resolveIconSource } from '@domain/items/itemIconResolver';
-import { UIItem } from '@mock/inventory';
+import { StandardItem } from '@domain/items/itemModel';
+import { toVisualItem, VisualItem } from '@domain/items/itemVisualAdapter';
 
-const fallbackVisual = ITEM_VISUAL_CONFIG[0];
+const baseItems: StandardItem[] = [
+  { id: 'w1', type: 'ore', key: 't1', tier: 1, name: 'T1 矿石', amount: 12, rarity: 'common' },
+  { id: 'w2', type: 'ore', key: 't2', tier: 2, name: 'T2 矿石', amount: 6, rarity: 'rare' },
+  { id: 'w3', type: 'other', key: 'worker_1', tier: 1, name: '矿工碎片', amount: 3, rarity: 'epic' },
+  { id: 'w4', type: 'mapShard', key: 'ember', tier: 5, isTeam: false, name: 'EMBER 地图碎片', amount: 2, rarity: 'rare' },
+  { id: 'w5', type: 'nft', key: 'neon', tier: 2, isTeam: false, name: 'NEON 地图 NFT', amount: 1, rarity: 'legend', badges: ['nft'] },
+  { id: 'w6', type: 'nft', key: 'front', tier: 1, isTeam: true, name: 'FRONT 团队 NFT', amount: 1, rarity: 'legend', badges: ['nft'] },
+];
 
-const tierByPersonalKey: Record<string, ItemTier> = {
-  core: 1,
-  neon: 2,
-  rune: 3,
-  star: 4,
-  ember: 5,
-  abyss: 6,
-};
-
-const resolveVisual = (category: ItemCategory, key: string, tier: ItemTier): { visual?: ItemVisualConfig; icon: ImageSourcePropType } => {
-  const visual = getItemVisual(category, tier, key);
-  const fallbackIcon = resolveIconSource(fallbackVisual);
-  if (!visual) {
-    return { visual: undefined, icon: fallbackIcon };
-  }
-  return { visual, icon: resolveIconSource(visual) };
-};
-
-const oreItem = (id: string, tier: ItemTier, rarity: UIItem['rarity'], qty: number): UIItem => {
-  const { visual, icon } = resolveVisual(ItemCategory.Ore, `t${tier}`, tier);
-  return {
-    id,
-    type: 'ore',
-    rarity,
-    name: visual?.displayName ?? `T${tier} ore`,
-    qty,
-    icon,
-    tier,
-    visualCategory: ItemCategory.Ore,
-    visualKey: `t${tier}`,
-    visual,
-  };
-};
-
-export const teamWarehouseItems: Array<UIItem | undefined> = [
-  oreItem('w1', 1, 'common', 12),
-  oreItem('w2', 2, 'rare', 6),
-  {
-    id: 'w3',
-    type: 'minershard',
-    rarity: 'epic',
-    name: 'Miner Core',
-    qty: 3,
-    icon: require('../assets/items/minershards/miner_1.png'),
-  },
-  (() => {
-    const tier = tierByPersonalKey.ember;
-    const { visual, icon } = resolveVisual(ItemCategory.PersonalMapShard, 'ember', tier);
-    return {
-      id: 'w4',
-      type: 'mapshard',
-      rarity: 'rare',
-      name: visual?.displayName ?? 'Ember 地图碎片',
-      qty: 2,
-      icon,
-      tier,
-      visualCategory: ItemCategory.PersonalMapShard,
-      visualKey: 'ember',
-      visual,
-    } as UIItem;
-  })(),
-  (() => {
-    const tier = tierByPersonalKey.neon;
-    const { visual, icon } = resolveVisual(ItemCategory.PersonalMapNft, 'neon', tier);
-    return {
-      id: 'w5',
-      type: 'nft',
-      rarity: 'legend',
-      name: visual?.displayName ?? 'NEON map NFT',
-      qty: 1,
-      icon,
-      badges: ['nft'],
-      tier,
-      visualCategory: ItemCategory.PersonalMapNft,
-      visualKey: 'neon',
-      visual,
-    } as UIItem;
-  })(),
+export const teamWarehouseItems: Array<VisualItem | undefined> = [
+  ...baseItems.map(toVisualItem),
   undefined,
   undefined,
-  {
-    id: 'w6',
-    type: 'nft',
-    rarity: 'legend',
-    name: 'Unity Relic',
-    qty: 1,
-    icon: require('../assets/items/nfts/nft_5.png'),
-  },
 ];
