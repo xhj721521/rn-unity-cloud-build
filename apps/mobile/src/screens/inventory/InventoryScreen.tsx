@@ -12,12 +12,12 @@ import { typography } from "@theme/typography";
 import { palette } from "@theme/colors";
 
 const CATEGORY_OPTIONS: Array<{ key: ItemType | "all"; label: string }> = [
-  { key: "all", label: "\u5168\u90e8" },
-  { key: "ore", label: "\u77ff\u77f3" },
-  { key: "mapshard", label: "\u5730\u56fe\u788e\u7247" },
-  { key: "minershard", label: "\u77ff\u5de5\u788e\u7247" },
+  { key: "all", label: "全部" },
+  { key: "ore", label: "矿石" },
+  { key: "mapshard", label: "地图碎片" },
+  { key: "minershard", label: "矿工碎片" },
   { key: "nft", label: "NFT" },
-  { key: "other", label: "\u5176\u4ed6" },
+  { key: "other", label: "其他" },
 ];
 
 const CAPACITY: Record<ItemType | "all", number> = {
@@ -37,6 +37,15 @@ const kindMap: Record<ItemType, InventoryKind> = {
   other: "other",
 };
 
+const decodeUnicode = (text?: string) => {
+  if (!text) return text;
+  try {
+    return JSON.parse(`"${text.replace(/"/g, '\\"')}"`);
+  } catch {
+    return text;
+  }
+};
+
 const deriveVisual = (item: UIItem): ItemVisualConfig | undefined => {
   if (!item.visualCategory || !item.visualKey || !item.tier) return undefined;
   return getItemVisual(item.visualCategory, item.tier, item.visualKey);
@@ -48,7 +57,7 @@ const normalizeItem = (item: UIItem): InventoryItem => {
   const icon = visual ? resolveIconSource(visual) : item.icon;
   return {
     id: item.id,
-    name: visual?.displayName ?? item.name,
+    name: decodeUnicode(visual?.displayName ?? item.name) ?? item.name,
     type: kind,
     isTeam: item.isTeam,
     tier: visual?.tier ?? item.tier,
@@ -118,14 +127,14 @@ export const InventoryScreen = () => {
 
   return (
     <ScreenContainer variant="plain" edgeVignette>
-      <Text style={styles.heading}>\u4ed3\u5e93</Text>
-      <Text style={styles.subHeading}>\u6240\u6709\u8d44\u6e90\u4e0e NFT \u5747\u5728\u6b64\u7ba1\u7406</Text>
+      <Text style={styles.heading}>仓库</Text>
+      <Text style={styles.subHeading}>所有资源与 NFT 均在此管理</Text>
       <CategoryChips options={CATEGORY_OPTIONS} value={category} onChange={setCategory} />
       <InventoryToolbar search={search} onSearchChange={setSearch} onPressSort={toggleSort} />
 
       <View style={styles.capacityRow}>
-        <Text style={styles.capacityText}>\u5df2\u4f7f\u7528 {usedSlots} / {totalSlots} \u4ed3\u4f4d</Text>
-        <Text style={styles.capacityHint}>\u5206\u7c7b\uff1a{category === "all" ? "\u5168\u90e8" : CATEGORY_OPTIONS.find((c) => c.key === category)?.label}</Text>
+        <Text style={styles.capacityText}>已使用 {usedSlots} / {totalSlots} 仓位</Text>
+        <Text style={styles.capacityHint}>分类：{category === "all" ? "全部" : CATEGORY_OPTIONS.find((c) => c.key === category)?.label}</Text>
       </View>
 
       <FlatList

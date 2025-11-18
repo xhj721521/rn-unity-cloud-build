@@ -4,7 +4,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import { palette } from '@theme/colors';
 import { typography } from '@theme/typography';
 import { InventoryEntry, InventoryItem, InventoryKind } from '@types/inventory';
-import { ItemVisualConfig } from '@domain/items/itemVisualConfig';
+import { ItemVisualConfig, ITEM_VISUAL_CONFIG } from '@domain/items/itemVisualConfig';
+import { resolveIconSource } from '@domain/items/itemIconResolver';
 
 type Props = {
   item: InventoryEntry;
@@ -34,6 +35,7 @@ const isEmptySummary = (entry: InventoryEntry): entry is { kind: 'emptySummary';
 export const InventorySlotCard: React.FC<Props> = ({ item, size, onPress, onLongPress, visual, iconSource }) => {
   const baseType = isEmptySummary(item) ? item.type : item.type;
   const accent = typeAccent[baseType] ?? typeAccent.other;
+  const fallbackIcon = resolveIconSource(ITEM_VISUAL_CONFIG[0]);
   const pressedScale = ({ pressed }: { pressed: boolean }) => [
     styles.card,
     {
@@ -76,7 +78,7 @@ export const InventorySlotCard: React.FC<Props> = ({ item, size, onPress, onLong
   const showTeam = typedItem.isTeam && typedItem.type === 'mapShard';
   const isNFT = typedItem.type === 'nft';
   const displayName = visualConfig?.displayName ?? typedItem.name;
-  const iconToRender = iconSource ?? typedItem.icon;
+  const iconToRender = iconSource ?? typedItem.icon ?? (visualConfig ? resolveIconSource(visualConfig) : fallbackIcon);
 
   return (
     <Pressable
@@ -107,7 +109,13 @@ export const InventorySlotCard: React.FC<Props> = ({ item, size, onPress, onLong
         </View>
 
         <View style={styles.iconBox}>
-          <Image source={iconToRender} style={styles.icon} resizeMode="contain" />
+          {iconToRender ? (
+            <Image source={iconToRender} style={styles.icon} resizeMode="contain" />
+          ) : (
+            <View style={styles.iconPlaceholder}>
+              <Text style={styles.iconPlaceholderText}>?</Text>
+            </View>
+          )}
         </View>
 
         <View style={[styles.footer, { borderTopColor: 'rgba(255,255,255,0.06)' }]}>
@@ -180,6 +188,17 @@ const styles = StyleSheet.create({
     width: '70%',
     height: '70%',
   },
+  iconPlaceholder: {
+    width: '70%',
+    height: '70%',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  iconPlaceholderText: { color: '#E5F2FF', fontWeight: '700' },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
