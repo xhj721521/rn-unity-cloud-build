@@ -5,6 +5,8 @@ import { CategoryChips } from "@components/inventory/CategoryChips";
 import { InventoryToolbar } from "@components/inventory/Toolbar";
 import InventorySlotCard from "@components/inventory/InventorySlotCard";
 import { inventoryItems, ItemType, UIItem } from "@mock/inventory";
+import { getItemVisual, ItemVisualConfig } from "@domain/items/itemVisualConfig";
+import { resolveIconSource } from "@domain/items/itemIconResolver";
 import { InventoryEntry, InventoryItem, InventoryKind } from "@types/inventory";
 import { typography } from "@theme/typography";
 import { palette } from "@theme/colors";
@@ -35,15 +37,25 @@ const kindMap: Record<ItemType, InventoryKind> = {
   other: "other",
 };
 
+const deriveVisual = (item: UIItem): ItemVisualConfig | undefined => {
+  if (!item.visualCategory || !item.visualKey || !item.tier) return undefined;
+  return getItemVisual(item.visualCategory, item.tier, item.visualKey);
+};
+
 const normalizeItem = (item: UIItem): InventoryItem => {
   const kind = kindMap[item.type];
+  const visual = deriveVisual(item);
+  const icon = visual ? resolveIconSource(visual) : item.icon;
   return {
     id: item.id,
-    name: item.name,
+    name: visual?.displayName ?? item.name,
     type: kind,
     isTeam: item.isTeam,
-    tier: item.tier,
-    icon: item.icon,
+    tier: visual?.tier ?? item.tier,
+    visualCategory: item.visualCategory,
+    visualKey: item.visualKey,
+    visual,
+    icon,
     amount: item.qty,
     rarity:
       item.rarity === "legend" || item.rarity === "mythic"

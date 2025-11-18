@@ -22,6 +22,8 @@ import { Member } from '@mock/team.members';
 import { teamWarehouseItems } from '@mock/teamWarehouse';
 import { typography } from '@theme/typography';
 import { ProfileStackParamList } from '@app/navigation/types';
+import { getItemVisual } from '@domain/items/itemVisualConfig';
+import { resolveIconSource } from '@domain/items/itemIconResolver';
 
 const gradientColors = ['#050A18', '#08152F', '#042D4A'];
 
@@ -362,13 +364,35 @@ const WarehouseModal = ({ visible, onClose, wallet }: WarehouseModalProps) => (
             {teamWarehouseItems.map((item, index) => (
               <View key={item?.id ?? `slot-${index}`} style={styles.warehouseCell}>
                 {item ? (
-                  <>
-                    <Image source={item.icon} style={styles.warehouseIcon} />
-                    <Text style={styles.warehouseName}>{item.name}</Text>
-                    <Text style={styles.warehouseQty}>x{item.qty}</Text>
-                  </>
+                  (() => {
+                    const visual = item.visual ?? (item.visualCategory && item.visualKey && item.tier ? getItemVisual(item.visualCategory, item.tier, item.visualKey) : undefined);
+                    const iconSource = visual ? resolveIconSource(visual) : item.icon;
+                    const badge = visual?.shortLabel ?? (item.tier ? `T${item.tier}` : undefined);
+                    const title = visual?.displayName ?? item.name;
+                    return (
+                      <>
+                        <View style={styles.warehouseIconWrap}>
+                          {iconSource ? (
+                            <Image source={iconSource} style={styles.warehouseIcon} />
+                          ) : (
+                            <Text style={styles.warehousePlaceholder}>{title.charAt(0)}</Text>
+                          )}
+                          {badge ? (
+                            <View style={styles.warehouseBadge}>
+                              <Text style={styles.warehouseBadgeText}>{badge}</Text>
+                            </View>
+                          ) : null}
+                        </View>
+                        <Text style={styles.warehouseName}>{title}</Text>
+                        <Text style={styles.warehouseQty}>x{item.qty}</Text>
+                      </>
+                    );
+                  })()
                 ) : (
-                  <Text style={styles.warehouseEmpty}>空槽</Text>
+                  <View style={styles.warehouseEmptyBox}>
+                    <Text style={styles.warehouseEmptyPlus}>+</Text>
+                    <Text style={styles.warehouseEmpty}>空槽</Text>
+                  </View>
                 )}
               </View>
             ))}
@@ -666,9 +690,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(5,8,18,0.85)',
   },
-  warehouseIcon: { width: 48, height: 48, marginBottom: 8 },
+  warehouseIconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 16,
+    backgroundColor: 'rgba(56,189,248,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(56,189,248,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+    position: 'relative',
+  },
+  warehouseIcon: { width: 46, height: 46 },
+  warehousePlaceholder: { color: '#7FFBFF', fontSize: 16, fontWeight: '700' },
+  warehouseBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(229,242,255,0.6)',
+    backgroundColor: 'rgba(15,23,42,0.95)',
+  },
+  warehouseBadgeText: { color: '#E5F2FF', fontSize: 10, fontWeight: '700' },
   warehouseName: { color: '#E5F2FF', fontSize: 13, textAlign: 'center' },
   warehouseQty: { color: '#38BDF8', fontSize: 12, marginTop: 4 },
+  warehouseEmptyBox: { alignItems: 'center', justifyContent: 'center', gap: 6 },
+  warehouseEmptyPlus: { color: '#E5F2FF', fontSize: 22, fontWeight: '800' },
   warehouseEmpty: { color: 'rgba(148,163,184,0.6)', fontSize: 12 },
   noticeCard: {
     width: '80%',

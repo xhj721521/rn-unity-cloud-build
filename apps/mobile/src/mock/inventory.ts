@@ -1,6 +1,6 @@
 import { ImageSourcePropType } from 'react-native';
-import { MapId, mapLabelMap } from '@types/fateMarket';
-import mapNftIcons from '../assets/mapnfts';
+import { ItemCategory, ItemTier, ItemVisualConfig, ITEM_VISUAL_CONFIG, getItemVisual } from '@domain/items/itemVisualConfig';
+import { resolveIconSource } from '@domain/items/itemIconResolver';
 
 export type ItemType = 'ore' | 'mapshard' | 'minershard' | 'nft' | 'other';
 export type Rarity = 'common' | 'rare' | 'epic' | 'legend' | 'mythic';
@@ -13,32 +13,72 @@ export type UIItem = {
   qty: number;
   icon: ImageSourcePropType;
   badges?: Array<'nft' | 'locked' | 'equipped'>;
-  // extra metadata to help inventory rendering
   isTeam?: boolean;
-  tier?: number;
+  tier?: ItemTier;
+  visualCategory?: ItemCategory;
+  visualKey?: string;
+  visual?: ItemVisualConfig;
 };
 
-const oreIcons = [
-  require('../assets/ores/ore_t1.webp'),
-  require('../assets/ores/ore_t2.webp'),
-  require('../assets/ores/ore_t3.webp'),
-  require('../assets/ores/ore_t4.webp'),
-  require('../assets/ores/ore_t5.webp'),
-];
+const fallbackVisual = ITEM_VISUAL_CONFIG[0];
 
-const mapIcons = [
-  require('../assets/mapshards/personal_ember.webp'),
-  require('../assets/mapshards/personal_neon.webp'),
-  require('../assets/mapshards/personal_rune.webp'),
-  require('../assets/mapshards/personal_star.webp'),
-  require('../assets/mapshards/personal_abyss.webp'),
-  require('../assets/mapshards/personal_core.webp'),
-  require('../assets/mapshards/team_front.webp'),
-  require('../assets/mapshards/team_lava.webp'),
-  require('../assets/mapshards/team_storm.webp'),
-  require('../assets/mapshards/team_sanct.webp'),
-  require('../assets/mapshards/team_rift.webp'),
-  require('../assets/mapshards/team_nexus.webp'),
+const tierByPersonalKey: Record<string, ItemTier> = {
+  core: 1,
+  neon: 2,
+  rune: 3,
+  star: 4,
+  ember: 5,
+  abyss: 6,
+};
+
+const tierByTeamKey: Record<string, ItemTier> = {
+  front: 1,
+  lava: 2,
+  nexus: 3,
+  rift: 4,
+  sanct: 5,
+  storm: 6,
+};
+
+const resolveVisual = (category: ItemCategory, key: string, tier: ItemTier): { visual?: ItemVisualConfig; icon: ImageSourcePropType } => {
+  const visual = getItemVisual(category, tier, key);
+  const fallbackIcon = resolveIconSource(fallbackVisual);
+  if (!visual) {
+    return { visual: undefined, icon: fallbackIcon };
+  }
+  return { visual, icon: resolveIconSource(visual) };
+};
+
+const oreItems: UIItem[] = (['t1', 't2', 't3', 't4', 't5'] as const).map((key, index) => {
+  const tier = (index + 1) as ItemTier;
+  const { visual, icon } = resolveVisual(ItemCategory.Ore, key, tier);
+  return {
+    id: `ore-${key}`,
+    type: 'ore',
+    rarity: index % 2 === 0 ? 'common' : 'rare',
+    name: visual?.displayName ?? `T${tier} ore`,
+    qty: 12 + index * 3,
+    icon,
+    tier,
+    visualCategory: ItemCategory.Ore,
+    visualKey: key,
+    visual,
+  };
+});
+
+const mapShardEntries: Array<{ key: keyof typeof tierByPersonalKey | keyof typeof tierByTeamKey; isTeam: boolean }> = [
+  { key: 'core', isTeam: false },
+  { key: 'neon', isTeam: false },
+  { key: 'rune', isTeam: false },
+  { key: 'star', isTeam: false },
+  { key: 'ember', isTeam: false },
+  { key: 'abyss', isTeam: false },
+  { key: 'front', isTeam: true },
+  { key: 'lava', isTeam: true },
+  { key: 'nexus', isTeam: true },
+  { key: 'rift', isTeam: true },
+  { key: 'sanct', isTeam: true },
+  { key: 'storm', isTeam: true },
 ];
 
 const minerIcons = [
@@ -65,7 +105,7 @@ const nftIcons = [
   require('../assets/items/nfts/nft_10.png'),
   require('../assets/items/nfts/nft_11.png'),
   require('../assets/items/nfts/nft_12.png'),
-  require('../assets/items/nfts/nft_13.png'),
+  require('../assets/items/nfts/nft13.png'),
   require('../assets/items/nfts/nft_14.png'),
   require('../assets/items/nfts/nft_15.png'),
   require('../assets/items/nfts/nft_16.png'),
@@ -93,38 +133,62 @@ const otherIcons = [
   require('../assets/items/others/other_10.png'),
 ];
 
-const mapNftIconEntries = Object.entries(mapNftIcons) as [MapId, ImageSourcePropType][];
+const mapNftEntries: Array<{ key: keyof typeof tierByPersonalKey | keyof typeof tierByTeamKey; isTeam: boolean }> = [
+  { key: 'core', isTeam: false },
+  { key: 'neon', isTeam: false },
+  { key: 'rune', isTeam: false },
+  { key: 'star', isTeam: false },
+  { key: 'ember', isTeam: false },
+  { key: 'abyss', isTeam: false },
+  { key: 'front', isTeam: true },
+  { key: 'lava', isTeam: true },
+  { key: 'nexus', isTeam: true },
+  { key: 'rift', isTeam: true },
+  { key: 'sanct', isTeam: true },
+  { key: 'storm', isTeam: true },
+];
 
 export const inventoryItems: UIItem[] = [
-  ...oreIcons.map((icon, index) => ({
-    id: `ore-${index + 1}`,
-    type: 'ore' as ItemType,
-    rarity: index % 2 === 0 ? 'common' : 'rare',
-    name: `T${index + 1} 命运矿`,
-    qty: 12 + index * 3,
-    icon,
-    tier: index + 1,
-  })),
-  ...mapIcons.map((icon, index) => ({
-    id: `map-${index + 1}`,
-    type: 'mapshard' as ItemType,
-    rarity: index % 3 === 0 ? 'epic' : 'rare',
-    name: `${index < 6 ? '个人' : '团队'}地图碎片 ${index + 1}`,
-    qty: 1 + (index % 4),
-    icon,
-    badges: index % 4 === 0 ? ['locked'] : undefined,
-    isTeam: index >= 6,
-    tier: (index % 5) + 1,
-  })),
-  ...mapNftIconEntries.map(([mapId, icon], index) => ({
-    id: `map-nft-${mapId.toLowerCase()}`,
-    type: 'nft' as ItemType,
-    rarity: (['epic', 'legend', 'mythic'] as Rarity[])[index % 3],
-    name: `${mapLabelMap[mapId]} 地图 NFT`,
-    qty: 1,
-    icon,
-    badges: ['nft'],
-  })),
+  ...oreItems,
+  ...mapShardEntries.map((entry) => {
+    const category = entry.isTeam ? ItemCategory.TeamMapShard : ItemCategory.PersonalMapShard;
+    const tierMap = entry.isTeam ? tierByTeamKey : tierByPersonalKey;
+    const tier = tierMap[entry.key];
+    const { visual, icon } = resolveVisual(category, entry.key, tier);
+    return {
+      id: `map-${entry.key}`,
+      type: 'mapshard',
+      rarity: entry.isTeam ? 'epic' : 'rare',
+      name: visual?.displayName ?? `${entry.isTeam ? '团队' : '个人'}地图碎片 ${entry.key}`,
+      qty: entry.isTeam ? 1 : 2,
+      icon,
+      badges: entry.isTeam ? ['locked'] : undefined,
+      isTeam: entry.isTeam,
+      tier,
+      visualCategory: category,
+      visualKey: entry.key,
+      visual,
+    };
+  }),
+  ...mapNftEntries.map((entry, index) => {
+    const category = entry.isTeam ? ItemCategory.TeamMapNft : ItemCategory.PersonalMapNft;
+    const tierMap = entry.isTeam ? tierByTeamKey : tierByPersonalKey;
+    const tier = tierMap[entry.key];
+    const { visual, icon } = resolveVisual(category, entry.key, tier);
+    return {
+      id: `map-nft-${entry.key}`,
+      type: 'nft',
+      rarity: (['epic', 'legend', 'mythic'] as Rarity[])[index % 3],
+      name: visual?.displayName ?? `${entry.key} 地图 NFT`,
+      qty: 1,
+      icon,
+      badges: ['nft'],
+      visualCategory: category,
+      visualKey: entry.key,
+      tier,
+      visual,
+    };
+  }),
   ...minerIcons.map((icon, index) => ({
     id: `miner-${index + 1}`,
     type: 'minershard' as ItemType,

@@ -1,18 +1,16 @@
-import { MapId } from '@types/fateMarket';
-
-export const mapNftIcons: Record<MapId, any> = {
-  EMBER: require('./personal_ember_nft.webp'),
-  NEON: require('./personal_neon_nft.webp'),
-  RUNE: require('./personal_rune_nft.webp'),
-  STAR: require('./personal_star_nft.webp'),
-  ABYSS: require('./personal_abyss_nft.webp'),
-  CORE: require('./personal_core_nft.webp'),
-  FRONT: require('./team_front_nft.webp'),
-  LAVA: require('./team_lava_nft.webp'),
-  STORM: require('./team_storm_nft.webp'),
-  SANCT: require('./team_sanct_nft.webp'),
-  RIFT: require('./team_rift_nft.webp'),
-  NEXUS: require('./team_nexus_nft.webp'),
-};
+export const mapNftIcons = {
+  personal_core_nft: require('./personal_core_nft.webp'),
+  personal_neon_nft: require('./personal_neon_nft.webp'),
+  personal_rune_nft: require('./personal_rune_nft.webp'),
+  personal_star_nft: require('./personal_star_nft.webp'),
+  personal_ember_nft: require('./personal_ember_nft.webp'),
+  personal_abyss_nft: require('./personal_abyss_nft.webp'),
+  team_front_nft: require('./team_front_nft.webp'),
+  team_lava_nft: require('./team_lava_nft.webp'),
+  team_nexus_nft: require('./team_nexus_nft.webp'),
+  team_rift_nft: require('./team_rift_nft.webp'),
+  team_sanct_nft: require('./team_sanct_nft.webp'),
+  team_storm_nft: require('./team_storm_nft.webp'),
+} as const;
 
 export default mapNftIcons;

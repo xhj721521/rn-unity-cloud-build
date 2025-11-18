@@ -1,4 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
+import { ItemCategory, ItemTier, ItemVisualConfig } from '@domain/items/itemVisualConfig';
 
 export type InventoryKind = 'ore' | 'mapShard' | 'workerShard' | 'nft' | 'other';
 export type InventoryRarity = 'common' | 'rare' | 'epic' | 'legendary';
@@ -8,7 +9,11 @@ export type InventoryItem = {
   name: string;
   type: InventoryKind;
   isTeam?: boolean;
-  tier?: number;
+  tier?: ItemTier;
+  visualCategory?: ItemCategory;
+  visualKey?: string;
+  iconKey?: string;
+  visual?: ItemVisualConfig;
   icon: ImageSourcePropType;
   amount: number;
   rarity?: InventoryRarity;

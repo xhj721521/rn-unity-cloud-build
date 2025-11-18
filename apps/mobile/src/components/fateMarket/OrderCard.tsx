@@ -1,10 +1,9 @@
-import React from 'react';
-import { Image, ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { AssetCategory, MapId, OrderSide } from '@types/fateMarket';
-import oreIcons from '../../assets/ores';
-import mapShardIcons from '../../assets/mapshards';
-import mapNftIcons from '../../assets/mapnfts';
+﻿import React from "react";
+import { Image, ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import LinearGradient from "react-native-linear-gradient";
+import { AssetCategory, MapId, OrderSide } from "@types/fateMarket";
+import { ItemCategory, getItemVisual, getItemVisualByIconKey } from "@domain/items/itemVisualConfig";
+import { resolveIconSource } from "@domain/items/itemIconResolver";
 
 export type OrderCardProps = {
   id: string;
@@ -21,6 +20,50 @@ export type OrderCardProps = {
   onPressBuy: () => void;
 };
 
+const resolveVisual = (category: AssetCategory, tier?: string, mapId?: MapId, itemName?: string) => {
+  if (category === "ORE" && tier) {
+    const t = parseInt(tier.replace("T", ""), 10) as 1 | 2 | 3 | 4 | 5 | 6;
+    return getItemVisual(ItemCategory.Ore, t, `t${t}`);
+  }
+
+  const keyFromMap = mapId ? mapId.toLowerCase() : undefined;
+  const tierGuess = keyFromMap
+    ? ['core', 'front'].includes(keyFromMap)
+      ? 1
+      : ['neon', 'lava'].includes(keyFromMap)
+      ? 2
+      : ['rune', 'nexus'].includes(keyFromMap)
+      ? 3
+      : ['star', 'rift'].includes(keyFromMap)
+      ? 4
+      : ['ember', 'sanct'].includes(keyFromMap)
+      ? 5
+      : 6
+    : undefined;
+
+  if (category === "MAP_SHARD" && keyFromMap && tierGuess) {
+    const isTeam = ['front', 'lava', 'nexus', 'rift', 'sanct', 'storm'].includes(keyFromMap);
+    const cat = isTeam ? ItemCategory.TeamMapShard : ItemCategory.PersonalMapShard;
+    return getItemVisual(cat, tierGuess as any, keyFromMap);
+  }
+
+  if (category === "MAP_NFT" && keyFromMap && tierGuess) {
+    const isTeam = ['front', 'lava', 'nexus', 'rift', 'sanct', 'storm'].includes(keyFromMap);
+    const cat = isTeam ? ItemCategory.TeamMapNft : ItemCategory.PersonalMapNft;
+    return getItemVisual(cat, tierGuess as any, keyFromMap);
+  }
+
+  if (itemName) {
+    const key = itemName.split(" ")[0]?.toLowerCase();
+    if (key) {
+      const visual = getItemVisualByIconKey(key);
+      if (visual) return visual;
+    }
+  }
+
+  return undefined;
+};
+
 export const OrderCard: React.FC<OrderCardProps> = ({
   category,
   side,
@@ -34,19 +77,15 @@ export const OrderCard: React.FC<OrderCardProps> = ({
   changePercent,
   onPressBuy,
 }) => {
-  const isSell = side === 'SELL';
-  const iconSource: ImageSourcePropType | undefined =
-    category === 'ORE' && tier
-      ? oreIcons[tier]
-      : category === 'MAP_SHARD' && mapId
-      ? mapShardIcons[mapId]
-      : category === 'MAP_NFT' && mapId
-      ? mapNftIcons[mapId]
-      : undefined;
+  const isSell = side === "SELL";
+  const visual = resolveVisual(category, tier, mapId, itemName);
+  const iconSource: ImageSourcePropType | undefined = visual ? resolveIconSource(visual) : undefined;
+  const short = visual?.shortLabel ?? (tier ? tier : undefined);
+  const title = visual?.displayName ?? itemName;
 
   return (
     <LinearGradient
-      colors={['rgba(8,18,40,0.92)', 'rgba(10,26,60,0.88)']}
+      colors={["rgba(8,18,40,0.92)", "rgba(10,26,60,0.88)"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.card}
@@ -58,11 +97,16 @@ export const OrderCard: React.FC<OrderCardProps> = ({
           ) : (
             <Text style={styles.iconText}>{itemName.charAt(0)}</Text>
           )}
+          {short ? (
+            <View style={styles.tierPill}>
+              <Text style={styles.tierText}>{short}</Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.midCol}>
           <Text style={styles.title} numberOfLines={1}>
-            {itemName}
+            {title}
           </Text>
           <Text style={styles.desc} numberOfLines={2}>
             {description}
@@ -78,7 +122,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
         <View style={styles.rightCol}>
           <View style={[styles.sideBadge, isSell ? styles.sell : styles.buy]}>
             <Text style={[styles.sideText, isSell ? styles.sellText : styles.buyText]}>
-              {isSell ? '卖单' : '求购'}
+              {isSell ? "卖单" : "求购"}
             </Text>
           </View>
           {typeof changePercent === 'number' ? (
@@ -121,9 +165,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+    position: 'relative',
   },
   iconImage: { width: 40, height: 40 },
   iconText: { color: '#7FFBFF', fontSize: 20, fontWeight: '700' },
+  tierPill: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    backgroundColor: 'rgba(15,23,42,0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  tierText: { color: '#E5F2FF', fontSize: 10, fontWeight: '700' },
   midCol: { flex: 1, minWidth: 0 },
   title: { color: '#F9FAFB', fontSize: 16, fontWeight: '700' },
   desc: { color: 'rgba(148,163,184,0.85)', fontSize: 12, marginTop: 4 },

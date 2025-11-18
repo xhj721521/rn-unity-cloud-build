@@ -1,15 +1,18 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, ImageSourcePropType, Pressable, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { palette } from '@theme/colors';
 import { typography } from '@theme/typography';
 import { InventoryEntry, InventoryItem, InventoryKind } from '@types/inventory';
+import { ItemVisualConfig } from '@domain/items/itemVisualConfig';
 
 type Props = {
   item: InventoryEntry;
   size: number;
   onPress?: (item: InventoryEntry) => void;
   onLongPress?: (item: InventoryEntry) => void;
+  visual?: ItemVisualConfig;
+  iconSource?: ImageSourcePropType;
 };
 
 const typeAccent: Record<
@@ -28,7 +31,7 @@ const roman = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 const isEmptySummary = (entry: InventoryEntry): entry is { kind: 'emptySummary'; freeSlots: number; type: InventoryKind; id: string } =>
   (entry as any).kind === 'emptySummary';
 
-export const InventorySlotCard: React.FC<Props> = ({ item, size, onPress, onLongPress }) => {
+export const InventorySlotCard: React.FC<Props> = ({ item, size, onPress, onLongPress, visual, iconSource }) => {
   const baseType = isEmptySummary(item) ? item.type : item.type;
   const accent = typeAccent[baseType] ?? typeAccent.other;
   const pressedScale = ({ pressed }: { pressed: boolean }) => [
@@ -55,8 +58,11 @@ export const InventorySlotCard: React.FC<Props> = ({ item, size, onPress, onLong
           style={[styles.inner, { borderColor: accent.border }]}
         >
           <View style={[styles.emptyBadge, { borderColor: accent.border }]}>
-            <Text style={styles.emptyTitle}>Empty slots x{item.freeSlots}</Text>
-            <Text style={styles.emptySubtitle}>More of this type can be stored</Text>
+            <View style={[styles.emptyPlus, { borderColor: accent.border }]}>
+              <Text style={styles.emptyPlusText}>+</Text>
+            </View>
+            <Text style={styles.emptyTitle}>空槽 {item.freeSlots}</Text>
+            <Text style={styles.emptySubtitle}>可继续存放 {accent.desc}</Text>
           </View>
         </LinearGradient>
       </Pressable>
@@ -64,10 +70,13 @@ export const InventorySlotCard: React.FC<Props> = ({ item, size, onPress, onLong
   }
 
   const typedItem = item as InventoryItem;
-  const tierLabel = typedItem.tier ? `T${typedItem.tier}` : undefined;
-  const tierRoman = typedItem.tier ? roman[Math.max(typedItem.tier - 1, 0)] : undefined;
+  const visualConfig = visual ?? (typedItem as InventoryItem).visual;
+  const tierLabel = visualConfig?.shortLabel ?? (typedItem.tier ? `T${typedItem.tier}` : undefined);
+  const tierRoman = visualConfig ? undefined : typedItem.tier ? roman[Math.max(typedItem.tier - 1, 0)] : undefined;
   const showTeam = typedItem.isTeam && typedItem.type === 'mapShard';
   const isNFT = typedItem.type === 'nft';
+  const displayName = visualConfig?.displayName ?? typedItem.name;
+  const iconToRender = iconSource ?? typedItem.icon;
 
   return (
     <Pressable
@@ -92,18 +101,18 @@ export const InventorySlotCard: React.FC<Props> = ({ item, size, onPress, onLong
           {tierLabel ? (
             <View style={[styles.tierBadge, { borderColor: accent.border, backgroundColor: accent.badge }]}>
               <Text style={styles.tierText}>{tierLabel}</Text>
-              <Text style={styles.tierSub}>{tierRoman}</Text>
+              {tierRoman ? <Text style={styles.tierSub}>{tierRoman}</Text> : null}
             </View>
           ) : null}
         </View>
 
         <View style={styles.iconBox}>
-          <Image source={typedItem.icon} style={styles.icon} resizeMode="contain" />
+          <Image source={iconToRender} style={styles.icon} resizeMode="contain" />
         </View>
 
         <View style={[styles.footer, { borderTopColor: 'rgba(255,255,255,0.06)' }]}>
           <Text style={styles.name} numberOfLines={1}>
-            {typedItem.name}
+            {displayName}
           </Text>
           <View style={[styles.countPill, { backgroundColor: accent.badge, borderColor: accent.border }]}>
             <Text style={styles.countText}>x{typedItem.amount}</Text>
@@ -207,9 +216,20 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 8,
   },
-  emptyTitle: { color: '#E5F2FF', fontSize: 14, fontWeight: '700' },
+  emptyPlus: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  emptyPlusText: { color: '#E5F2FF', fontSize: 22, fontWeight: '800' },
+  emptyTitle: { color: '#E5F2FF', fontSize: 13, fontWeight: '700' },
   emptySubtitle: { color: 'rgba(229,242,255,0.7)', fontSize: 12 },
 });
 
