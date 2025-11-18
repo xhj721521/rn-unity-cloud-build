@@ -1,25 +1,33 @@
-import React from 'react';
+﻿import React from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import QuickGlyph from '@components/QuickGlyph';
 import { palette } from '@theme/colors';
 import { typography } from '@theme/typography';
 
-export const InventoryToolbar = () => {
-  const handlePlaceholder = () => Alert.alert('提示', '占位功能');
+type Props = {
+  search: string;
+  onSearchChange: (value: string) => void;
+  onPressSort?: () => void;
+};
+
+export const InventoryToolbar: React.FC<Props> = ({ search, onSearchChange, onPressSort }) => {
+  const handlePlaceholder = () => Alert.alert('Info', 'Placeholder action');
   return (
     <View style={styles.container}>
-      <Pressable style={styles.searchBox} onPress={handlePlaceholder}>
+      <View style={styles.searchBox}>
         <QuickGlyph id="globe" size={18} />
         <TextInput
           style={styles.searchInput}
-          placeholder="搜索仓库"
+          placeholder="Search inventory"
           placeholderTextColor="rgba(255,255,255,0.4)"
-          editable={false}
+          value={search}
+          onChangeText={onSearchChange}
+          editable
         />
-      </Pressable>
-      <Pressable style={styles.sortButton} onPress={handlePlaceholder}>
+      </View>
+      <Pressable style={styles.sortButton} onPress={onPressSort ?? handlePlaceholder}>
         <QuickGlyph id="settings" size={18} />
-        <Text style={styles.sortText}>排序</Text>
+        <Text style={styles.sortText}>Sort</Text>
       </Pressable>
     </View>
   );

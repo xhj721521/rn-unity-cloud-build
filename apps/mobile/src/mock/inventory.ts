@@ -13,6 +13,9 @@ export type UIItem = {
   qty: number;
   icon: ImageSourcePropType;
   badges?: Array<'nft' | 'locked' | 'equipped'>;
+  // extra metadata to help inventory rendering
+  isTeam?: boolean;
+  tier?: number;
 };
 
 const oreIcons = [
@@ -97,18 +100,21 @@ export const inventoryItems: UIItem[] = [
     id: `ore-${index + 1}`,
     type: 'ore' as ItemType,
     rarity: index % 2 === 0 ? 'common' : 'rare',
-    name: `Ore Sample ${index + 1}`,
+    name: `T${index + 1} 命运矿`,
     qty: 12 + index * 3,
     icon,
+    tier: index + 1,
   })),
   ...mapIcons.map((icon, index) => ({
     id: `map-${index + 1}`,
     type: 'mapshard' as ItemType,
     rarity: index % 3 === 0 ? 'epic' : 'rare',
-    name: `Map Shard ${index + 1}`,
+    name: `${index < 6 ? '个人' : '团队'}地图碎片 ${index + 1}`,
     qty: 1 + (index % 4),
     icon,
     badges: index % 4 === 0 ? ['locked'] : undefined,
+    isTeam: index >= 6,
+    tier: (index % 5) + 1,
   })),
   ...mapNftIconEntries.map(([mapId, icon], index) => ({
     id: `map-nft-${mapId.toLowerCase()}`,
