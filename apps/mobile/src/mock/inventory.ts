@@ -99,6 +99,7 @@ export const inventoryItems: VisualItem[] = standardItems.map(toVisualItem);
 // 保持兼容旧引用
 export type UIItem = VisualItem;
 export type ItemType = 'ore' | 'mapshard' | 'minershard' | 'nft' | 'other';
+export type { VisualItem };
 
 // 占位符资源，供空槽等场景使用
 export const placeholderIcon = resolveIconSource(ITEM_VISUAL_CONFIG[0]);

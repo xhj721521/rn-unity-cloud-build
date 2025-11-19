@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {
   Dimensions,
   FlatList,
+  ScrollView,
   SafeAreaView,
   StyleSheet,
   Text,

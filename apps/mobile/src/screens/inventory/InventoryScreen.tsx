@@ -5,7 +5,7 @@ import { CategoryChips } from "@components/inventory/CategoryChips";
 import { InventoryToolbar } from "@components/inventory/Toolbar";
 import InventorySlotCard from "@components/inventory/InventorySlotCard";
 import { inventoryItems as visualInventoryItems } from "@mock/inventory";
-import { InventoryEntry, InventoryItem, InventoryKind } from "@types/inventory";
+import { VisualItem } from "@domain/items/itemVisualAdapter";
 import { typography } from "@theme/typography";
 import { palette } from "@theme/colors";
 
@@ -27,39 +27,13 @@ const CAPACITY: Record<CategoryKey, number> = {
   other: 50,
 };
 
-const kindMap: Record<Exclude<CategoryKey, "all">, InventoryKind> = {
-  ore: "ore",
-  mapShard: "mapShard",
-  nft: "nft",
-  other: "other",
-};
-
 export const InventoryScreen = () => {
   const [category, setCategory] = useState<CategoryKey>("all");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<"amountDesc" | "amountAsc">("amountDesc");
   const { width } = useWindowDimensions();
 
-  const normalized = useMemo(() => visualInventoryItems.map((item) => {
-    const typeKey = item.type === "mapshard" ? "mapShard" : (item.type as CategoryKey);
-    const kind = kindMap[typeKey] ?? "other";
-    return {
-      id: item.id,
-      name: item.name,
-      type: kind,
-      isTeam: item.isTeam,
-      tier: item.tier,
-      visualCategory: item.visualCategory as any,
-      visualKey: item.visualKey,
-      visual: item.visual as any,
-      icon: item.icon,
-      amount: item.amount ?? 0,
-      rarity:
-        item.rarity === "legend" || item.rarity === "mythic"
-          ? "legendary"
-          : (item.rarity as InventoryItem["rarity"]),
-    } as InventoryItem;
-  }), []);
+  const normalized = useMemo(() => visualInventoryItems as VisualItem[], []);
   const gap = 10;
   const columns = 4;
   const horizontalPadding = 32; // 16 * 2
@@ -67,9 +41,8 @@ export const InventoryScreen = () => {
 
   const { data, usedSlots, totalSlots } = useMemo(() => {
     const total = CAPACITY[category] ?? 100;
-    const currentKind = category === "all" ? undefined : kindMap[category];
     const filteredBase =
-      category === "all" ? normalized : normalized.filter((item) => item.type === currentKind);
+      category === "all" ? normalized : normalized.filter((item) => item.type === category);
 
     const keyword = search.trim().toLowerCase();
     const filtered = filteredBase.filter((item) =>
@@ -81,26 +54,17 @@ export const InventoryScreen = () => {
     const used = sorted.length;
     const free = category === "all" ? 0 : Math.max(total - used, 0);
 
-    const entries: InventoryEntry[] = sorted;
-    if (free > 0 && category !== "all") {
-      entries.push({
-        id: `empty-${category}`,
-        kind: "emptySummary",
-        type: currentKind ?? "other",
-        freeSlots: free,
-      });
-    }
-
-    return { data: entries, usedSlots: used, totalSlots: total };
+    return { data: sorted, usedSlots: used, totalSlots: total };
   }, [category, normalized, search, sort]);
 
-  const handlePress = (item: InventoryEntry) => {
-    if ((item as any).kind === "emptySummary") return;
-    console.log("open item", (item as InventoryItem).id);
+  const handlePress = (item?: VisualItem) => {
+    if (!item) return;
+    console.log("open item", item.id);
   };
 
-  const handleLongPress = (item: InventoryEntry) => {
-    console.log("long press", (item as InventoryItem).id);
+  const handleLongPress = (item?: VisualItem) => {
+    if (!item) return;
+    console.log("long press", item.id);
   };
 
   const toggleSort = () => setSort((prev) => (prev === "amountDesc" ? "amountAsc" : "amountDesc"));
@@ -123,7 +87,7 @@ export const InventoryScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <InventorySlotCard
-            item={item}
+            item={item as any}
             size={itemSize}
             onPress={handlePress}
             onLongPress={handleLongPress}
