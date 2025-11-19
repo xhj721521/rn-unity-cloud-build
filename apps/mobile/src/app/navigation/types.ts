@@ -39,7 +39,7 @@ export type RootTabParamList = {
 };
 
 export type RootStackParamList = {
-  Tabs: undefined;
+  Tabs: { screen?: keyof RootTabParamList; params?: Record<string, unknown> } | undefined;
   ActivityHub: undefined;
   ActivityDetail: { id: string; type?: 'raffle' | 'detail' } | undefined;
   MyActivities: undefined;

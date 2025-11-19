@@ -55,17 +55,12 @@ export const ITEM_VISUAL_CONFIG: ItemVisualConfig[] = [
   { id: 'T_STORM_NFT_T6', category: ItemCategory.TeamMapNft, tier: 6, key: 'storm', iconKey: 'team_storm_nft', displayName: 'STORM team NFT', shortLabel: 'VI' },
 ];
 
-const visualByIconKey = ITEM_VISUAL_CONFIG.reduce<Record<string, ItemVisualConfig>>((acc, config) => {
-  acc[config.iconKey] = config;
-  return acc;
-}, {});
-
-export function getItemVisualByIconKey(iconKey: string): ItemVisualConfig | undefined {
-  return visualByIconKey[iconKey];
-}
-
 export function getItemVisual(category: ItemCategory, tier: ItemTier, key: string): ItemVisualConfig | undefined {
   return ITEM_VISUAL_CONFIG.find(
     (c) => c.category === category && c.tier === tier && c.key === key,
   );
+}
+
+export function getItemVisualByIconKey(iconKey: string): ItemVisualConfig | undefined {
+  return ITEM_VISUAL_CONFIG.find((c) => c.iconKey === iconKey);
 }

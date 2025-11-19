@@ -17,7 +17,7 @@
       "@store/*": ["src/store/*"],
       "@theme/*": ["src/theme/*"],
       "@data/*": ["src/data/*"],
-      "@types/*": ["src/types/*"],
+      "@schemas/*": ["src/types/*"],
       "@locale/*": ["src/locale/*"]
     },
     "strict": true,

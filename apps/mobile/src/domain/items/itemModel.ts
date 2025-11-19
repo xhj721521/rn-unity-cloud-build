@@ -55,7 +55,10 @@ const decodeUnicode = (text?: string) => {
 };
 
 export function normalizeItem(input: PartialItemInput): StandardItem {
-  const type = (input.type as ItemType) ?? 'other';
+  const rawType = (input.type as string | undefined)?.toLowerCase();
+  const type: ItemType = rawType === 'mapshard'
+    ? 'mapShard'
+    : ((input.type as ItemType) ?? 'other');
   const key = input.key ?? '';
   const lowerKey = key.toLowerCase();
   const tierFromKey = personalKeyTier[lowerKey] ?? teamKeyTier[lowerKey];
@@ -64,7 +67,7 @@ export function normalizeItem(input: PartialItemInput): StandardItem {
 
   return {
     id: input.id,
-    type: type === 'mapshard' ? 'mapShard' : (type as ItemType),
+    type,
     key: lowerKey,
     tier: Math.max(1, Math.min(6, tier)),
     isTeam,
