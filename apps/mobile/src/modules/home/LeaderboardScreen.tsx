@@ -22,9 +22,9 @@ import {
 } from '@state/leaderboard/leaderboardSlice';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const GRID_GAP = 12;
+const GRID_GAP = 14;
 const GRID_PADDING = 16;
-const CARD_WIDTH = (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * 2) / 3;
+const CARD_WIDTH = (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP) / 2;
 
 const COLORS = {
   bg: '#0B1020',
@@ -126,8 +126,8 @@ const RankCard = ({
           </View>
         </View>
         <View style={styles.rankMiddle}>
-          <Avatar name={entry.playerName} size={36} />
-          <View style={{ marginLeft: 8, flex: 1 }}>
+          <Avatar name={entry.playerName} size={42} />
+          <View style={{ flex: 1 }}>
             <Text style={styles.rankName} numberOfLines={1}>
               {entry.playerName}
             </Text>
@@ -369,7 +369,19 @@ const styles = StyleSheet.create({
     gap: GRID_GAP,
   },
   rankCard: { width: CARD_WIDTH },
-  rankCardInner: { padding: 10, backgroundColor: COLORS.card, borderRadius: 15, borderWidth: 1, borderColor: COLORS.stroke },
+  rankCardInner: {
+    padding: 12,
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.stroke,
+    minHeight: 170,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+  },
   rankHeader: { flexDirection: 'row', alignItems: 'center' },
   rankIndex: { color: COLORS.textSec, fontSize: 12, fontWeight: '700' },
   rankTag: {
@@ -380,11 +392,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A2440',
   },
   rankTagText: { color: COLORS.textMeta, fontSize: 12 },
-  rankMiddle: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  rankName: { color: COLORS.textPri, fontSize: 14, fontWeight: '600' },
+  rankMiddle: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
+  rankName: { color: COLORS.textPri, fontSize: 15, fontWeight: '700' },
   rankMeta: { color: COLORS.textMeta, fontSize: 12, marginTop: 2 },
-  rankBottom: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 8 },
-  rankPrimary: { color: COLORS.textPri, fontSize: 14, fontWeight: '700' },
+  rankBottom: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 6 },
+  rankPrimary: { color: COLORS.textPri, fontSize: 15, fontWeight: '700' },
   rankSecondary: { color: COLORS.textMeta, fontSize: 12, marginTop: 2 },
   rankCta: {
     height: 28,
