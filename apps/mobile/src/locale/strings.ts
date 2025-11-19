@@ -278,9 +278,22 @@ const formatTemplate = (template: string, params?: TemplateParams) => {
   });
 };
 
-export const translate = (key: LocaleKey | string, params?: TemplateParams, fallback?: string) => {
-  const template = dictionary[key] ?? fallback ?? key;
-  return formatTemplate(template, params);
+export const translate = (
+  key: LocaleKey | string,
+  params?: TemplateParams | string,
+  fallback?: string,
+) => {
+  let resolvedParams: TemplateParams | undefined;
+  let resolvedFallback = fallback;
+
+  if (typeof params === 'string') {
+    resolvedFallback = fallback ?? params;
+  } else {
+    resolvedParams = params;
+  }
+
+  const template = dictionary[key] ?? resolvedFallback ?? key;
+  return formatTemplate(template, resolvedParams);
 };
 
 export const supportedLanguages = ['zh-CN', 'en', 'vi', 'ms', 'th', 'ar', 'pt-BR'] as const;

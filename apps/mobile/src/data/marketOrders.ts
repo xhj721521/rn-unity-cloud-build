@@ -6,7 +6,7 @@ import {
   OreTier,
   PersonalMapId,
   TeamMapId,
-} from '@types/market';
+} from '@schemas/market';
 
 const player = (nickname: string, id?: string) => ({ id: id ?? nickname.toLowerCase(), nickname });
 
@@ -90,4 +90,55 @@ export const marketCategories: { key: MarketCategory; label: string }[] = [
   { key: 'ore', label: '矿石' },
   { key: 'fragment', label: '地图碎片' },
   { key: 'mapNft', label: '地图 NFT' },
+];
+
+export type MarketAssetCategory = 'ore' | 'fragment' | 'nft';
+
+export type MarketHistoryItem = {
+  id: string;
+  title: string;
+  time: string;
+  category: MarketAssetCategory;
+  price: number;
+  amount: number;
+  status: 'success' | 'pending' | 'failed';
+};
+
+export const marketHistory: MarketHistoryItem[] = [
+  {
+    id: 'h1',
+    title: 'T3 星晶矿 · 成交',
+    time: '10:24 · 今日',
+    category: 'ore',
+    price: 320,
+    amount: 80,
+    status: 'success',
+  },
+  {
+    id: 'h2',
+    title: '个人地图碎片 · Rune Well',
+    time: '10:02 · 今日',
+    category: 'fragment',
+    price: 540,
+    amount: 3,
+    status: 'pending',
+  },
+  {
+    id: 'h3',
+    title: '团队地图 NFT · Central Core',
+    time: '09:40 · 今日',
+    category: 'nft',
+    price: 1280,
+    amount: 1,
+    status: 'success',
+  },
+  {
+    id: 'h4',
+    title: 'T5 命运矿 · 求购',
+    time: '09:22 · 今日',
+    category: 'ore',
+    price: 1120,
+    amount: 30,
+    status: 'failed',
+  },
 ];

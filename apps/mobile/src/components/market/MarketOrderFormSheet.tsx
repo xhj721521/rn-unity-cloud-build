@@ -12,7 +12,7 @@ import {
   teamMapLabels,
   oreLabels,
   categoryLabel,
-} from '@types/market';
+} from '@schemas/market';
 
 type Props = {
   visible: boolean;

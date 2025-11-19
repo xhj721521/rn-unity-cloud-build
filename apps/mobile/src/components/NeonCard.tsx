@@ -22,7 +22,7 @@ type NeonCardProps = ViewProps & {
   backgroundStyle?: object;
 };
 
-export const NeonCard = forwardRef<View, NeonCardProps>(
+export const NeonCard = forwardRef<LinearGradient, NeonCardProps>(
   (
     {
       style,

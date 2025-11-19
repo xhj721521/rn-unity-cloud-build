@@ -33,7 +33,7 @@ export const RaidWideCard = ({
         <View>
           <Text style={styles.title}>{name}</Text>
           <Text style={styles.subtitle}>
-            {t('raid.progress', '已清 {cleared}/{total}', { cleared, total })} · {difficulty}
+            {t('raid.progress', { cleared, total }, '已清 {cleared}/{total}')} · {difficulty}
           </Text>
         </View>
         <Text style={styles.timer}>{endsIn}</Text>

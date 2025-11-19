@@ -8,11 +8,12 @@ import {
   View,
 } from 'react-native';
 
-type RipplePressableProps = PressableProps & {
+type RipplePressableProps = Omit<PressableProps, 'children'> & {
+  children?: React.ReactNode;
   rippleColor?: string;
 };
 
-const RipplePressable = React.forwardRef<Pressable, RipplePressableProps>(
+const RipplePressable = React.forwardRef<React.ElementRef<typeof Pressable>, RipplePressableProps>(
   (
     { children, rippleColor = 'rgba(255,255,255,0.18)', style, onPressIn, onLayout, ...rest },
     ref,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { PlayerInfo } from '@types/market';
+import { PlayerInfo } from '@schemas/market';
 
 type PlayerBadgeProps = {
   player: PlayerInfo;

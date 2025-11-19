@@ -10,11 +10,10 @@ import {
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationProp } from '@react-navigation/native-stack';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Activity, activities, ActivityCategory, ActivityStatus } from '@data/activities';
 import ActivityCard from '@components/ActivityCard';
-import { RootStackParamList, RootTabParamList } from '@app/navigation/types';
+import { RootStackParamList } from '@app/navigation/types';
 import { useFateResourceStore } from '@store/useFateResourceStore';
 
 const STATUS_TABS: { key: ActivityStatus; label: string }[] = [
@@ -32,7 +31,7 @@ const CATEGORY_TABS: { key: ActivityCategory; label: string }[] = [
 ];
 
 export const ActivityHubScreen = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList & RootTabParamList>>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [status, setStatus] = useState<ActivityStatus>('ongoing');
   const [category, setCategory] = useState<ActivityCategory>('all');
   const [exchangeActivity, setExchangeActivity] = useState<Activity | null>(null);

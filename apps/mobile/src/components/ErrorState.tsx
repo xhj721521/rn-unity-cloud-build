@@ -66,12 +66,12 @@ const styles = StyleSheet.create({
     backgroundColor: neonPalette.glowPurple,
   },
   title: {
-    color: neonPalette.textPrimary,
     ...typeScale.title,
+    color: neonPalette.textPrimary,
   },
   description: {
-    color: neonPalette.textSecondary,
     ...typeScale.body,
+    color: neonPalette.textSecondary,
   },
   retryButton: {
     alignSelf: 'flex-start',
@@ -83,8 +83,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(124, 92, 255, 0.18)',
   },
   retryText: {
-    color: neonPalette.textPrimary,
     ...typeScale.body,
+    color: neonPalette.textPrimary,
     fontWeight: '600',
   },
 });

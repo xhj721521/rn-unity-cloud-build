@@ -22,7 +22,7 @@ export const MapHalfCard = ({ opened, quota, ticket, canOpen, onOpen }: Props) =
         <View>
           <Text style={styles.title}>{t('maps.title', '团队地图')}</Text>
           <Text style={styles.subtitle}>
-            {t('maps.opened', '今日已开 {n} / 可开 {m}', { n: opened, m: quota })}
+            {t('maps.opened', { n: opened, m: quota }, '今日已开 {n} / 可开 {m}')}
           </Text>
         </View>
         <BadgeChip label={ticket} />

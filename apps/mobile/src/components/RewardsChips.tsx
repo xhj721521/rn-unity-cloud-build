@@ -1,7 +1,10 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { T } from '../tokens';
-import { fonts } from '../typography';
+import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import typography from '@theme/typography';
+
+const fonts = {
+  meta: typography.captionCaps,
+};
 
 type Props = {
   onPressChip?: () => void;
@@ -35,7 +38,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: T.color.stroke,
+    borderColor: 'rgba(31,42,68,0.8)',
     justifyContent: 'center',
   },
   chipText: { ...fonts.meta, color: '#CFE2FF' },

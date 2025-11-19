@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
-
-let Reanimated: typeof import('react-native-reanimated') | null = null;
-try {
-  Reanimated = require('react-native-reanimated');
-} catch (error) {
-  Reanimated = null;
-}
+import Animated, {
+  Easing,
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 type Align = 'tl' | 'tr' | 'bl' | 'br';
 
 type PerforatedGridProps = {
@@ -46,20 +47,7 @@ export default function PerforatedGrid({
     return <StaticGrid dots={dots} offsetX={offsetX} offsetY={offsetY} opacity={0.06} />;
   }
 
-  const canAnimate = Reanimated && typeof Reanimated.useSharedValue === 'function';
-
-  if (!canAnimate) {
-    return <StaticGrid dots={dots} offsetX={offsetX} offsetY={offsetY} opacity={0.06} />;
-  }
-
-  return (
-    <AnimatedGrid
-      reanimated={Reanimated as typeof import('react-native-reanimated')}
-      dots={dots}
-      offsetX={offsetX}
-      offsetY={offsetY}
-    />
-  );
+  return <AnimatedGrid dots={dots} offsetX={offsetX} offsetY={offsetY} />;
 }
 
 type GridLayerProps = {
@@ -79,22 +67,10 @@ const StaticGrid = ({ dots, offsetX, offsetY, opacity = 0.06 }: GridLayerProps) 
   </View>
 );
 
-type AnimatedGridProps = GridLayerProps & {
-  reanimated: typeof import('react-native-reanimated');
-};
+type AnimatedGridProps = GridLayerProps;
 
-const AnimatedGrid = ({ reanimated, dots, offsetX, offsetY }: AnimatedGridProps) => {
-  const {
-    useSharedValue,
-    withRepeat,
-    withTiming,
-    Easing,
-    useAnimatedStyle,
-    createAnimatedComponent,
-  } = reanimated;
-  const AnimatedView = useMemo(() => createAnimatedComponent(View), [createAnimatedComponent]);
-  const cancelAnimation: ((value: unknown) => void) | undefined =
-    typeof reanimated.cancelAnimation === 'function' ? reanimated.cancelAnimation : undefined;
+const AnimatedGrid = ({ dots, offsetX, offsetY }: AnimatedGridProps) => {
+  const AnimatedView = useMemo(() => Animated.createAnimatedComponent(View), []);
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -105,13 +81,9 @@ const AnimatedGrid = ({ reanimated, dots, offsetX, offsetY }: AnimatedGridProps)
     );
 
     return () => {
-      if (cancelAnimation) {
-        cancelAnimation(progress);
-      } else {
-        progress.value = 0;
-      }
+      cancelAnimation(progress);
     };
-  }, [Easing, cancelAnimation, progress, withRepeat, withTiming]);
+  }, [progress]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const phase = Math.sin(progress.value * Math.PI * 2);

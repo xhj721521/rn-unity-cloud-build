@@ -129,11 +129,11 @@ export const useTeamChatStore = create<TeamChatStore>()(
               };
             }
             return msg;
-          });
+          }) as ChatMessage[];
           const found = current.messages.some((msg) => msg.id === clientId);
           const messages = found
             ? uniqueSorted(nextMessages)
-            : uniqueSorted([...nextMessages, serverMessage]);
+            : uniqueSorted([...nextMessages, serverMessage] as ChatMessage[]);
           return {
             teams: {
               ...state.teams,

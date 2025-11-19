@@ -6,25 +6,30 @@ import { useAppSelector } from '@state/hooks';
 import { LeaderboardCategory, LeaderboardPeriod } from '@state/leaderboard/leaderboardSlice';
 import MyRankBar from '@components/MyRankBar';
 import RewardsChips from '@components/RewardsChips';
-import RankCard from '@components/RankCard';
+import RankCard, { RankCardItem } from '@components/RankCard';
 import SkeletonCard from '@components/SkeletonCard';
 import DoubleFrameCard from '@components/DoubleFrameCard';
 import Avatar from '@components/Avatar';
 import IconCrown from '@components/IconCrown';
 import TechTexture from '@components/TechTexture';
-import { buildMockItems } from '@mock/leaderboard';
-import { translate as t } from '../../locale/strings';
-import { T } from '../../tokens';
-import { fonts, neonTitle } from '../../typography';
-import { fmt, isTop3 } from '../../utils';
-import { BoardScope, BoardType, RankItem } from '../../types';
+import { buildMockItems, BoardType } from '@mock/leaderboard';
+import { translate as t } from '@locale/strings';
+import typography from '@theme/typography';
 
 const { width } = Dimensions.get('window');
-const GAP = T.space.sm + 2;
-const H_PADDING = T.space.md;
+const GAP = 14;
+const H_PADDING = 16;
 const CARD_WIDTH = (width - H_PADDING * 2 - GAP) / 2;
 const HERO_GAP = 12;
 const HERO_CARD_WIDTH = (width - H_PADDING * 2 - HERO_GAP * 2) / 3;
+const fmt = (value: number) => value.toLocaleString();
+const isTop3 = (rank?: number) => !!rank && rank >= 1 && rank <= 3;
+const fonts = {
+  title: typography.heading,
+  meta: typography.captionCaps,
+  body: typography.body,
+};
+const neonTitle = { textShadowColor: 'rgba(77,163,255,0.35)', textShadowRadius: 8 };
 
 const CATEGORY_TABS: { key: LeaderboardCategory; label: string; type: BoardType }[] = [
   { key: 'inviter', label: '命运邀约', type: 'invite' },
@@ -32,13 +37,13 @@ const CATEGORY_TABS: { key: LeaderboardCategory; label: string; type: BoardType 
   { key: 'wealth', label: '命运秘矿', type: 'mining' },
 ];
 
-const PERIOD_TABS: { key: LeaderboardPeriod; label: string; scope: BoardScope }[] = [
-  { key: 'daily', label: '日榜', scope: 'daily' },
-  { key: 'weekly', label: '周榜', scope: 'weekly' },
-  { key: 'monthly', label: '月榜', scope: 'monthly' },
+const PERIOD_TABS: { key: LeaderboardPeriod; label: string }[] = [
+  { key: 'daily', label: '日榜' },
+  { key: 'weekly', label: '周榜' },
+  { key: 'monthly', label: '月榜' },
 ];
 
-const mapEntryToRankItem = (type: BoardType, entry: { rank: number; playerName: string; score: number }, index: number): RankItem => ({
+const mapEntryToRankItem = (type: BoardType, entry: { rank: number; playerName: string; score: number }, index: number): RankCardItem => ({
   id: `${type}-${index}-${entry.playerName}`,
   rank: entry.rank ?? index + 1,
   nickname: entry.playerName,
@@ -49,7 +54,7 @@ const mapEntryToRankItem = (type: BoardType, entry: { rank: number; playerName: 
   secondaryValue: entry.rank,
 });
 
-const HeroCard = ({ item }: { item: RankItem }) => (
+const HeroCard = ({ item }: { item: RankCardItem }) => (
   <Animated.View entering={FadeInDown} style={{ width: HERO_CARD_WIDTH }}>
     <DoubleFrameCard rank={item.rank} width={HERO_CARD_WIDTH} height={150}>
       <TechTexture opacity={0.08} />
@@ -83,7 +88,7 @@ const LeaderboardScreen = () => {
   const board = leaderboard.data[category][period];
   const type = CATEGORY_TABS.find((tab) => tab.key === category)?.type ?? 'invite';
 
-  const items: RankItem[] = useMemo(() => {
+  const items: RankCardItem[] = useMemo(() => {
     if (!board.entries.length) {
       return buildMockItems(type);
     }
@@ -94,14 +99,14 @@ const LeaderboardScreen = () => {
 
   const listPadding = { paddingBottom: tabBarHeight ? tabBarHeight + 96 : 120 };
 
-  const renderRankCard = ({ item }: { item: RankItem }) => (
+  const renderRankCard = ({ item }: { item: RankCardItem }) => (
     <View style={{ width: CARD_WIDTH, marginBottom: GAP }}>
       <RankCard type={type} item={item} width={CARD_WIDTH} enableTexture />
     </View>
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: T.color.bg }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0B1020' }}>
       <FlatList
         data={rest}
         renderItem={renderRankCard}
@@ -202,13 +207,13 @@ const styles = StyleSheet.create({
     lineHeight: 38,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: T.color.stroke,
-    color: T.color.textSec,
+    borderColor: 'rgba(31,42,68,0.8)',
+    color: 'rgba(159,177,209,1)',
     fontSize: 13,
   },
   tabActive: {
-    color: T.color.textPri,
-    borderColor: T.color.primary,
+    color: '#EAF2FF',
+    borderColor: '#4DA3FF',
     backgroundColor: 'rgba(77,163,255,0.16)',
     fontWeight: '600',
   },
@@ -220,13 +225,13 @@ const styles = StyleSheet.create({
     lineHeight: 32,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: T.color.stroke,
-    color: T.color.textMeta,
+    borderColor: 'rgba(31,42,68,0.8)',
+    color: '#7E8AA6',
     fontSize: 12,
   },
   segmentActive: {
-    color: T.color.textPri,
-    borderColor: T.color.primary,
+    color: '#EAF2FF',
+    borderColor: '#4DA3FF',
     backgroundColor: 'rgba(77,163,255,0.18)',
     fontWeight: '600',
   },

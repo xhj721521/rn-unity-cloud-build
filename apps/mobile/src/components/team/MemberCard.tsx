@@ -56,7 +56,7 @@ export const MemberCard = ({ member, onPress }: MemberCardProps) => {
               {member.name}
             </Text>
             <Text style={styles.lastSeen}>
-              {t('member.lastSeen', '上次在线 {time}', { time: member.lastSeen })}
+              {t('member.lastSeen', { time: member.lastSeen }, '上次在线 {time}')}
             </Text>
           </View>
           <BadgeChip

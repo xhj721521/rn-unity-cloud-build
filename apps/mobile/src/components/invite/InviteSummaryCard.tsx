@@ -72,7 +72,7 @@ export const InviteSummaryCard = ({
       </View>
 
       <View style={styles.buttonRow}>
-        <NeonButton label={t('invite.createLink', '生成邀请链接')} onPress={onGenerateLink} />
+        <NeonButton title={t('invite.createLink', '生成邀请链接')} onPress={onGenerateLink} />
         <RipplePressable style={styles.secondaryBtn} onPress={onExport}>
           <Text style={styles.secondaryText}>{t('invite.exportReport', '导出战报')}</Text>
         </RipplePressable>

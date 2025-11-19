@@ -1,3 +1,5 @@
+import typography from './typography';
+
 export const spacing = {
   grid: 8,
   section: 16,
@@ -59,4 +61,10 @@ export const rarityColors: Record<'common' | 'uncommon' | 'rare' | 'epic' | 'leg
   rare: '#3B82F6',
   epic: '#A855F7',
   legend: '#F59E0B',
+};
+
+export const typeScale = {
+  title: { ...typography.heading },
+  body: { ...typography.body },
+  caption: { ...typography.captionCaps, fontSize: 12, lineHeight: 16 },
 };

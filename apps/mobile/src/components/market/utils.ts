@@ -6,10 +6,11 @@ import {
   oreLabels,
   personalMapLabels,
   teamMapLabels,
-} from '@types/market';
+} from '@schemas/market';
 
 export const marketAssetToText = (asset: MarketAsset): string => {
-  switch (asset.category) {
+  const category = asset.category;
+  switch (category) {
     case 'ore':
       return `${oreLabels[asset.tier]}`;
     case 'fragment':
@@ -17,7 +18,7 @@ export const marketAssetToText = (asset: MarketAsset): string => {
     case 'mapNft':
       return `${kindLabel[asset.kind]}地图 NFT · ${mapName(asset.kind, asset.mapId)}`;
     default:
-      return categoryLabel[asset.category];
+      return categoryLabel[category];
   }
 };
 

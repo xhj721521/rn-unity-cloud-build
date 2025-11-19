@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { AssetCategory, MapId, Order, OrderSide, OrderSideFilter, OreTier, SortDirection, SortField, mapGroups, mapLabelMap } from '@types/fateMarket';
+import { AssetCategory, MapId, Order, OrderSide, OrderSideFilter, OreTier, SortDirection, SortField, mapGroups, mapLabelMap } from '@schemas/fateMarket';
 import { initialOrders } from '@data/fateOrders';
 import OrderCard from '@components/fateMarket/OrderCard';
 import CreateOrderModal from '@components/fateMarket/CreateOrderModal';

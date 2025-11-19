@@ -1,6 +1,8 @@
-import { BoardType, RankItem } from '../types';
+import { RankCardItem } from '@components/RankCard';
 
-export const buildMockItems = (type: BoardType): RankItem[] =>
+export type BoardType = 'invite' | 'team' | 'mining';
+
+export const buildMockItems = (type: BoardType): RankCardItem[] =>
   Array.from({ length: 30 }).map((_, index) => ({
     id: `${type}-${index + 1}`,
     rank: index + 1,

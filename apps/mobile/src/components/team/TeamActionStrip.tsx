@@ -26,7 +26,7 @@ export const TeamActionStrip = ({ name, level, online, cap, onInvite, onLeave, t
         <BadgeChip label={`Lv.${level}`} tone="default" />
       </View>
       <BadgeChip
-        label={t('team.online', '在线 {count}/{cap}', { count: online, cap })}
+        label={t('team.online', { count: online, cap }, '在线 {count}/{cap}')}
         tone={online > 0 ? 'online' : 'offline'}
       />
       <View style={styles.actions}>

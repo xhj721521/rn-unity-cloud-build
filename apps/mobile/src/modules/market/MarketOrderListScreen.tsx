@@ -12,10 +12,10 @@ import {
   PersonalMapId,
   TeamMapId,
   MarketAsset,
-} from '@types/market';
+} from '@schemas/market';
 import PillTabs from '@components/market/PillTabs';
 import MarketOrderCard from '@components/market/MarketOrderCard';
-import { personalMapLabels, teamMapLabels } from '@types/market';
+import { personalMapLabels, teamMapLabels } from '@schemas/market';
 import MarketOrderFormSheet from '@components/market/MarketOrderFormSheet';
 
 type RouteProps = RouteProp<MarketStackParamList, 'MarketListings'>;
@@ -61,7 +61,7 @@ export const MarketOrderListScreen = () => {
   const [sheetAsset, setSheetAsset] = useState<MarketAsset | undefined>(undefined);
 
   const mapLabels = mapKind === 'personal' ? personalMapLabels : teamMapLabels;
-  const mapFilterKeys = Object.keys(mapLabels) as (PersonalMapId | TeamMapId)[];
+  const mapFilterKeys = Object.keys(mapLabels) as Array<keyof typeof mapLabels>;
 
   const data = useMemo(() => {
     let list = mockOrders;
@@ -172,7 +172,7 @@ export const MarketOrderListScreen = () => {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <MarketOrderCard order={item} onPressAction={() => handleOpenForm(item, item.side === 'sell' ? 'buy' : 'sell')} />
+            <MarketOrderCard order={item} onPressAction={() => handleOpenForm(item.asset, item.side === 'sell' ? 'buy' : 'sell')} />
           )}
           ListEmptyComponent={
             <View style={styles.empty}>

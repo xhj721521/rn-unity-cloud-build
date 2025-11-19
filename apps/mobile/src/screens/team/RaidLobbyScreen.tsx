@@ -13,7 +13,11 @@ export const RaidLobbyScreen = () => {
     <ScreenContainer variant="plain">
       <Text style={styles.title}>{t('raid.title', '团队副本')}</Text>
       <Text style={styles.subtitle}>
-        {t('raid.progress', '已清 {cleared}/{total}', raidStatus)}
+        {t(
+          'raid.progress',
+          { cleared: raidStatus.cleared, total: raidStatus.total },
+          '已清 {cleared}/{total}',
+        )}
       </Text>
       <GridNodes
         rows={raidStatus.gridSize[0]}

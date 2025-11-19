@@ -33,7 +33,10 @@ export const MemberPill = ({ member, style, onPress, onLongPress }: Props) => {
     >
       <View style={styles.avatar}>
         {member.avatar ? (
-          <Image source={member.avatar} style={styles.avatarImage} />
+          <Image
+            source={typeof member.avatar === 'string' ? { uri: member.avatar } : member.avatar}
+            style={styles.avatarImage}
+          />
         ) : (
           <Text style={styles.avatarText}>{member.name.charAt(0).toUpperCase()}</Text>
         )}

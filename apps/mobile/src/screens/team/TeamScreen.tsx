@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   Image,
+  ImageStyle,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -22,8 +23,6 @@ import { Member } from '@mock/team.members';
 import { teamWarehouseItems } from '@mock/teamWarehouse';
 import { typography } from '@theme/typography';
 import { ProfileStackParamList } from '@app/navigation/types';
-import { getItemVisual } from '@domain/items/itemVisualConfig';
-import { resolveIconSource } from '@domain/items/itemIconResolver';
 
 const gradientColors = ['#050A18', '#08152F', '#042D4A'];
 
@@ -263,7 +262,7 @@ const TeamMemberRow = ({ member }: { member: DisplayMember }) => (
         <View style={styles.roleTag}>
           <Text style={styles.roleTagText}>{member.roleLabel}</Text>
         </View>
-        <View style={styles.onlineDot(member.onlineStatus)} />
+        <View style={getOnlineDotStyle(member.onlineStatus)} />
         <Text style={styles.onlineText}>{member.onlineStatus === 'online' ? '在线' : '离线'}</Text>
       </View>
     </View>
@@ -364,30 +363,22 @@ const WarehouseModal = ({ visible, onClose, wallet }: WarehouseModalProps) => (
             {teamWarehouseItems.map((item, index) => (
               <View key={item?.id ?? `slot-${index}`} style={styles.warehouseCell}>
                 {item ? (
-                  (() => {
-                    const visual = item.visual ?? (item.visualCategory && item.visualKey && item.tier ? getItemVisual(item.visualCategory, item.tier, item.visualKey) : undefined);
-                    const iconSource = visual ? resolveIconSource(visual) : item.icon;
-                    const badge = visual?.shortLabel ?? (item.tier ? `T${item.tier}` : undefined);
-                    const title = visual?.displayName ?? item.name;
-                    return (
-                      <>
-                        <View style={styles.warehouseIconWrap}>
-                          {iconSource ? (
-                            <Image source={iconSource} style={styles.warehouseIcon} />
-                          ) : (
-                            <Text style={styles.warehousePlaceholder}>{title.charAt(0)}</Text>
-                          )}
-                          {badge ? (
-                            <View style={styles.warehouseBadge}>
-                              <Text style={styles.warehouseBadgeText}>{badge}</Text>
-                            </View>
-                          ) : null}
+                  <>
+                    <View style={styles.warehouseIconWrap}>
+                      {item.icon ? (
+                        <Image source={item.icon} style={styles.warehouseIcon as ImageStyle} />
+                      ) : (
+                        <Text style={styles.warehousePlaceholder}>{item.name.charAt(0)}</Text>
+                      )}
+                      {item.shortLabel ? (
+                        <View style={styles.warehouseBadge}>
+                          <Text style={styles.warehouseBadgeText}>{item.shortLabel}</Text>
                         </View>
-                        <Text style={styles.warehouseName}>{title}</Text>
-                        <Text style={styles.warehouseQty}>x{item.qty}</Text>
-                      </>
-                    );
-                  })()
+                      ) : null}
+                    </View>
+                    <Text style={styles.warehouseName}>{item.name}</Text>
+                    <Text style={styles.warehouseQty}>x{item.amount}</Text>
+                  </>
                 ) : (
                   <View style={styles.warehouseEmptyBox}>
                     <Text style={styles.warehouseEmptyPlus}>+</Text>
@@ -425,6 +416,14 @@ const NoticeModal = ({ visible, notice, onClose }: NoticeModalProps) => (
     </View>
   </Modal>
 );
+
+const getOnlineDotStyle = (status: 'online' | 'offline') => ({
+  width: 6,
+  height: 6,
+  borderRadius: 3,
+  marginRight: 4,
+  backgroundColor: status === 'online' ? '#22c55e' : 'rgba(148,163,184,0.7)',
+});
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
@@ -558,13 +557,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   roleTagText: { color: 'rgba(199,210,254,0.9)', fontSize: 10 },
-  onlineDot: (status: 'online' | 'offline') => ({
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 4,
-    backgroundColor: status === 'online' ? '#22c55e' : 'rgba(148,163,184,0.7)',
-  }),
   onlineText: { color: 'rgba(148,163,184,0.9)', fontSize: 11 },
   intelPill: {
     flexDirection: 'row',

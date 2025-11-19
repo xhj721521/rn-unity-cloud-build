@@ -43,7 +43,7 @@ export const LanguageScreen = () => {
           />
         ))}
       </SettingSection>
-      <NeonButton label={t('settings.language.apply', '应用（占位）')} onPress={handleApply} />
+      <NeonButton title={t('settings.language.apply', '应用（占位）')} onPress={handleApply} />
     </ScreenContainer>
   );
 };

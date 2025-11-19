@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
     color: palette.text,
   },
   cardTitle: {
-    ...typography.title,
+    ...typography.heading,
     color: palette.text,
   },
   cardDesc: {

@@ -22,7 +22,11 @@ export const ChatDock = ({ messages }: Props) => {
           animated.setValue(next);
         },
         onPanResponderRelease: (_, gesture) => {
-          const shouldExpand = gesture.vy < 0 || animated.__getValue() > (collapsed + expanded) / 2;
+          const currentValue =
+            typeof (animated as any).__getValue === 'function'
+              ? (animated as any).__getValue()
+              : collapsed;
+          const shouldExpand = gesture.vy < 0 || currentValue > (collapsed + expanded) / 2;
           Animated.spring(animated, {
             toValue: shouldExpand ? expanded : collapsed,
             useNativeDriver: false,

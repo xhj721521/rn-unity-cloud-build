@@ -1,8 +1,12 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { T } from '../tokens';
-import { fonts } from '../typography';
+import typography from '@theme/typography';
+
+const fonts = {
+  body: typography.body,
+  meta: typography.captionCaps,
+};
 
 type Props = {
   rank?: number;
@@ -51,7 +55,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  label: { ...fonts.meta, color: T.color.textSec },
+  label: { ...fonts.meta, color: 'rgba(159,177,209,1)' },
   value: { ...fonts.body, fontSize: 16, fontWeight: '700', marginTop: 4 },
   meta: { ...fonts.meta, marginTop: 4 },
   linkBtn: {
@@ -61,7 +65,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.35)',
   },
-  link: { ...fonts.meta, color: T.color.textPri },
+  link: { ...fonts.meta, color: '#EAF2FF' },
 });
 
 export default MyRankBar;

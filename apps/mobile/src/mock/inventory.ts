@@ -3,13 +3,15 @@ import { resolveIconSource } from '@domain/items/itemIconResolver';
 import { StandardItem } from '@domain/items/itemModel';
 import { toVisualItem, VisualItem } from '@domain/items/itemVisualAdapter';
 
+type BadgeList = Array<'nft' | 'locked' | 'equipped'>;
+
 const oreKeys = ['t1', 't2', 't3', 't4', 't5'] as const;
 const personalKeys = ['core', 'neon', 'rune', 'star', 'ember', 'abyss'] as const;
 const teamKeys = ['front', 'lava', 'nexus', 'rift', 'sanct', 'storm'] as const;
 
 const oreItems: StandardItem[] = oreKeys.map((key, index) => ({
   id: `ore-${key}`,
-  type: 'ore',
+  type: 'ore' as const,
   key,
   tier: index + 1,
   name: `T${index + 1} 矿石`,
@@ -20,7 +22,7 @@ const oreItems: StandardItem[] = oreKeys.map((key, index) => ({
 const mapShardItems: StandardItem[] = [
   ...personalKeys.map((key, idx) => ({
     id: `map-${key}`,
-    type: 'mapShard',
+    type: 'mapShard' as const,
     key,
     tier: idx + 1,
     isTeam: false,
@@ -30,45 +32,45 @@ const mapShardItems: StandardItem[] = [
   })),
   ...teamKeys.map((key, idx) => ({
     id: `map-team-${key}`,
-    type: 'mapShard',
+    type: 'mapShard' as const,
     key,
     tier: idx + 1,
     isTeam: true,
     name: `${key.toUpperCase()} 团队碎片`,
     amount: 1 + idx,
     rarity: 'epic' as const,
-    badges: ['locked'] as const,
+    badges: ['locked'] as BadgeList,
   })),
 ];
 
 const mapNftItems: StandardItem[] = [
   ...personalKeys.map((key, idx) => ({
     id: `nft-${key}`,
-    type: 'nft',
+    type: 'nft' as const,
     key: `${key}`,
     tier: idx + 1,
     isTeam: false,
     name: `${key.toUpperCase()} 地图 NFT`,
     amount: 1,
     rarity: (['epic', 'legend', 'mythic'] as const)[idx % 3],
-    badges: ['nft'] as const,
+    badges: ['nft'] as BadgeList,
   })),
   ...teamKeys.map((key, idx) => ({
     id: `nft-team-${key}`,
-    type: 'nft',
+    type: 'nft' as const,
     key: `${key}`,
     tier: idx + 1,
     isTeam: true,
     name: `${key.toUpperCase()} 团队 NFT`,
     amount: 1,
     rarity: (['epic', 'legend', 'mythic'] as const)[(idx + 1) % 3],
-    badges: ['nft'] as const,
+    badges: ['nft'] as BadgeList,
   })),
 ];
 
 const workerItems: StandardItem[] = Array.from({ length: 8 }).map((_, idx) => ({
   id: `miner-${idx + 1}`,
-  type: 'other',
+  type: 'other' as const,
   key: `worker_${idx + 1}`,
   tier: 1,
   name: `矿工碎片 ${idx + 1}`,
@@ -78,7 +80,7 @@ const workerItems: StandardItem[] = Array.from({ length: 8 }).map((_, idx) => ({
 
 const otherItems: StandardItem[] = ['supply_1', 'supply_2', 'supply_3'].map((id, idx) => ({
   id,
-  type: 'other',
+  type: 'other' as const,
   key: id,
   tier: 1,
   name: `补给 ${idx + 1}`,

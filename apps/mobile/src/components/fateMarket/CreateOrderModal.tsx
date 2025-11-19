@@ -7,7 +7,7 @@ import {
   OreTier,
   mapGroups,
   mapLabelMap,
-} from '@types/fateMarket';
+} from '@schemas/fateMarket';
 
 type Props = {
   visible: boolean;

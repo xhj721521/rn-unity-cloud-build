@@ -13,7 +13,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { translate as t } from '@locale/strings';
 import { useAccountSummary } from '@services/web3/hooks';
 import { ChainAsset } from '@services/web3/types';
-import { RootTabParamList } from '@app/navigation/types';
+import { RootStackParamList, RootTabParamList } from '@app/navigation/types';
 
 const ARC_TOKEN_ID = 'tok-energy';
 const ORE_TOKEN_ID = 'tok-neon';

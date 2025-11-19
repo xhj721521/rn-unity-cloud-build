@@ -13,7 +13,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MarketStackParamList } from '@app/navigation/types';
 import { mockOrders, marketCategories, metrics } from '@data/marketOrders';
 import MarketOrderCard from '@components/market/MarketOrderCard';
-import { MarketCategory, OrderSide } from '@types/market';
+import { MarketCategory, OrderSide } from '@schemas/market';
 import PillTabs from '@components/market/PillTabs';
 
 const CATEGORY_TABS: ({ key: MarketCategory; label: string } | { key: 'all'; label: string })[] = [
@@ -83,15 +83,15 @@ export const MarketHomeScreen = () => {
             <TouchableOpacity
               style={styles.primaryButton}
               onPress={() =>
-                category === 'nft'
-                  ? navigation.navigate('MarketNewAuction')
-                  : navigation.navigate('MarketNewOrder', {
-                      type: category === 'all' ? 'ore' : (category as 'ore' | 'fragment'),
-                      mode: 'buy',
-                    })
+                navigation.navigate('MarketListings', {
+                  type: category === 'all' ? 'ore' : category,
+                  side: 'all',
+                })
               }
             >
-              <Text style={styles.primaryButtonText}>{category === 'nft' ? '发起拍卖' : '发布求购'}</Text>
+              <Text style={styles.primaryButtonText}>
+                {category === 'mapNft' ? '浏览 NFT' : '浏览挂单'}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -116,7 +116,9 @@ export const MarketHomeScreen = () => {
               <MarketOrderCard
                 key={item.id}
                 order={item}
-                onPressAction={(order) => navigation.navigate('MarketListings', { type: order.asset.category, side: 'all' })}
+                onPressAction={(order) =>
+                  navigation.navigate('MarketListings', { type: order.asset.category, side: 'all' })
+                }
               />
             ))}
           </View>

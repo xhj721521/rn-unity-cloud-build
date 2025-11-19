@@ -73,7 +73,7 @@ export const TeamStickyHeader = ({
       </View>
       {onPressChat ? (
         <Pressable style={styles.chatBubble} onPress={onPressChat}>
-          <QuickGlyph id="chat" size={16} />
+          <QuickGlyph id="team" size={16} />
           <Text style={styles.chatText}>团队聊天</Text>
         </Pressable>
       ) : null}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { ChatMessage } from '@services/chatTypes';
 import { palette } from '@theme/colors';
 import { typography } from '@theme/typography';
@@ -21,11 +21,8 @@ export const MessageItem = ({ message, isSelf, showAvatar = true, onRetry }: Pro
     );
   }
 
-  const bubbleStyle = [
-    styles.bubble,
-    isSelf ? styles.bubbleSelf : styles.bubblePeer,
-    { alignSelf: isSelf ? 'flex-end' : 'flex-start' },
-  ];
+  const bubbleAlignment: ViewStyle = { alignSelf: isSelf ? 'flex-end' : 'flex-start' };
+  const bubbleStyle = [styles.bubble, isSelf ? styles.bubbleSelf : styles.bubblePeer, bubbleAlignment];
 
   return (
     <View style={[styles.row, isSelf && styles.rowSelf]}>

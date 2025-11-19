@@ -1,7 +1,7 @@
 ﻿import React from "react";
 import { Image, ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
-import { AssetCategory, MapId, OrderSide } from "@types/fateMarket";
+import { AssetCategory, MapId, OrderSide } from "@schemas/fateMarket";
 import { ItemCategory, getItemVisual, getItemVisualByIconKey } from "@domain/items/itemVisualConfig";
 import { resolveIconSource } from "@domain/items/itemIconResolver";
 
@@ -132,7 +132,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
             </Text>
           ) : null}
           <TouchableOpacity style={styles.buyBtn} activeOpacity={0.85} onPress={onPressBuy}>
-            <Text style={styles.buyText}>买入</Text>
+            <Text style={styles.buyBtnText}>买入</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     width: '85%',
     alignItems: 'center',
   },
-  buyText: { color: '#F9FAFB', fontWeight: '700', fontSize: 13 },
+  buyBtnText: { color: '#F9FAFB', fontWeight: '700', fontSize: 13 },
 });
 
 export default OrderCard;

@@ -3,7 +3,7 @@ export type ForgeCategoryKey = 'arc' | 'fragment' | 'nft';
 export type ForgeIngredient = {
   name: string;
   quantity: number;
-  rarity: 'common' | 'rare' | 'epic';
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
 };
 
 export type ForgeRecipe = {

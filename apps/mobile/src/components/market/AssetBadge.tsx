@@ -4,7 +4,7 @@ import {
   marketAssetToText,
   marketAssetToDesc,
 } from './utils';
-import { MarketAsset } from '@types/market';
+import { MarketAsset } from '@schemas/market';
 
 type AssetBadgeProps = {
   asset: MarketAsset;

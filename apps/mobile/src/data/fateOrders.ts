@@ -1,4 +1,4 @@
-import { AssetCategory, MapId, Order, OrderSide } from '@types/fateMarket';
+import { AssetCategory, MapId, Order, OrderSide } from '@schemas/fateMarket';
 
 const now = () => new Date().toISOString();
 

@@ -57,9 +57,16 @@ export const typography = {
     fontWeight: '600' as const,
     letterSpacing: 0.4,
   },
+  caption: {
+    fontFamily: readableChinese,
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#B9C7FF',
+    fontWeight: '400' as const,
+  },
   numeric: {
     fontFamily: numericFace,
-    fontVariant: ['tabular-nums'],
+    fontVariant: ['tabular-nums'] as TextStyle['fontVariant'],
     fontSize: 20,
     lineHeight: 24,
     fontWeight: '600' as const,

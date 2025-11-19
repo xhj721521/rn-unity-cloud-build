@@ -1,8 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { crownColors } from '../utils';
-import { T } from '../tokens';
 
 type Props = {
   rank?: number;
@@ -11,8 +9,15 @@ type Props = {
   children: React.ReactNode;
 };
 
+const gradientForRank = (rank?: number) => {
+  if (rank === 1) return ['#FFD66B', '#FFE8A8'];
+  if (rank === 2) return ['#C7D2FF', '#E2E7FF'];
+  if (rank === 3) return ['#B794F6', '#D8C2FF'];
+  return ['#2A3C67', '#3D5B9A'];
+};
+
 const DoubleFrameCard: React.FC<Props> = ({ rank, width, height = 150, children }) => {
-  const colors = crownColors(rank ?? 0);
+  const colors = gradientForRank(rank);
   return (
     <LinearGradient
       colors={colors}
@@ -32,20 +37,20 @@ const DoubleFrameCard: React.FC<Props> = ({ rank, width, height = 150, children 
 
 const styles = StyleSheet.create({
   outer: {
-    borderRadius: T.radius.outer,
+    borderRadius: 18,
     padding: 1,
   },
   shell: {
     flex: 1,
-    borderRadius: T.radius.lg,
+    borderRadius: 16,
     overflow: 'hidden',
   },
   card: {
     flex: 1,
-    borderRadius: T.radius.lg,
+    borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: T.color.stroke,
-    backgroundColor: T.color.card,
+    borderColor: 'rgba(31,42,68,0.8)',
+    backgroundColor: '#121A2C',
     overflow: 'hidden',
   },
   frost: {

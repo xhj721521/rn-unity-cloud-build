@@ -45,7 +45,8 @@ const FILTER_TABS = [
 export const InviteHomeScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const [activeTab, setActiveTab] = useState<InviteFilterTab>('all');
-  const [selectedFilter, setSelectedFilter] = useState(FILTER_TABS[0].key);
+  const [selectedFilter, setSelectedFilter] =
+    useState<(typeof FILTER_TABS)[number]['key']>(FILTER_TABS[0].key);
   const [searchValue, setSearchValue] = useState('');
   const [rewardExpanded, setRewardExpanded] = useState(false);
   const tabBarHeight = useBottomTabBarHeight?.() ?? 0;

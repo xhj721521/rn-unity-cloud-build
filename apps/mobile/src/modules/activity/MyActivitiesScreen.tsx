@@ -3,8 +3,7 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { activities } from '@data/activities';
 import ActivityCard from '@components/ActivityCard';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationProp } from '@react-navigation/native-stack';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '@app/navigation/types';
 import { useFateResourceStore } from '@store/useFateResourceStore';
 

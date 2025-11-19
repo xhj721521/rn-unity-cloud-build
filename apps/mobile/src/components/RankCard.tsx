@@ -4,20 +4,37 @@ import Avatar from './Avatar';
 import DoubleFrameCard from './DoubleFrameCard';
 import TechTexture from './TechTexture';
 import IconCrown from './IconCrown';
-import { BoardType, RankItem } from '../types';
-import { fmt, isTop3 } from '../utils';
-import { T } from '../tokens';
-import { fonts } from '../typography';
-import { translate as t } from '../locale/strings';
+import typography from '@theme/typography';
+import { translate as t } from '@locale/strings';
+
+type RankType = 'invite' | 'team' | 'mining';
+
+export type RankCardItem = {
+  id: string;
+  rank: number;
+  nickname: string;
+  avatarUrl?: string;
+  badge?: string;
+  score: number;
+  primaryValue: number;
+  secondaryValue?: number;
+};
+
+const fmt = (value: number) => value.toLocaleString();
+const isTop3 = (rank: number) => rank >= 1 && rank <= 3;
+const fonts = {
+  meta: typography.captionCaps,
+  body: typography.body,
+};
 
 type Props = {
-  type: BoardType;
-  item: RankItem;
+  type: RankType;
+  item: RankCardItem;
   width: number;
   enableTexture?: boolean;
 };
 
-const metaByType = (type: BoardType, item: RankItem) => {
+const metaByType = (type: RankType, item: RankCardItem) => {
   if (type === 'invite') {
     return {
       cat: t('lb.invite'),
@@ -103,7 +120,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#1A2440',
   },
-  tagText: { ...fonts.meta, color: T.color.textMeta, fontSize: 11 },
+  tagText: { ...fonts.meta, color: 'rgba(126,138,166,1)', fontSize: 11 },
   middle: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   name: { ...fonts.body, fontSize: 15, fontWeight: '700' },
   badgeText: { ...fonts.meta, marginTop: 2 },
@@ -117,7 +134,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#173056',
     justifyContent: 'center',
   },
-  ctaText: { color: T.color.primary, fontSize: 12, fontWeight: '700' },
+  ctaText: { color: '#4DA3FF', fontSize: 12, fontWeight: '700' },
 });
 
 export default RankCard;
