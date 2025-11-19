@@ -85,15 +85,15 @@ const LeaderboardScreen = () => {
   const [period, setPeriod] = useState<LeaderboardPeriod>('daily');
   const leaderboard = useAppSelector((state) => state.leaderboard);
 
-  const board = leaderboard.data[category][period];
+  const board = leaderboard?.data?.[category]?.[period];
   const type = CATEGORY_TABS.find((tab) => tab.key === category)?.type ?? 'invite';
 
   const items: RankCardItem[] = useMemo(() => {
-    if (!board.entries.length) {
+    if (!board || !board.entries.length) {
       return buildMockItems(type);
     }
     return board.entries.map((entry, idx) => mapEntryToRankItem(type, entry, idx));
-  }, [board.entries, type]);
+  }, [board, type]);
   const topThree = items.slice(0, 3);
   const rest = items.slice(3);
 
@@ -168,11 +168,11 @@ const LeaderboardScreen = () => {
             </Animated.View>
 
             <MyRankBar
-              rank={board.myRank?.rank}
-              score={board.myRank?.score}
-              diff={board.myRank?.rank ? 59 : undefined}
+              rank={board?.myRank?.rank}
+              score={board?.myRank?.score}
+              diff={board?.myRank?.rank ? 59 : undefined}
               title={t('lb.my_rank')}
-              diffLabel={board.myRank?.rank ? t('lb.my.diff', { value: 59 }) : undefined}
+              diffLabel={board?.myRank?.rank ? t('lb.my.diff', { value: 59 }) : undefined}
               guideLabel={t('lb.cta.detail')}
             />
             <RewardsChips
