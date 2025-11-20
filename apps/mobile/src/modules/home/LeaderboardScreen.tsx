@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Dimensions, FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FlatList, SafeAreaView, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useAppSelector } from '@state/hooks';
@@ -12,11 +12,8 @@ import { buildMockItems, BoardType } from '@mock/leaderboard';
 import { translate as t } from '@locale/strings';
 import typography from '@theme/typography';
 
-const { width } = Dimensions.get('window');
-const GAP = 14;
 const H_PADDING = 16;
-const CARD_WIDTH = (width - H_PADDING * 2 - GAP) / 2;
-const fmt = (value: number) => value.toLocaleString();
+const GRID_GAP = 8;
 const isTop3 = (rank?: number) => !!rank && rank >= 1 && rank <= 3;
 const fonts = {
   title: typography.heading,
@@ -25,16 +22,16 @@ const fonts = {
 };
 const neonTitle = { textShadowColor: 'rgba(77,163,255,0.35)', textShadowRadius: 8 };
 
-const CATEGORY_TABS: { key: LeaderboardCategory; label: string; type: BoardType }[] = [
-  { key: 'inviter', label: '命运邀约', type: 'invite' },
-  { key: 'team', label: '命运战队', type: 'team' },
-  { key: 'wealth', label: '命运秘矿', type: 'mining' },
+const CATEGORY_TABS: { key: LeaderboardCategory; labelKey: string; type: BoardType }[] = [
+  { key: 'inviter', labelKey: 'lb.invite', type: 'invite' },
+  { key: 'team', labelKey: 'lb.team', type: 'team' },
+  { key: 'wealth', labelKey: 'lb.wealth', type: 'mining' },
 ];
 
-const PERIOD_TABS: { key: LeaderboardPeriod; label: string }[] = [
-  { key: 'daily', label: '日榜' },
-  { key: 'weekly', label: '周榜' },
-  { key: 'monthly', label: '月榜' },
+const PERIOD_TABS: { key: LeaderboardPeriod; labelKey: string }[] = [
+  { key: 'daily', labelKey: 'lb.daily' },
+  { key: 'weekly', labelKey: 'lb.weekly' },
+  { key: 'monthly', labelKey: 'lb.monthly' },
 ];
 
 const mapEntryToRankItem = (type: BoardType, entry: { rank: number; playerName: string; score: number }, index: number): RankCardItem => ({
@@ -52,10 +49,15 @@ const LeaderboardScreen = () => {
   const tabBarHeight = useBottomTabBarHeight?.() ?? 0;
   const [category, setCategory] = useState<LeaderboardCategory>('inviter');
   const [period, setPeriod] = useState<LeaderboardPeriod>('daily');
+  const [currentPage, setCurrentPage] = useState(0);
+  const { width } = useWindowDimensions();
   const leaderboard = useAppSelector((state) => state.leaderboard);
 
   const board = leaderboard?.data?.[category]?.[period];
   const type = CATEGORY_TABS.find((tab) => tab.key === category)?.type ?? 'invite';
+  const categoryLabel = CATEGORY_TABS.find((tab) => tab.key === category)?.labelKey ?? 'lb.invite';
+  const periodLabel = PERIOD_TABS.find((tab) => tab.key === period)?.labelKey ?? 'lb.daily';
+  const cardWidth = (width - H_PADDING * 2 - GRID_GAP * 2) / 3;
 
   const items: RankCardItem[] = useMemo(() => {
     if (!board || !board.entries?.length) {
@@ -64,102 +66,145 @@ const LeaderboardScreen = () => {
     return board.entries.map((entry, idx) => mapEntryToRankItem(type, entry, idx));
   }, [board, type]);
 
-  const listPadding = { paddingBottom: tabBarHeight ? tabBarHeight + 96 : 120 };
+  const pages = useMemo(() => {
+    const chunkSize = 6;
+    const res: RankCardItem[][] = [];
+    for (let i = 0; i < items.length; i += chunkSize) {
+      res.push(items.slice(i, i + chunkSize));
+    }
+    return res;
+  }, [items]);
 
-  const renderRankCard = ({ item }: { item: RankCardItem }) => (
-    <View style={{ width: CARD_WIDTH, marginBottom: GAP }}>
-      <RankCard type={type} item={item} width={CARD_WIDTH} enableTexture />
-    </View>
-  );
+  const contentPadding = { paddingTop: 16, paddingBottom: tabBarHeight ? tabBarHeight + 96 : 120 };
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [category, period]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#0B1020' }}>
-      <FlatList
-        data={items}
-        renderItem={renderRankCard}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={{ paddingTop: 16, ...listPadding }}
-        columnWrapperStyle={{ paddingHorizontal: H_PADDING, gap: GAP }}
-        ListHeaderComponent={
-          <View style={{ paddingHorizontal: H_PADDING, gap: 12 }}>
-            <View style={styles.headerRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={[fonts.title, neonTitle, { fontSize: 22 }]}>{t('lb.title')}</Text>
-                <Text style={styles.subtitle}>
-                  {category === 'inviter'
-                    ? t('lb.desc.invite')
-                    : category === 'team'
-                    ? t('lb.desc.team')
-                    : t('lb.desc.wealth')}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={contentPadding}>
+        <View style={{ paddingHorizontal: H_PADDING, marginBottom: 12 }}>
+          <Text style={[fonts.title, neonTitle, { fontSize: 22 }]}>{t('lb.title')}</Text>
+          <Text style={styles.subtitle}>
+            {category === 'inviter'
+              ? t('lb.desc.invite')
+              : category === 'team'
+              ? t('lb.desc.team')
+              : t('lb.desc.wealth')}
+          </Text>
+        </View>
+
+        <View style={{ paddingHorizontal: H_PADDING, marginTop: 4 }}>
+          <Animated.View entering={FadeInUp} style={styles.tabRow}>
+            {CATEGORY_TABS.map((tab) => {
+              const active = tab.key === category;
+              return (
+                <Text key={tab.key} style={[styles.tab, active && styles.tabActive]} onPress={() => setCategory(tab.key)}>
+                  {t(tab.labelKey)}
                 </Text>
-              </View>
+              );
+            })}
+          </Animated.View>
+        </View>
+
+        <View style={{ paddingHorizontal: H_PADDING, marginTop: 8 }}>
+          <Animated.View entering={FadeInUp.delay(50)} style={styles.segmentRow}>
+            {PERIOD_TABS.map((tab) => {
+              const active = tab.key === period;
+              return (
+                <Text key={tab.key} style={[styles.segment, active && styles.segmentActive]} onPress={() => setPeriod(tab.key)}>
+                  {t(tab.labelKey)}
+                </Text>
+              );
+            })}
+          </Animated.View>
+        </View>
+
+        <View style={{ paddingHorizontal: H_PADDING, marginTop: 10 }}>
+          <MyRankBar
+            rank={board?.myRank?.rank}
+            score={board?.myRank?.score}
+            title={t('lb.my_rank')}
+            diffLabel={board?.myRank?.rank ? t('lb.my.diff', { value: 59 }) : undefined}
+            guideLabel={t('lb.cta.detail')}
+          />
+        </View>
+
+        <View style={{ marginTop: 16 }}>
+          <Text style={styles.boardIndicator}>
+            {t(categoryLabel)} · {t(periodLabel)}
+          </Text>
+          {pages.length > 0 ? (
+            <>
+              <FlatList
+                data={pages}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(_, index) => `page-${index}`}
+                onMomentumScrollEnd={(e) => {
+                  const page = Math.round(e.nativeEvent.contentOffset.x / width);
+                  setCurrentPage(page);
+                }}
+                renderItem={({ item: pageItems }) => (
+                  <View style={{ width }}>
+                    <View style={{ paddingHorizontal: H_PADDING, paddingTop: 4 }}>
+                      <View style={{ flexDirection: 'row', marginBottom: GRID_GAP }}>
+                        {pageItems.slice(0, 3).map((item, idx) => (
+                          <View key={item.id ?? `top-${idx}`} style={{ width: cardWidth, marginRight: idx < 2 ? GRID_GAP : 0 }}>
+                            <RankCard type={type} item={item} width={cardWidth} enableTexture />
+                          </View>
+                        ))}
+                      </View>
+                      <View style={{ flexDirection: 'row' }}>
+                        {pageItems.slice(3, 6).map((item, idx) => (
+                          <View key={item.id ?? `bottom-${idx}`} style={{ width: cardWidth, marginRight: idx < 2 ? GRID_GAP : 0 }}>
+                            <RankCard type={type} item={item} width={cardWidth} enableTexture />
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+                )}
+              />
+              {pages.length > 1 && (
+                <View style={styles.pagination}>
+                  {pages.map((_, index) => {
+                    const active = index === currentPage;
+                    return <View key={index} style={[styles.pageDot, active && styles.pageDotActive]} />;
+                  })}
+                </View>
+              )}
+            </>
+          ) : (
+            <View style={{ marginTop: 32, alignItems: 'center' }}>
+              <SkeletonCard width={cardWidth} />
             </View>
+          )}
+        </View>
 
-            <Animated.View entering={FadeInUp} style={styles.tabRow}>
-              {CATEGORY_TABS.map((tab) => {
-                const active = tab.key === category;
-                return (
-                  <Text
-                    key={tab.key}
-                    onPress={() => setCategory(tab.key)}
-                    style={[styles.tab, active && styles.tabActive]}
-                  >
-                    {tab.key === 'inviter'
-                      ? t('lb.invite')
-                      : tab.key === 'team'
-                      ? t('lb.team')
-                      : t('lb.wealth')}
-                  </Text>
-                );
-              })}
-            </Animated.View>
-
-            <Animated.View entering={FadeInUp.delay(50)} style={styles.segmentRow}>
-              {PERIOD_TABS.map((tab) => {
-                const active = tab.key === period;
-                return (
-                  <Text
-                    key={tab.key}
-                    onPress={() => setPeriod(tab.key)}
-                    style={[styles.segment, active && styles.segmentActive]}
-                  >
-                    {tab.key === 'daily'
-                      ? t('lb.daily')
-                      : tab.key === 'weekly'
-                      ? t('lb.weekly')
-                      : t('lb.monthly')}
-                  </Text>
-                );
-              })}
-            </Animated.View>
-            <MyRankBar
-              style={{ marginTop: 4 }}
-              rank={board?.myRank?.rank}
-              score={board?.myRank?.score}
-              diff={board?.myRank?.rank ? 59 : undefined}
-              title={t('lb.my_rank')}
-              diffLabel={board?.myRank?.rank ? t('lb.my.diff', { value: 59 }) : undefined}
-              guideLabel={t('lb.cta.detail')}
-            />
-            <RewardsChips
-              labels={[t('lb.reward.top1'), t('lb.reward.top2'), t('lb.reward.top3')]}
-            />
+        <View style={{ paddingHorizontal: H_PADDING, marginTop: 24 }}>
+          <Text style={styles.rewardTitle}>
+            {(() => {
+              const text = t('lb.reward.title');
+              return text === 'lb.reward.title' ? t('lb.my_rank') : text;
+            })()}
+          </Text>
+          <View style={styles.rewardPanel}>
+            <RewardsChips labels={[t('lb.reward.top1'), t('lb.reward.top2'), t('lb.reward.top3')]} />
           </View>
-        }
-        ListEmptyComponent={
-          <View style={{ paddingHorizontal: H_PADDING, marginTop: 40 }}>
-            <SkeletonCard width={CARD_WIDTH} />
-          </View>
-        }
-      />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  headerRow: { flexDirection: 'row', alignItems: 'center' },
-  subtitle: { ...fonts.meta, marginTop: 4 },
+  subtitle: {
+    ...fonts.meta,
+    marginTop: 6,
+    opacity: 0.9,
+  },
   tabRow: { flexDirection: 'row', gap: 8 },
   tab: {
     flex: 1,
@@ -195,6 +240,40 @@ const styles = StyleSheet.create({
     borderColor: '#4DA3FF',
     backgroundColor: 'rgba(77,163,255,0.18)',
     fontWeight: '600',
+  },
+  boardIndicator: {
+    ...fonts.meta,
+    textAlign: 'center',
+    opacity: 0.85,
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  pageDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginHorizontal: 4,
+    backgroundColor: 'rgba(77,163,255,0.3)',
+  },
+  pageDotActive: {
+    width: 10,
+    backgroundColor: '#4DA3FF',
+  },
+  rewardTitle: {
+    ...fonts.meta,
+    marginBottom: 8,
+    opacity: 0.9,
+  },
+  rewardPanel: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(77,163,255,0.25)',
+    backgroundColor: 'rgba(8,15,32,0.92)',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
   },
 });
 
