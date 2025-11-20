@@ -134,6 +134,7 @@ const LeaderboardScreen = () => {
               })}
             </Animated.View>
             <MyRankBar
+              style={{ marginTop: 4 }}
               rank={board?.myRank?.rank}
               score={board?.myRank?.score}
               diff={board?.myRank?.rank ? 59 : undefined}

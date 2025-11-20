@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import typography from '@theme/typography';
 
 const fonts = {
@@ -15,6 +15,7 @@ type Props = {
   diffLabel?: string;
   guideLabel?: string;
   onPressGuide?: () => void;
+  style?: ViewStyle;
 };
 
 const MyRankBar: React.FC<Props> = ({
@@ -25,8 +26,9 @@ const MyRankBar: React.FC<Props> = ({
   diffLabel,
   guideLabel = '攻略',
   onPressGuide,
+  style,
 }) => (
-  <View style={styles.container}>
+  <View style={[styles.container, style]}>
     <View style={styles.left}>
       <Text style={styles.label}>{title}</Text>
       <Text style={styles.value}>
@@ -44,7 +46,6 @@ const MyRankBar: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 16,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(77,163,255,0.4)',
