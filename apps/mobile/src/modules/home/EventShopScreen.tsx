@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ScreenContainer } from '@components/ScreenContainer';
 import NeonCard from '@components/NeonCard';
 import RipplePressable from '@components/RipplePressable';
@@ -14,6 +14,7 @@ const raffleCover = require('../../assets/cards/card_leaderboard.webp');
 
 type EventStatus = 'live' | 'upcoming' | 'ended';
 type CategoryFilter = 'all' | 'member' | 'challenge' | 'raffle' | 'redeem';
+type EventFilter = 'live' | 'redeem' | 'upcoming' | 'ended';
 
 type ConfirmConfig = {
   title: string;
@@ -54,18 +55,11 @@ type RaffleInfo = {
   myState: 'none' | 'joined' | 'whitelist';
 };
 
-const STATUS_CHIPS: Array<{ key: EventStatus; label: string }> = [
+const FILTER_TABS: Array<{ key: EventFilter; label: string }> = [
   { key: 'live', label: '进行中' },
+  { key: 'redeem', label: '兑换中' },
   { key: 'upcoming', label: '预告' },
   { key: 'ended', label: '已结束' },
-];
-
-const CATEGORY_CHIPS: Array<{ key: CategoryFilter; label: string }> = [
-  { key: 'all', label: '全部' },
-  { key: 'member', label: '会员' },
-  { key: 'challenge', label: '挑战' },
-  { key: 'raffle', label: '抽签' },
-  { key: 'redeem', label: '兑换' },
 ];
 
 const heroEvent: HeroEvent = {
@@ -103,20 +97,30 @@ const raffleEvent: RaffleInfo = {
 };
 
 export const EventShopScreen = () => {
-  const [statusFilter, setStatusFilter] = useState<EventStatus>('live');
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
+  const [filter, setFilter] = useState<EventFilter>('live');
   const [membershipSegment, setMembershipSegment] = useState<'monthly' | 'lifetime'>('monthly');
   const [confirmConfig, setConfirmConfig] = useState<ConfirmConfig>(null);
   const [myDrawerVisible, setMyDrawerVisible] = useState(false);
 
-  const matchesStatus = (status: EventStatus) => status === statusFilter;
-  const matchesCategory = (category: CategoryFilter) =>
-    categoryFilter === 'all' || categoryFilter === category;
+  const matchesFilter = (status: EventStatus, category?: CategoryFilter) => {
+    switch (filter) {
+      case 'live':
+        return status === 'live';
+      case 'upcoming':
+        return status === 'upcoming';
+      case 'ended':
+        return status === 'ended';
+      case 'redeem':
+        return category === 'redeem';
+      default:
+        return true;
+    }
+  };
 
-  const heroVisible = matchesStatus(heroEvent.status) && matchesCategory(heroEvent.category);
-  const membershipVisible = matchesStatus(membershipEvent.status) && matchesCategory('member');
-  const teamPassVisible = matchesStatus(teamPassEvent.status) && matchesCategory('challenge');
-  const raffleVisible = matchesStatus(raffleEvent.status) && matchesCategory('raffle');
+  const heroVisible = matchesFilter(heroEvent.status, heroEvent.category);
+  const membershipVisible = matchesFilter(membershipEvent.status, 'member');
+  const teamPassVisible = matchesFilter(teamPassEvent.status, 'challenge');
+  const raffleVisible = matchesFilter(raffleEvent.status, 'raffle');
 
   const visibleCount = [heroVisible, membershipVisible, teamPassVisible, raffleVisible].filter(
     Boolean,
@@ -188,39 +192,20 @@ export const EventShopScreen = () => {
           </RipplePressable>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statusRow}>
-          {STATUS_CHIPS.map((chip) => {
-            const active = chip.key === statusFilter;
+        <View style={styles.filterRow}>
+          {FILTER_TABS.map((tab) => {
+            const active = tab.key === filter;
             return (
               <RipplePressable
-                key={chip.key}
-                style={[styles.chip, active && styles.chipActive]}
-                onPress={() => setStatusFilter(chip.key)}
+                key={tab.key}
+                style={[styles.filterChip, active && styles.filterChipActive]}
+                onPress={() => setFilter(tab.key)}
               >
-                <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>
-                  {chip.label}
-                </Text>
+                <Text style={[styles.filterText, active && styles.filterTextActive]}>{tab.label}</Text>
               </RipplePressable>
             );
           })}
-        </ScrollView>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryRow}>
-          {CATEGORY_CHIPS.map((chip) => {
-            const active = chip.key === categoryFilter;
-            return (
-              <RipplePressable
-                key={chip.key}
-                style={[styles.categoryChip, active && styles.categoryChipActive]}
-                onPress={() => setCategoryFilter(chip.key)}
-              >
-                <Text style={[styles.categoryLabel, active && styles.categoryLabelActive]}>
-                  {chip.label}
-                </Text>
-              </RipplePressable>
-            );
-          })}
-        </ScrollView>
+        </View>
 
         {contentEmpty ? (
           <View style={styles.emptyState}>
@@ -255,8 +240,16 @@ export const EventShopScreen = () => {
   );
 };
 
+const STATUS_LABELS: Record<EventStatus, string> = {
+  live: '进行中',
+  upcoming: '预告',
+  ended: '已结束',
+};
+
 const HeroEventCard = ({ data, onPress }: { data: HeroEvent; onPress: () => void }) => {
   const progress = data.stockLeft / data.stockTotal;
+  const statusLabel = STATUS_LABELS[data.status];
+  const stockState = progress < 0.4 ? '稀缺' : '充足';
   return (
     <NeonCard
       backgroundSource={heroCover}
@@ -266,24 +259,41 @@ const HeroEventCard = ({ data, onPress }: { data: HeroEvent; onPress: () => void
       contentPadding={24}
       style={styles.card}
     >
-      <View style={styles.badgeRow}>
-        {data.badges.map((badge) => (
-          <View key={badge} style={styles.badge}>
-            <Text style={styles.badgeText}>{badge}</Text>
-          </View>
-        ))}
+      <View style={styles.cardTop}>
+        <View style={styles.badgeRow}>
+          {data.badges.map((badge) => (
+            <View key={badge} style={styles.badge}>
+              <Text style={styles.badgeText}>{badge}</Text>
+            </View>
+          ))}
+        </View>
+        <View style={styles.statusPill}>
+          <View
+            style={[
+              styles.statusDot,
+              data.status === 'live'
+                ? styles.statusDotLive
+                : data.status === 'upcoming'
+                ? styles.statusDotUpcoming
+                : styles.statusDotEnded,
+            ]}
+          />
+          <Text style={styles.statusText}>{statusLabel}</Text>
+        </View>
       </View>
       <Text style={styles.cardTitle}>{data.title}</Text>
-      <Text style={styles.cardDesc}>{data.desc}</Text>
-      <View style={styles.countdownRow}>
-        <Text style={styles.countdownLabel}>倒计时</Text>
-        <Text style={styles.countdownValue}>{formatCountdown(data.countdownMs)}</Text>
+      <Text style={styles.cardDesc} numberOfLines={2}>
+        {data.desc}
+      </Text>
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>倒计时</Text>
+        <Text style={styles.infoValue}>{formatCountdown(data.countdownMs)}</Text>
       </View>
-      <View style={styles.stockRow}>
-        <Text style={styles.stockText}>
-          库存 {data.stockLeft}/{data.stockTotal}
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>库存</Text>
+        <Text style={styles.infoValue}>
+          {data.stockLeft}/{data.stockTotal} · {stockState}
         </Text>
-        <Text style={styles.stockAlert}>{progress < 0.4 ? '稀缺' : '充足'}</Text>
       </View>
       <View style={styles.progressBar}>
         <View style={[styles.progressFill, { width: `${Math.min(progress * 100, 100)}%` }]} />
@@ -320,6 +330,9 @@ const MembershipCard = ({
     ctaText = data.my.lifetime ? '徽章已激活' : '升级永久';
   }
 
+  const statusLabel = STATUS_LABELS[data.status];
+  const benefitSummary = data.benefits.join(' · ');
+
   return (
     <NeonCard
       backgroundSource={membershipCover}
@@ -329,6 +342,26 @@ const MembershipCard = ({
       contentPadding={20}
       style={styles.card}
     >
+      <View style={styles.cardTop}>
+        <View style={styles.badgeRow}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>会员专享</Text>
+          </View>
+        </View>
+        <View style={styles.statusPill}>
+          <View
+            style={[
+              styles.statusDot,
+              data.status === 'live'
+                ? styles.statusDotLive
+                : data.status === 'upcoming'
+                ? styles.statusDotUpcoming
+                : styles.statusDotEnded,
+            ]}
+          />
+          <Text style={styles.statusText}>{statusLabel}</Text>
+        </View>
+      </View>
       <View style={styles.cardHeader}>
         <View>
           <Text style={styles.cardEyebrow}>会员中心</Text>
@@ -351,49 +384,85 @@ const MembershipCard = ({
           })}
         </View>
       </View>
+      <Text style={styles.cardDesc} numberOfLines={2}>
+        {benefitSummary}
+      </Text>
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>当前状态</Text>
+        <Text style={styles.infoValue}>{statusText}</Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>权益摘要</Text>
+        <Text style={styles.infoValue} numberOfLines={1}>
+          {benefitSummary}
+        </Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>方案</Text>
+        <Text style={styles.infoValue}>{selected === 'monthly' ? '月度会员' : '永久会员'}</Text>
+      </View>
+      <RipplePressable style={styles.primaryCta} onPress={onPress}>
+        <Text style={styles.primaryCtaText}>{ctaText}</Text>
+      </RipplePressable>
+    </NeonCard>
+  );
+};
+
+const TeamPassCard = ({ data, onPress }: { data: TeamPassInfo; onPress: () => void }) => {
+  const statusLabel = STATUS_LABELS[data.status];
+  const benefits = data.benefits.slice(0, 3);
+  return (
+    <NeonCard
+      backgroundSource={teamPassCover}
+      overlayColor="rgba(6,10,20,0.85)"
+      borderColors={['rgba(0,209,199,0.6)', 'rgba(138,92,255,0.6)']}
+      glowColor="rgba(0,209,199,0.25)"
+      contentPadding={20}
+      style={styles.card}
+    >
+      <View style={styles.cardTop}>
+        <View style={styles.badgeRow}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>团队拓展</Text>
+          </View>
+        </View>
+        <View style={styles.statusPill}>
+          <View
+            style={[
+              styles.statusDot,
+              data.status === 'live'
+                ? styles.statusDotLive
+                : data.status === 'upcoming'
+                ? styles.statusDotUpcoming
+                : styles.statusDotEnded,
+            ]}
+          />
+          <Text style={styles.statusText}>{statusLabel}</Text>
+        </View>
+      </View>
+      <Text style={styles.cardEyebrow}>团队拓展证</Text>
+      <Text style={styles.cardTitle}>月度权益 · 席位扩容</Text>
+      <Text style={styles.cardDesc} numberOfLines={2}>
+        {benefits.join(' · ')}
+      </Text>
       <View style={styles.benefitsList}>
-        {data.benefits.map((benefit) => (
+        {benefits.map((benefit) => (
           <View key={benefit} style={styles.benefitRow}>
             <Text style={styles.benefitBullet}>✦</Text>
             <Text style={styles.benefitText}>{benefit}</Text>
           </View>
         ))}
       </View>
-      <Text style={styles.membershipStatus}>{statusText}</Text>
-      <RipplePressable style={styles.secondaryCta} onPress={onPress}>
-        <Text style={styles.secondaryCtaText}>{ctaText}</Text>
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>剩余天数</Text>
+        <Text style={styles.infoValue}>{data.daysLeft ? `剩余 ${data.daysLeft} 天` : '尚未激活'}</Text>
+      </View>
+      <RipplePressable style={styles.primaryCta} onPress={onPress}>
+        <Text style={styles.primaryCtaText}>{data.daysLeft ? '续期' : '激活权限'}</Text>
       </RipplePressable>
     </NeonCard>
   );
 };
-
-const TeamPassCard = ({ data, onPress }: { data: TeamPassInfo; onPress: () => void }) => (
-  <NeonCard
-    backgroundSource={teamPassCover}
-    overlayColor="rgba(6,10,20,0.85)"
-    borderColors={['rgba(0,209,199,0.6)', 'rgba(138,92,255,0.6)']}
-    glowColor="rgba(0,209,199,0.25)"
-    contentPadding={20}
-    style={styles.card}
-  >
-    <Text style={styles.cardEyebrow}>团队拓展证</Text>
-    <Text style={styles.cardTitle}>月度权益 · 席位扩容</Text>
-    <View style={styles.benefitsList}>
-      {data.benefits.map((benefit) => (
-        <View key={benefit} style={styles.benefitRow}>
-          <Text style={styles.benefitBullet}>✦</Text>
-          <Text style={styles.benefitText}>{benefit}</Text>
-        </View>
-      ))}
-    </View>
-    <Text style={styles.membershipStatus}>
-      {data.daysLeft ? `剩余 ${data.daysLeft} 天` : '尚未激活'}
-    </Text>
-    <RipplePressable style={styles.secondaryCta} onPress={onPress}>
-      <Text style={styles.secondaryCtaText}>{data.daysLeft ? '续期' : '激活权限'}</Text>
-    </RipplePressable>
-  </NeonCard>
-);
 
 const RaffleCard = ({ data, onPress }: { data: RaffleInfo; onPress: () => void }) => {
   const progress = Math.min(data.joined / data.quota, 1);
@@ -418,24 +487,50 @@ const RaffleCard = ({ data, onPress }: { data: RaffleInfo; onPress: () => void }
       contentPadding={20}
       style={styles.card}
     >
+      <View style={styles.cardTop}>
+        <View style={styles.badgeRow}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>抽签</Text>
+          </View>
+        </View>
+        <View style={styles.statusPill}>
+          <View
+            style={[
+              styles.statusDot,
+              data.status === 'live'
+                ? styles.statusDotLive
+                : data.status === 'upcoming'
+                ? styles.statusDotUpcoming
+                : styles.statusDotEnded,
+            ]}
+          />
+          <Text style={styles.statusText}>{STATUS_LABELS[data.status]}</Text>
+        </View>
+      </View>
       <Text style={styles.cardEyebrow}>股东 NFT 抽签</Text>
       <Text style={styles.cardTitle}>传承徽章 · 仅限 200 席</Text>
-      <View style={styles.raffleRow}>
-        <Text style={styles.raffleLabel}>报名进度</Text>
-        <Text style={styles.raffleValue}>
+      <Text style={styles.cardDesc} numberOfLines={2}>
+        稀有徽章加成，支持预约认领
+      </Text>
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>报名进度</Text>
+        <Text style={styles.infoValue}>
           {data.joined}/{data.quota}
         </Text>
       </View>
       <View style={styles.progressBar}>
         <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
       </View>
-      <View style={styles.raffleRow}>
-        <Text style={styles.raffleLabel}>开奖时间</Text>
-        <Text style={styles.raffleValue}>{formatCountdown(data.drawAt - Date.now())}</Text>
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>开奖时间</Text>
+        <Text style={styles.infoValue}>{formatCountdown(data.drawAt - Date.now())}</Text>
       </View>
-      <Text style={styles.membershipStatus}>{stateLabel}</Text>
-      <RipplePressable style={styles.secondaryCta} onPress={onPress}>
-        <Text style={styles.secondaryCtaText}>{ctaText}</Text>
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>我的状态</Text>
+        <Text style={styles.infoValue}>{stateLabel}</Text>
+      </View>
+      <RipplePressable style={styles.primaryCta} onPress={onPress}>
+        <Text style={styles.primaryCtaText}>{ctaText}</Text>
       </RipplePressable>
     </NeonCard>
   );
@@ -535,11 +630,13 @@ const styles = StyleSheet.create({
   title: {
     ...typography.heading,
     color: palette.text,
+    fontSize: 22,
   },
   subtitle: {
     ...typography.body,
     color: palette.sub,
-    marginTop: 6,
+    fontSize: 13,
+    marginTop: 4,
   },
   myButton: {
     borderRadius: shape.capsuleRadius,
@@ -553,59 +650,50 @@ const styles = StyleSheet.create({
     ...typography.captionCaps,
     color: palette.text,
   },
-  statusRow: {
-    marginBottom: spacing.cardGap,
-  },
-  categoryRow: {
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
     marginBottom: spacing.section,
   },
-  chip: {
-    borderRadius: shape.capsuleRadius,
+  filterChip: {
+    flex: 1,
+    height: 38,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 10,
-    backgroundColor: 'rgba(7,10,18,0.6)',
+    borderColor: 'rgba(31,42,68,0.8)',
+    backgroundColor: 'rgba(4,8,20,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  chipActive: {
-    borderColor: palette.primary,
-    backgroundColor: 'rgba(0,209,199,0.24)',
+  filterChipActive: {
+    borderColor: '#4DA3FF',
+    backgroundColor: 'rgba(77,163,255,0.18)',
   },
-  chipLabel: {
+  filterText: {
     ...typography.captionCaps,
-    color: palette.sub,
+    fontSize: 13,
+    color: '#7E8AA6',
   },
-  chipLabelActive: {
-    color: palette.text,
-  },
-  categoryChip: {
-    borderRadius: shape.capsuleRadius,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginRight: 10,
-    backgroundColor: 'rgba(8,8,20,0.6)',
-  },
-  categoryChipActive: {
-    borderColor: palette.accent,
-    backgroundColor: 'rgba(138,92,255,0.24)',
-  },
-  categoryLabel: {
-    ...typography.captionCaps,
-    color: palette.sub,
-  },
-  categoryLabelActive: {
-    color: palette.text,
+  filterTextActive: {
+    color: '#EAF2FF',
+    fontWeight: '600',
   },
   card: {
     marginBottom: spacing.section,
   },
+  cardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 12,
+  },
   badgeRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 10,
+    flexWrap: 'wrap',
+    gap: 8,
+    flex: 1,
   },
   badge: {
     borderRadius: 999,
@@ -622,6 +710,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     ...typography.heading,
     color: palette.text,
+    marginTop: 2,
   },
   cardDesc: {
     ...typography.body,
@@ -629,57 +718,47 @@ const styles = StyleSheet.create({
     marginTop: 6,
     lineHeight: 20,
   },
-  countdownRow: {
+  infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 14,
+    marginTop: 10,
+    gap: 12,
   },
-  countdownLabel: {
-    ...typography.captionCaps,
-    color: palette.sub,
-  },
-  countdownValue: {
-    ...typography.subtitle,
-    color: palette.text,
-  },
-  stockRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  stockText: {
+  infoLabel: {
     ...typography.caption,
     color: palette.sub,
   },
-  stockAlert: {
-    ...typography.captionCaps,
-    color: '#F97316',
+  infoValue: {
+    ...typography.caption,
+    color: palette.text,
+    textAlign: 'right',
+    flexShrink: 1,
   },
   progressBar: {
     height: 6,
     borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.12)',
     overflow: 'hidden',
-    marginTop: 6,
+    marginTop: 8,
   },
   progressFill: {
     height: '100%',
     backgroundColor: palette.primary,
   },
   primaryCta: {
-    marginTop: 20,
+    marginTop: 16,
     borderRadius: shape.capsuleRadius,
-    borderWidth: 1,
-    borderColor: palette.primary,
-    paddingVertical: 12,
+    backgroundColor: palette.primary,
+    height: 44,
     alignItems: 'center',
-    backgroundColor: 'rgba(0,209,199,0.2)',
+    justifyContent: 'center',
   },
   primaryCtaText: {
-    ...typography.subtitle,
-    color: palette.text,
+    ...typography.captionCaps,
+    color: '#0B0F1E',
+    fontSize: 14,
+    fontWeight: '600',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -728,35 +807,33 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: palette.text,
   },
-  membershipStatus: {
-    ...typography.captionCaps,
-    color: palette.sub,
-    marginTop: 14,
-  },
-  secondaryCta: {
-    marginTop: 12,
-    borderRadius: shape.capsuleRadius,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    paddingVertical: 10,
-    alignItems: 'center',
-    backgroundColor: 'rgba(8,12,24,0.6)',
-  },
-  secondaryCtaText: {
-    ...typography.subtitle,
-    color: palette.text,
-  },
-  raffleRow: {
+  statusPill: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(8,12,24,0.7)',
   },
-  raffleLabel: {
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  statusDotLive: {
+    backgroundColor: '#4DA3FF',
+  },
+  statusDotUpcoming: {
+    backgroundColor: '#FACC15',
+  },
+  statusDotEnded: {
+    backgroundColor: '#64748B',
+  },
+  statusText: {
     ...typography.captionCaps,
-    color: palette.sub,
-  },
-  raffleValue: {
-    ...typography.caption,
     color: palette.text,
   },
   emptyState: {
