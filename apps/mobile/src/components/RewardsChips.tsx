@@ -1,47 +1,90 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import typography from '@theme/typography';
 
 const fonts = {
-  meta: typography.captionCaps,
+  title: typography.captionCaps,
+  body: typography.body,
+};
+
+type RewardCard = {
+  title: string;
+  tier?: string;
+  detail?: string;
+  raw: string;
 };
 
 type Props = {
-  onPressChip?: () => void;
+  onPressCard?: (label: string) => void;
   labels?: string[];
 };
 
 const defaultLabels = [
-  'TOP1-3 · 神秘盲盒×1 + Arc×300',
-  'TOP4-10 · Arc×150 + 勋章×1',
-  'TOP11-20 · Arc×80 + 礼包×1',
+  '命运巅峰 · TOP1-3 · 神秘盲盒×1 + Arc×300',
+  '命运荣光 · TOP4-10 · Arc×150 + 勋章×1',
+  '命运鼓励 · TOP11-20 · Arc×80 + 礼包×1',
 ];
 
-const RewardsChips: React.FC<Props> = ({ onPressChip, labels = defaultLabels }) => (
-  <ScrollView
-    horizontal
-    showsHorizontalScrollIndicator={false}
-    style={{ marginHorizontal: 16, marginTop: 12 }}
-    contentContainerStyle={{ gap: 8 }}
-  >
-    {labels.map((text) => (
-      <Pressable key={text} style={styles.chip} onPress={onPressChip}>
-        <Text style={styles.chipText}>{text}</Text>
-      </Pressable>
-    ))}
-  </ScrollView>
-);
+const parseReward = (text: string): RewardCard => {
+  const segments = text
+    .split('·')
+    .map((seg) => seg.trim())
+    .filter(Boolean);
+  const [title, tier, ...rest] = segments;
+  return {
+    title: title ?? text,
+    tier,
+    detail: rest.length ? rest.join(' · ') : undefined,
+    raw: text,
+  };
+};
+
+const RewardsChips: React.FC<Props> = ({ onPressCard, labels = defaultLabels }) => {
+  const items = labels.map(parseReward);
+  return (
+    <View style={styles.wrapper}>
+      {items.map((item) => (
+        <Pressable key={item.raw} style={styles.card} onPress={() => onPressCard?.(item.raw)}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          {item.tier ? <Text style={styles.cardTier}>{item.tier}</Text> : null}
+          {item.detail ? <Text style={styles.cardDetail}>{item.detail}</Text> : null}
+        </Pressable>
+      ))}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-  chip: {
-    height: 32,
-    paddingHorizontal: 12,
+  wrapper: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    gap: 10,
+  },
+  card: {
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(31,42,68,0.8)',
-    justifyContent: 'center',
+    borderColor: 'rgba(77,163,255,0.35)',
+    backgroundColor: 'rgba(10,18,38,0.9)',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 6,
   },
-  chipText: { ...fonts.meta, color: '#CFE2FF' },
+  cardTitle: {
+    ...fonts.title,
+    color: '#E5F2FF',
+    fontSize: 13,
+    letterSpacing: 0.4,
+  },
+  cardTier: {
+    ...fonts.body,
+    fontWeight: '700',
+    color: '#96BEFF',
+  },
+  cardDetail: {
+    ...fonts.body,
+    fontSize: 13,
+    color: 'rgba(229,242,255,0.72)',
+  },
 });
 
 export default RewardsChips;

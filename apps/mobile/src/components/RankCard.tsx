@@ -63,7 +63,8 @@ const RankCard: React.FC<Props> = ({ type, item, width, enableTexture }) => {
   const meta = metaByType(type, item);
   return (
     <DoubleFrameCard rank={item.rank} width={width}>
-      {enableTexture && <TechTexture opacity={isTop3(item.rank) ? 0.06 : 0.03} />}
+      {enableTexture && <TechTexture opacity={isTop3(item.rank) ? 0.04 : 0.018} />}
+      <View style={styles.surfaceMask} />
       <View style={styles.cardInner}>
         <View style={styles.header}>
           <Text style={[fonts.meta, styles.rankIndex]}>{`NO.${String(item.rank).padStart(2, '0')}`}</Text>
@@ -110,6 +111,10 @@ const RankCard: React.FC<Props> = ({ type, item, width, enableTexture }) => {
 };
 
 const styles = StyleSheet.create({
+  surfaceMask: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(7,12,24,0.72)',
+  },
   cardInner: { flex: 1, padding: 12, gap: 8 },
   header: { flexDirection: 'row', alignItems: 'center' },
   rankIndex: { color: '#97B7FF', fontWeight: '700' },
