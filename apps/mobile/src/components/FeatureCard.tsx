@@ -1,8 +1,7 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { Animated, LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { spacing, typeScale } from '@theme/tokens';
 import { FeatureCard as FeatureFrame } from '../ui/Card';
-import PerforatedGrid from '../ui/decor/PerforatedGrid';
 import QuickGlyph, { QuickGlyphId } from './QuickGlyph';
 
 export type FeatureCardType = 'leaderboard' | 'forge' | 'market' | 'events';
@@ -25,7 +24,6 @@ export const FeatureCard = ({
   height = 120,
 }: FeatureCardProps) => {
   const scale = useRef(new Animated.Value(1)).current;
-  const [cardSize, setCardSize] = useState({ width: 0, height: 0 });
 
   const gradientColors = useMemo<[string, string]>(() => {
     return [hexToRgba(accent, 0.32), hexToRgba(accent, 0.58)];
@@ -49,17 +47,6 @@ export const FeatureCard = ({
     }).start();
   };
 
-  const handleLayout = (event: LayoutChangeEvent) => {
-    const { width, height: measuredHeight } = event.nativeEvent.layout;
-    setCardSize((prev) =>
-      prev.width === width && prev.height === measuredHeight
-        ? prev
-        : { width, height: measuredHeight },
-    );
-  };
-
-  const showGrid = cardSize.width > 0 && cardSize.height > 0;
-
   return (
     <Pressable
       onPress={onPress}
@@ -68,7 +55,7 @@ export const FeatureCard = ({
       style={styles.pressable}
     >
       <Animated.View style={[styles.cardWrapper, { height, transform: [{ scale }] }]}>
-        <View style={styles.cardSurface} onLayout={handleLayout}>
+        <View style={styles.cardSurface}>
           <FeatureFrame colors={gradientColors} style={styles.frameContent}>
             <View style={styles.iconRow}>
               <QuickGlyph id={featureGlyphMap[icon]} size={26} colors={[accent, '#78F7FF']} />
@@ -80,9 +67,6 @@ export const FeatureCard = ({
               </Text>
             </View>
           </FeatureFrame>
-          {showGrid ? (
-            <PerforatedGrid width={cardSize.width} height={cardSize.height} align="tl" />
-          ) : null}
         </View>
       </Animated.View>
     </Pressable>

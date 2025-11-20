@@ -89,7 +89,7 @@ const LeaderboardScreen = () => {
   const type = CATEGORY_TABS.find((tab) => tab.key === category)?.type ?? 'invite';
 
   const items: RankCardItem[] = useMemo(() => {
-    if (!board || !board.entries.length) {
+    if (!board || !board.entries?.length) {
       return buildMockItems(type);
     }
     return board.entries.map((entry, idx) => mapEntryToRankItem(type, entry, idx));

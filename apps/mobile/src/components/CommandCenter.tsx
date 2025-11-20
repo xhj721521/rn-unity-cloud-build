@@ -1,8 +1,7 @@
 import React from 'react';
-import { LayoutChangeEvent, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { shape, spacing, typeScale } from '@theme/tokens';
 import { SurfaceCard, CapsuleCard } from '../ui/Card';
-import PerforatedGrid from '../ui/decor/PerforatedGrid';
 
 type ResourceCapsule = {
   id: string;
@@ -30,23 +29,9 @@ export const CommandCenter = ({
   resources,
   connectionLabel,
 }: CommandCenterProps) => {
-  const [cardSize, setCardSize] = React.useState({ width: 0, height: 0 });
-
-  const handleLayout = React.useCallback((event: LayoutChangeEvent) => {
-    const { width, height } = event.nativeEvent.layout;
-    setCardSize((prev) =>
-      prev.width === width && prev.height === height ? prev : { width, height },
-    );
-  }, []);
-
-  const showGrid = cardSize.width > 0 && cardSize.height > 0;
-
   return (
     <SurfaceCard style={styles.surface}>
-      <View style={styles.surfaceContent} onLayout={handleLayout}>
-        {showGrid ? (
-          <PerforatedGrid width={cardSize.width} height={cardSize.height} align="tr" />
-        ) : null}
+      <View style={styles.surfaceContent}>
         <View style={styles.body}>
           <View style={styles.headerRow}>
             <View style={styles.identityColumn}>
