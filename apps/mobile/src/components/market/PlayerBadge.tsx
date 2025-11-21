@@ -4,7 +4,7 @@ import { PlayerInfo } from '@schemas/market';
 
 type PlayerBadgeProps = {
   player: PlayerInfo;
-  sideLabel: '卖家' | '求购方';
+  sideLabel: string;
   size?: 'sm' | 'md';
 };
 

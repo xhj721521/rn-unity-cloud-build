@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MarketOrder } from '@schemas/market';
 import PlayerBadge from './PlayerBadge';
 import AssetBadge from './AssetBadge';
+import { translate as t } from '@locale/strings';
 
 type Props = {
   order: MarketOrder;
@@ -10,14 +11,18 @@ type Props = {
 };
 
 export const MarketOrderCard: React.FC<Props> = ({ order, onPressAction }) => {
-  const actionText = order.side === 'sell' ? '买入' : '卖给 TA';
+  const actionText = order.side === 'sell' ? t('market.action.buy') : t('market.action.sell_to');
+  const quantityLabel = t('market.label.quantity');
+  const ordersLabel = t('market.label.orders');
+  const playerLabel = order.side === 'sell' ? t('market.label.seller') : t('market.label.buyer');
+  const sideBadgeText = order.side === 'sell' ? t('market.side.sell') : t('market.side.buy');
 
   return (
     <View style={styles.card}>
       <View style={styles.topRow}>
-        <PlayerBadge player={order.owner} sideLabel={order.side === 'sell' ? '卖家' : '求购方'} size="sm" />
+        <PlayerBadge player={order.owner} sideLabel={playerLabel} size="sm" />
         <View style={[styles.sidePill, order.side === 'sell' ? styles.sell : styles.buy]}>
-          <Text style={styles.sideText}>{order.side === 'sell' ? '卖单' : '求购'}</Text>
+          <Text style={styles.sideText}>{sideBadgeText}</Text>
         </View>
       </View>
 
@@ -28,7 +33,9 @@ export const MarketOrderCard: React.FC<Props> = ({ order, onPressAction }) => {
       <View style={styles.metaRow}>
         <View>
           <Text style={styles.price}>{order.price} ARC</Text>
-          <Text style={styles.qty}>数量 {order.quantity}</Text>
+          <Text style={styles.qty}>
+            {quantityLabel} {order.quantity}
+          </Text>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
           {typeof order.change24h === 'number' ? (
@@ -39,7 +46,7 @@ export const MarketOrderCard: React.FC<Props> = ({ order, onPressAction }) => {
           ) : null}
           {order.ordersCount ? (
             <Text style={styles.subText}>
-              {order.side === 'sell' ? '挂单数' : '求购数'} {order.ordersCount} 笔
+              {ordersLabel} {order.ordersCount} 笔
             </Text>
           ) : null}
         </View>

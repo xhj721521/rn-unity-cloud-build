@@ -18,6 +18,8 @@ export interface VisualItem {
   visual?: ItemVisualConfig;
   icon: ImageSourcePropType;
   shortLabel?: string;
+  typeLabel?: string;
+  ownership?: 'personal' | 'team';
 }
 
 export function toVisualItem(raw: StandardItem): VisualItem {
@@ -47,5 +49,7 @@ export function toVisualItem(raw: StandardItem): VisualItem {
     visual,
     icon,
     shortLabel: visual?.shortLabel,
+    typeLabel: visual?.typeLabel,
+    ownership: visual?.ownership,
   };
 }

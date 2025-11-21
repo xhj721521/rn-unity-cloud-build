@@ -33,6 +33,8 @@ export type MapNftTarget =
 // Order direction
 export type OrderSide = 'sell' | 'buy';
 
+export type MarketOrderStatus = 'live' | 'redeem' | 'upcoming' | 'ended';
+
 // Player info
 export interface PlayerInfo {
   id: string;
@@ -56,6 +58,7 @@ export interface MarketOrder {
   owner: PlayerInfo;
   change24h?: number;
   ordersCount?: number;
+  status?: MarketOrderStatus;
 }
 
 export const oreLabels: Record<OreTier, string> = {
